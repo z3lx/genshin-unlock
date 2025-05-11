@@ -1,79 +1,97 @@
 #pragma once
 
+#include "utils/MinHook.hpp"
+
+#include <MinHook.h>
+
+#include <cstddef>
+#include <mutex>
 #include <stdexcept>
 
-template <typename Ret, typename... Args>
-MinHook<Ret, Args...>::MinHook()
-    : target(nullptr), original(nullptr) {
-    if (!MinHookBackend::IsInitialized()) {
-        MinHookBackend::Initialize();
+namespace MinHookImpl {
+inline std::mutex mutex {};
+inline size_t referenceCount { 0 };
+
+inline void ThrowMhStatus(const MH_STATUS status) {
+    throw std::runtime_error { MH_StatusToString(status) };
+}
+
+inline void ThrowOnMhError(const MH_STATUS status) {
+    if (status != MH_OK) {
+        ThrowMhStatus(status);
     }
 }
+} // namespace MinHookImpl
 
 template <typename Ret, typename... Args>
 MinHook<Ret, Args...>::MinHook(void* target, void* detour, const bool enable)
-    : MinHook() {
-    Create(target, detour, enable);
-}
+    : enabled { enable }, target { target }, original { nullptr } {
+    using namespace MinHookImpl;
+    const auto handleMhError = [](const MH_STATUS status) {
+        if (status != MH_OK) {
+            MH_Uninitialize();
+            --referenceCount;
+            ThrowMhStatus(status);
+        }
+    };
 
-template <typename Ret, typename... Args>
-MinHook<Ret, Args...>::~MinHook() {
-    Remove();
-    if (MinHookBackend::Count() == 0) {
-        MinHookBackend::Uninitialize();
+    std::lock_guard lock { mutex };
+
+    // Initialize MinHook
+    if (referenceCount++ == 0) {
+        handleMhError(MH_Initialize());
     }
-}
 
-template <typename Ret, typename... Args>
-bool MinHook<Ret, Args...>::IsCreated() const noexcept {
-    return MinHookBackend::IsCreated(target);
-}
-
-template <typename Ret, typename... Args>
-void MinHook<Ret, Args...>::Create(void* target, void* detour, const bool enable) {
-    if (!target || !detour) {
-        throw std::invalid_argument("Target and detour must not be null");
-    }
-    Remove();
-    MinHookBackend::Create(target, detour, &original);
-    this->target = target;
+    // Create and enable the hook
+    handleMhError(MH_CreateHook(target, detour, &original));
     if (enable) {
-        Enable();
+        handleMhError(MH_EnableHook(target));
     }
 }
 
 template <typename Ret, typename... Args>
-void MinHook<Ret, Args...>::Remove() const {
-    if (IsCreated()) {
-        MinHookBackend::Remove(target);
+MinHook<Ret, Args...>::~MinHook() noexcept {
+    using namespace MinHookImpl;
+    std::lock_guard lock { mutex };
+
+    MH_RemoveHook(target);
+    if (--referenceCount == 0) {
+        MH_Uninitialize();
     }
 }
 
 template <typename Ret, typename... Args>
 bool MinHook<Ret, Args...>::IsEnabled() const noexcept {
-    return MinHookBackend::IsEnabled(target);
+    using namespace MinHookImpl;
+    std::lock_guard lock { mutex };
+
+    return enabled;
 }
 
 template <typename Ret, typename... Args>
-void MinHook<Ret, Args...>::Enable() const {
-    if (!IsEnabled()) {
-        MinHookBackend::Enable(target);
+void MinHook<Ret, Args...>::Enable() {
+    using namespace MinHookImpl;
+    std::lock_guard lock { mutex };
+
+    if (!enabled) {
+        ThrowOnMhError(MH_EnableHook(target));
+        enabled = true;
     }
 }
 
 template <typename Ret, typename... Args>
-void MinHook<Ret, Args...>::Disable() const {
-    if (IsCreated() && IsEnabled()) {
-        MinHookBackend::Disable(target);
+void MinHook<Ret, Args...>::Disable() {
+    using namespace MinHookImpl;
+    std::lock_guard lock { mutex };
+
+    if (enabled) {
+        ThrowOnMhError(MH_DisableHook(target));
+        enabled = false;
     }
 }
 
 template <typename Ret, typename... Args>
 Ret MinHook<Ret, Args...>::CallOriginal(Args... args) const {
-    if (!IsCreated()) {
-        throw std::runtime_error("Hook must be created");
-    }
-    return reinterpret_cast<FuncPtr>(original)(
-        std::forward<Args>(args)...
-    );
+    using FuncPtr = Ret(*)(Args...);
+    return reinterpret_cast<FuncPtr>(original)(args...);
 }

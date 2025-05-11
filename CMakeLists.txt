@@ -36,7 +36,7 @@ endif()
 file(GLOB_RECURSE UTILS_SOURCES include/utils/* src/utils/*)
 add_library(utils STATIC ${UTILS_SOURCES})
 target_include_directories(utils PRIVATE include)
-target_link_libraries(utils PRIVATE minhook)
+target_link_libraries(utils PUBLIC minhook)
 
 file(GLOB_RECURSE PLUGIN_SOURCES include/plugin/* src/plugin/*)
 add_library(genshin_fov_unlock SHARED ${PLUGIN_SOURCES})
