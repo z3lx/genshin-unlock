@@ -25,8 +25,12 @@ inline void ThrowOnMhError(const MH_STATUS status) {
 
 template <typename Ret, typename... Args>
 MinHook<Ret, Args...>::MinHook(void* target, void* detour, const bool enable)
-    : enabled { enable }, target { target }, original { nullptr } {
+    : enabled { enable }
+    , target { target }
+    , original { nullptr } {
     using namespace MinHookImpl;
+    std::lock_guard lock { mutex };
+
     const auto handleMhError = [](const MH_STATUS status) {
         if (status != MH_OK) {
             MH_Uninitialize();
@@ -34,8 +38,6 @@ MinHook<Ret, Args...>::MinHook(void* target, void* detour, const bool enable)
             ThrowMhStatus(status);
         }
     };
-
-    std::lock_guard lock { mutex };
 
     // Initialize MinHook
     if (referenceCount++ == 0) {
@@ -54,10 +56,48 @@ MinHook<Ret, Args...>::~MinHook() noexcept {
     using namespace MinHookImpl;
     std::lock_guard lock { mutex };
 
+    if (target == nullptr) {
+        return;
+    }
+
     MH_RemoveHook(target);
     if (--referenceCount == 0) {
         MH_Uninitialize();
     }
+}
+
+template <typename Ret, typename... Args>
+MinHook<Ret, Args...>::MinHook(MinHook&& other) noexcept
+    : enabled { other.enabled }
+    , target { other.target }
+    , original { other.original } {
+    using namespace MinHookImpl;
+    std::lock_guard lock { mutex };
+
+    other.enabled = false;
+    other.target = nullptr;
+    other.original = nullptr;
+}
+
+template <typename Ret, typename... Args>
+MinHook<Ret, Args...>&
+MinHook<Ret, Args...>::operator=(MinHook&& other) noexcept {
+    using namespace MinHookImpl;
+    std::lock_guard lock { mutex };
+
+    if (this == &other) {
+        return *this;
+    }
+
+    enabled = other.enabled;
+    target = other.target;
+    original = other.original;
+
+    other.enabled = false;
+    other.target = nullptr;
+    other.original = nullptr;
+
+    return *this;
 }
 
 template <typename Ret, typename... Args>

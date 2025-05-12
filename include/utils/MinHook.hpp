@@ -6,6 +6,11 @@ public:
     MinHook(void* target, void* detour, bool enable = false);
     ~MinHook() noexcept;
 
+    MinHook(const MinHook& other) = delete;
+    MinHook& operator=(const MinHook& other) = delete;
+    MinHook(MinHook&& other) noexcept;
+    MinHook& operator=(MinHook&& other) noexcept;
+
     [[nodiscard]] bool IsEnabled() const noexcept;
     void Enable();
     void Disable();

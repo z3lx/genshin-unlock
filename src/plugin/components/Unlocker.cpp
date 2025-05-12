@@ -58,9 +58,7 @@ Unlocker::Unlocker() try {
     const auto target = reinterpret_cast<void*>(module + offset);
     const auto detour = reinterpret_cast<void*>(HkSetFieldOfView);
 
-    if (!hook) {
-        hook.emplace(target, detour);
-    }
+    hook = MinHook<void, void*, float> { target, detour };
 } catch (const std::exception& e) {
     LOG_E("Failed to create Unlocker: {}", e.what());
     throw;
