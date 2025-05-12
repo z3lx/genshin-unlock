@@ -71,9 +71,6 @@ MinHook<Ret, Args...>::MinHook(MinHook&& other) noexcept
     : enabled { other.enabled }
     , target { other.target }
     , original { other.original } {
-    using namespace MinHookImpl;
-    std::lock_guard lock { mutex };
-
     other.enabled = false;
     other.target = nullptr;
     other.original = nullptr;
@@ -82,9 +79,6 @@ MinHook<Ret, Args...>::MinHook(MinHook&& other) noexcept
 template <typename Ret, typename... Args>
 MinHook<Ret, Args...>&
 MinHook<Ret, Args...>::operator=(MinHook&& other) noexcept {
-    using namespace MinHookImpl;
-    std::lock_guard lock { mutex };
-
     if (this == &other) {
         return *this;
     }
@@ -102,17 +96,12 @@ MinHook<Ret, Args...>::operator=(MinHook&& other) noexcept {
 
 template <typename Ret, typename... Args>
 bool MinHook<Ret, Args...>::IsEnabled() const noexcept {
-    using namespace MinHookImpl;
-    std::lock_guard lock { mutex };
-
     return enabled;
 }
 
 template <typename Ret, typename... Args>
 void MinHook<Ret, Args...>::Enable() {
     using namespace MinHookImpl;
-    std::lock_guard lock { mutex };
-
     if (!enabled) {
         ThrowOnMhError(MH_EnableHook(target));
         enabled = true;
@@ -122,8 +111,6 @@ void MinHook<Ret, Args...>::Enable() {
 template <typename Ret, typename... Args>
 void MinHook<Ret, Args...>::Disable() {
     using namespace MinHookImpl;
-    std::lock_guard lock { mutex };
-
     if (enabled) {
         ThrowOnMhError(MH_DisableHook(target));
         enabled = false;

@@ -42,8 +42,6 @@ bool isPreviousFov = false;
 } // namespace
 
 Unlocker::Unlocker() try {
-    std::lock_guard lock { mutex };
-
     auto module = reinterpret_cast<uintptr_t>(
         GetModuleHandle("GenshinImpact.exe"));
     const auto global = module ? true : (
@@ -58,6 +56,7 @@ Unlocker::Unlocker() try {
     const auto target = reinterpret_cast<void*>(module + offset);
     const auto detour = reinterpret_cast<void*>(HkSetFieldOfView);
 
+    std::lock_guard lock { mutex };
     hook = MinHook<void, void*, float> { target, detour };
 } catch (const std::exception& e) {
     LOG_E("Failed to create Unlocker: {}", e.what());
@@ -95,6 +94,9 @@ void Unlocker::SetSmoothing(const float value) noexcept {
 namespace {
 void HkSetFieldOfView(void* instance, float value) noexcept try {
     std::lock_guard lock { mutex };
+    if (!hook.has_value()) {
+        return;
+    }
 
     ++setFovCount;
     if (const bool isDefaultFov = value == 45.0f;
