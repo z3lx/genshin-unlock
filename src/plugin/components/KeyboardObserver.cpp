@@ -7,8 +7,8 @@
 #include <algorithm>
 #include <cstdint>
 #include <exception>
+#include <future>
 #include <mutex>
-#include <optional>
 #include <thread>
 #include <unordered_map>
 #include <utility>
@@ -23,46 +23,40 @@ struct KeyboardObserver::Hook {
 private:
     static LRESULT CALLBACK KeyboardProc(
         int nCode, WPARAM wParam, LPARAM lParam) noexcept;
-
     static void SetHook();
-    static void MessageLoop() noexcept;
-    static void ClearHook(std::thread& thread) noexcept;
-    static inline HHOOK hHook {};
-
-    using Prologue = decltype(&SetHook);
-    using Body = decltype(&MessageLoop);
-    using Epilogue = decltype(&ClearHook);
+    static void ClearHook() noexcept;
 
     static inline std::mutex mutex {};
+    static inline std::thread thread {};
+    static inline HHOOK hHook {};
     static inline std::vector<KeyboardObserver*> instances {};
-    static inline std::optional<ThreadWrapper<
-        Prologue, Body, Epilogue>> thread {};
     static inline std::unordered_map<uint8_t, bool> keyDownStates {};
 };
 
-void KeyboardObserver::Hook::Register(KeyboardObserver* instance) try {
+void KeyboardObserver::Hook::Register(KeyboardObserver* instance) {
     std::lock_guard lock { mutex };
     if (const auto it = std::ranges::find(instances, instance);
         it != instances.end()) {
         return;
     }
-    instances.emplace_back(instance);
-    if (!thread.has_value()) {
-        thread.emplace(SetHook, MessageLoop, ClearHook);
+
+    instances.reserve(instances.size() + 1);
+    if (instances.empty()) {
+        SetHook();
     }
-} catch (...) {
-    Unregister(instance);
-    throw;
+    instances.emplace_back(instance);
 }
 
 void KeyboardObserver::Hook::Unregister(KeyboardObserver* instance) noexcept {
     std::lock_guard lock { mutex };
-    if (const auto it = std::ranges::find(instances, instance);
-        it != instances.end()) {
-        instances.erase(it);
+    const auto it = std::ranges::find(instances, instance);
+    if (it == instances.end()) {
+        return;
     }
+
+    instances.erase(it);
     if (instances.empty()) {
-        thread.reset();
+        ClearHook();
     }
 }
 
@@ -103,7 +97,9 @@ LRESULT CALLBACK KeyboardObserver::Hook::KeyboardProc(
             isKeyDown = false;
             break;
         }
-        default: break;
+        default: {
+            return next();
+        }
     }
 
     {
@@ -118,24 +114,35 @@ LRESULT CALLBACK KeyboardObserver::Hook::KeyboardProc(
 }
 
 void KeyboardObserver::Hook::SetHook() {
-    ThrowOnSystemError(hHook = SetWindowsHookEx(
-        WH_KEYBOARD_LL, KeyboardProc, nullptr, 0
-    ));
+    std::promise<void> promise {};
+    auto future = promise.get_future();
+    const auto task = [&promise]() {
+        try {
+            ThrowOnSystemError(hHook = SetWindowsHookEx(
+                WH_KEYBOARD_LL, KeyboardProc, nullptr, 0
+            ));
+        } catch (...) {
+            promise.set_exception(std::current_exception());
+            return;
+        }
+        promise.set_value();
+
+        MSG msg {};
+        while (GetMessage(&msg, nullptr, 0, 0)) {
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
+    };
+    thread = std::thread { task };
+    future.get();
 }
 
-void KeyboardObserver::Hook::MessageLoop() noexcept {
-    MSG msg {};
-    while (GetMessage(&msg, nullptr, 0, 0)) {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
-    }
-}
-
-void KeyboardObserver::Hook::ClearHook(std::thread& thread) noexcept {
+void KeyboardObserver::Hook::ClearHook() noexcept {
     const auto threadId = GetThreadId(thread.native_handle());
     PostThreadMessage(threadId, WM_QUIT, 0, 0);
     UnhookWindowsHookEx(hHook);
     hHook = nullptr;
+    thread.join();
 }
 
 KeyboardObserver::KeyboardObserver() try {
