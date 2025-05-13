@@ -88,7 +88,7 @@ void Unlocker::SetFieldOfView(const int value) noexcept {
 }
 
 void Unlocker::SetSmoothing(const float value) noexcept {
-    filter.SetTimeConstant(value);
+    filter.TimeConstant(value);
 }
 
 namespace {
@@ -108,7 +108,7 @@ void HkSetFieldOfView(void* instance, float value) noexcept try {
         }
 
         if (setFovCount > 8) {
-            filter.SetInitialValue(value);
+            filter.InitialValue(value);
         }
         setFovCount = 0;
 

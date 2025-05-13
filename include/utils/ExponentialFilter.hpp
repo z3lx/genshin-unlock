@@ -3,28 +3,33 @@
 #include <chrono>
 #include <type_traits>
 
-template <typename T>
-class ExponentialFilter {
-    static_assert(
-        std::is_floating_point_v<T>,
-        "T must be a floating-point type"
-    );
+#define EXPONENTIALFILTER_TEMPLATE                                              \
+    template <typename Real, typename Clock = std::chrono::steady_clock>        \
+    requires std::is_floating_point_v<Real>
 
+EXPONENTIALFILTER_TEMPLATE
+class ExponentialFilter {
 public:
     explicit ExponentialFilter(
-        T timeConstant = static_cast<T>(0),
-        T initialValue = static_cast<T>(0)
-    ) noexcept;
-    ~ExponentialFilter() noexcept = default;
+        Real timeConstant = 0,
+        Real initialValue = 0) noexcept;
+    ~ExponentialFilter() noexcept;
 
-    void SetTimeConstant(T value) noexcept;
-    void SetInitialValue(T value) noexcept;
-    T Update(T value) noexcept;
+    ExponentialFilter(const ExponentialFilter& other) noexcept;
+    ExponentialFilter& operator=(const ExponentialFilter& other) noexcept;
+    ExponentialFilter(ExponentialFilter&& other) noexcept;
+    ExponentialFilter& operator=(ExponentialFilter&& other) noexcept;
+
+    Real TimeConstant() const noexcept;
+    void TimeConstant(Real value) noexcept;
+    Real InitialValue() const noexcept;
+    void InitialValue(Real value) noexcept;
+    Real Update(Real value) noexcept;
 
 private:
-    T timeConstant;
-    T lastFilteredValue;
-    std::chrono::time_point<std::chrono::steady_clock> lastTime;
+    Real timeConstant;
+    Real previousFilteredValue;
+    std::chrono::time_point<Clock> previousTime;
 };
 
 #include "utils/ExponentialFilterInl.hpp"
