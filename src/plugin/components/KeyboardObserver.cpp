@@ -1,6 +1,5 @@
 #include "plugin/components/KeyboardObserver.hpp"
 #include "plugin/Events.hpp"
-#include "utils/ThreadWrapper.hpp"
 #include "utils/Windows.hpp"
 #include "utils/log/Logger.hpp"
 
