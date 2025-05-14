@@ -4,12 +4,12 @@
 #include "utils/log/Logger.hpp"
 
 #include <algorithm>
+#include <bitset>
 #include <cstdint>
 #include <exception>
 #include <future>
 #include <mutex>
 #include <thread>
-#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -29,7 +29,7 @@ private:
     static inline std::thread thread {};
     static inline HHOOK hHook {};
     static inline std::vector<KeyboardObserver*> instances {};
-    static inline std::unordered_map<uint8_t, bool> keyDownStates {};
+    static inline std::bitset<256> isKeyDown {};
 };
 
 void KeyboardObserver::Hook::Register(KeyboardObserver* instance) {
@@ -69,43 +69,30 @@ LRESULT CALLBACK KeyboardObserver::Hook::KeyboardProc(
         return next();
     }
 
-    Event event {};
     const auto keyboard = reinterpret_cast<KBDLLHOOKSTRUCT*>(lParam);
     const auto key = static_cast<uint8_t>(keyboard->vkCode);
-    bool* isKeyDownPtr {};
-    try {
-        isKeyDownPtr = &keyDownStates[key];
-    } catch (const std::exception& e) {
-        LOG_E("Failed to get key state: {}", e.what());
-        return next();
-    }
-    auto& isKeyDown = *isKeyDownPtr;
+    const auto isCurrentKeyDown = !(keyboard->flags & (KF_UP >> 8));
+    auto isPreviousKeyDown = isKeyDown[key];
 
-    switch (wParam) {
-        case WM_KEYDOWN: case WM_SYSKEYDOWN: {
-            if (isKeyDown) {
-                event.emplace<OnKeyHold>(key);
-            } else {
-                event.emplace<OnKeyDown>(key);
-            }
-            isKeyDown = true;
-            break;
+    Event event {};
+    if (isCurrentKeyDown) {
+        if (isPreviousKeyDown) {
+            event.emplace<OnKeyHold>(key);
+        } else {
+            event.emplace<OnKeyDown>(key);
         }
-        case WM_KEYUP: case WM_SYSKEYUP: {
-            event.emplace<OnKeyUp>(key);
-            isKeyDown = false;
-            break;
-        }
-        default: {
-            return next();
-        }
+    } else {
+        event.emplace<OnKeyUp>(key);
     }
+    isPreviousKeyDown = isCurrentKeyDown;
 
     {
         std::lock_guard lock { mutex };
         for (const auto instance : instances) {
-            std::lock_guard instanceLock { instance->mutex };
-            instance->keyboardEvents.emplace_back(event);
+            try {
+                std::lock_guard instanceLock { instance->mutex };
+                instance->keyboardEvents.emplace_back(event);
+            } catch (...) {}
         }
     }
 
