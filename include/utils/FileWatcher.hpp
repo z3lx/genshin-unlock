@@ -28,11 +28,14 @@ public:
     ~FileWatcher() noexcept;
 
 private:
+    enum class State : uint8_t;
+
     template <typename Callable>
     void WatchFile(Callable callback) noexcept;
 
     HANDLE directoryHandle;
-    std::atomic<bool> flag;
+    OVERLAPPED overlapped;
+    std::atomic<State> state;
     std::thread thread;
     std::vector<uint8_t> buffer;
 };
