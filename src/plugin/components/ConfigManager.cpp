@@ -2,8 +2,11 @@
 #include "utils/log/Logger.hpp"
 
 #include <nlohmann/json.hpp>
+#include <wil/filesystem.h>
+#include <wil/result.h>
 
 #include <algorithm>
+#include <atomic>
 #include <exception>
 #include <filesystem>
 #include <fstream>
@@ -21,8 +24,16 @@ constexpr auto PREV_KEY = "prev_key";
 constexpr auto DUMP_KEY = "dump_key";
 } // namespace
 
-ConfigManager::ConfigManager(std::filesystem::path filePath) noexcept
-    : filePath { std::move(filePath) } {}
+ConfigManager::ConfigManager(std::filesystem::path filepath) try
+    : filepath { std::move(filepath) }
+    , changed { true } {
+    reader = wil::make_folder_change_reader(
+        this->filepath.parent_path().wstring().c_str(), false,
+        wil::FolderChangeEvents::LastWriteTime,
+        [this](const auto event, const auto fileName) {
+            OnFolderChange(event, fileName);
+        });
+} CATCH_THROW_NORMALIZED()
 
 ConfigManager::~ConfigManager() noexcept = default;
 
@@ -49,7 +60,7 @@ ConfigManager::~ConfigManager() noexcept = default;
     }
 
 Config ConfigManager::Read() const {
-    std::ifstream file { filePath };
+    std::ifstream file { filepath };
     if (!file.is_open()) {
         throw std::runtime_error { "Failed to open file" };
     }
@@ -101,9 +112,24 @@ void ConfigManager::Write(const Config& config) const {
         { DUMP_KEY, dumpKey }
     };
 
-    std::ofstream file { filePath };
+    std::ofstream file { filepath };
     if (!file.is_open()) {
         throw std::runtime_error { "Failed to open file" };
     }
     file << j.dump(4);
+}
+
+void ConfigManager::OnFolderChange(
+    const wil::FolderChangeEvent event, const PCWSTR filename) noexcept {
+    if (event == wil::FolderChangeEvent::Modified &&
+        filename == filepath.filename()) {
+        changed.store(true, std::memory_order_relaxed);
+    }
+}
+
+void ConfigManager::Update() noexcept {
+    if (changed.load(std::memory_order_relaxed)) {
+        changed.store(false, std::memory_order_relaxed);
+        Notify(OnConfigChange {});
+    }
 }

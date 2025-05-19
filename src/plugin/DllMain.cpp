@@ -3,6 +3,8 @@
 #include "utils/log/Logger.hpp"
 #include "utils/log/sinks/FileSink.hpp"
 
+#include <wil/result.h>
+
 #include <exception>
 #include <memory>
 #include <thread>
@@ -14,6 +16,8 @@ std::unique_ptr<Plugin> plugin {};
 
 void Initialize() noexcept {
     const auto init = []() {
+        wil::SetResultLoggingCallback(nullptr);
+
         try {
             const auto workingDirectory = GetModulePath().parent_path();
             LOG_SET_LEVEL(Level::Trace);

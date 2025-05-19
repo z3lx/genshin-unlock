@@ -26,6 +26,17 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(json)
 set(JSON_BuildTests OFF CACHE INTERNAL "")
 
+# microsoft/wil
+add_compile_definitions(WIL_EXCEPTION_MODE=1)
+set(WIL_BUILD_PACKAGING OFF)
+set(WIL_BUILD_TESTS OFF)
+FetchContent_Declare(
+    wil
+    GIT_REPOSITORY https://github.com/microsoft/wil.git
+    GIT_TAG v1.0.250325.1
+)
+FetchContent_MakeAvailable(wil)
+
 option(ENABLE_LOGGING "Enable logging" OFF)
 if (ENABLE_LOGGING)
     add_compile_definitions(ACTIVE_LEVEL=LEVEL_TRACE)
@@ -36,7 +47,7 @@ endif()
 file(GLOB_RECURSE UTILS_SOURCES include/utils/* src/utils/*)
 add_library(utils STATIC ${UTILS_SOURCES})
 target_include_directories(utils PRIVATE include)
-target_link_libraries(utils PUBLIC minhook)
+target_link_libraries(utils PUBLIC minhook WIL::WIL)
 
 file(GLOB_RECURSE PLUGIN_SOURCES include/plugin/* src/plugin/*)
 add_library(genshin_fov_unlock SHARED ${PLUGIN_SOURCES})

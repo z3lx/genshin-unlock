@@ -10,8 +10,8 @@
 
 class Plugin final : public IMediator<Event> {
 public:
-    Plugin();
-    ~Plugin() override;
+    Plugin() noexcept;
+    ~Plugin() noexcept override;
 
 private:
     struct Visitor;

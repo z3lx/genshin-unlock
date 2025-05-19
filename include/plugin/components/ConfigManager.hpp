@@ -3,6 +3,9 @@
 #include "plugin/Events.hpp"
 #include "plugin/interfaces/IComponent.hpp"
 
+#include <wil/filesystem.h>
+
+#include <atomic>
 #include <cstdint>
 #include <filesystem>
 #include <vector>
@@ -26,13 +29,18 @@ struct Config {
 class ConfigManager final : public IComponent<Event> {
 public:
     explicit ConfigManager(
-        std::filesystem::path filePath = "fov_config.json") noexcept;
+        std::filesystem::path filepath = "fov_config.json");
     ~ConfigManager() noexcept override;
 
-    // TODO: Add file watcher
     [[nodiscard]] Config Read() const;
     void Write(const Config& config) const;
 
 private:
-    std::filesystem::path filePath;
+    void OnFolderChange(
+        wil::FolderChangeEvent event, PCWSTR filename) noexcept;
+    void Update() noexcept override;
+
+    std::filesystem::path filepath;
+    wil::unique_folder_change_reader reader;
+    std::atomic<bool> changed;
 };

@@ -5,9 +5,7 @@
 
 #include <Windows.h>
 
-struct OnPluginStart {};
-
-struct OnPluginEnd {};
+struct OnConfigChange {};
 
 struct OnKeyDown {
     const uint8_t vKey;
@@ -30,8 +28,7 @@ struct OnForegroundWindowChange {
 };
 
 using Event = std::variant<
-    OnPluginStart,
-    OnPluginEnd,
+    OnConfigChange,
     OnKeyDown,
     OnKeyHold,
     OnKeyUp,

@@ -12,14 +12,12 @@
 #include <ranges>
 #include <variant>
 
-Plugin::Plugin()
+Plugin::Plugin() noexcept
     : isUnlockerHooked { false }
     , isWindowFocused { true }
     , isCursorVisible { true } {};
 
-Plugin::~Plugin() {
-    Notify(OnPluginEnd {});
-}
+Plugin::~Plugin() noexcept = default;
 
 void Plugin::Start() noexcept try {
     SetComponent<Unlocker>();
@@ -30,13 +28,12 @@ void Plugin::Start() noexcept try {
     SetComponent<KeyboardObserver>();
 
     targetWindows = GetProcessWindows();
-    Notify(OnPluginStart {});
 } catch (const std::exception& e) {
     LOG_E("Failed to start plugin: {}", e.what());
 }
 
 template <>
-void Plugin::Handle(const OnPluginStart& event) noexcept {
+void Plugin::Handle(const OnConfigChange& event) noexcept {
     try {
         config = GetComponent<ConfigManager>().Read();
     } catch (const std::exception& e) {
@@ -47,15 +44,6 @@ void Plugin::Handle(const OnPluginStart& event) noexcept {
     unlocker.SetEnable(config.enabled);
     unlocker.SetFieldOfView(config.fov);
     unlocker.SetSmoothing(config.smoothing);
-}
-
-template <>
-void Plugin::Handle(const OnPluginEnd& event) noexcept {
-    try {
-        GetComponent<ConfigManager>().Write(config);
-    } catch (const std::exception& e) {
-        LOG_W("Failed to write config: {}", e.what());
-    }
 }
 
 template <>
