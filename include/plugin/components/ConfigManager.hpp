@@ -29,7 +29,7 @@ struct Config {
 class ConfigManager final : public IComponent<Event> {
 public:
     explicit ConfigManager(
-        std::filesystem::path filepath = "fov_config.json");
+        std::filesystem::path filePath = "fov_config.json");
     ~ConfigManager() noexcept override;
 
     [[nodiscard]] Config Read() const;
@@ -40,7 +40,8 @@ private:
         wil::FolderChangeEvent event, PCWSTR filename) noexcept;
     void Update() noexcept override;
 
-    std::filesystem::path filepath;
-    wil::unique_folder_change_reader reader;
+    std::filesystem::path filePath;
+    wil::unique_hfile fileHandle;
+    wil::unique_folder_change_reader changeReader;
     std::atomic<bool> changed;
 };

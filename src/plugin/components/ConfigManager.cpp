@@ -1,5 +1,6 @@
 #include "plugin/components/ConfigManager.hpp"
 #include "utils/log/Logger.hpp"
+#include "utils/win/Filesystem.hpp"
 
 #include <nlohmann/json.hpp>
 #include <wil/filesystem.h>
@@ -9,7 +10,6 @@
 #include <atomic>
 #include <exception>
 #include <filesystem>
-#include <fstream>
 #include <memory>
 #include <utility>
 
@@ -24,15 +24,25 @@ constexpr auto PREV_KEY = "prev_key";
 constexpr auto DUMP_KEY = "dump_key";
 } // namespace
 
-ConfigManager::ConfigManager(std::filesystem::path filepath) try
-    : filepath { std::move(filepath) }
+ConfigManager::ConfigManager(std::filesystem::path filePath) try
+    : filePath { std::move(filePath) }
+    , fileHandle {
+        wil::open_or_create_file(
+            this->filePath.wstring().c_str(),
+            GENERIC_READ | GENERIC_WRITE,
+            FILE_SHARE_READ | FILE_SHARE_WRITE
+        )
+    }
+    , changeReader {
+        wil::make_folder_change_reader(
+            this->filePath.parent_path().wstring().c_str(),
+            false, wil::FolderChangeEvents::LastWriteTime,
+            [this](const auto event, const auto fileName) {
+                OnFolderChange(event, fileName);
+            }
+        )
+    }
     , changed { true } {
-    reader = wil::make_folder_change_reader(
-        this->filepath.parent_path().wstring().c_str(), false,
-        wil::FolderChangeEvents::LastWriteTime,
-        [this](const auto event, const auto fileName) {
-            OnFolderChange(event, fileName);
-        });
 } CATCH_THROW_NORMALIZED()
 
 ConfigManager::~ConfigManager() noexcept = default;
@@ -60,13 +70,9 @@ ConfigManager::~ConfigManager() noexcept = default;
     }
 
 Config ConfigManager::Read() const {
-    std::ifstream file { filepath };
-    if (!file.is_open()) {
-        throw std::runtime_error { "Failed to open file" };
-    }
-
-    nlohmann::ordered_json j {};
-    file >> j;
+    nlohmann::json j {
+        nlohmann::json::parse(utils::ReadFileA(fileHandle.get()))
+    };
 
     Config config {};
     auto& [enabled, fov, fovPresets, smoothing,
@@ -112,17 +118,13 @@ void ConfigManager::Write(const Config& config) const {
         { DUMP_KEY, dumpKey }
     };
 
-    std::ofstream file { filepath };
-    if (!file.is_open()) {
-        throw std::runtime_error { "Failed to open file" };
-    }
-    file << j.dump(4);
+    utils::WriteFileA(fileHandle.get(), j.dump(4));
 }
 
 void ConfigManager::OnFolderChange(
     const wil::FolderChangeEvent event, const PCWSTR filename) noexcept {
     if (event == wil::FolderChangeEvent::Modified &&
-        filename == filepath.filename()) {
+        filename == filePath.filename()) {
         changed.store(true, std::memory_order_relaxed);
     }
 }
