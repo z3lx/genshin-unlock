@@ -4,18 +4,19 @@
 #include "plugin/interfaces/IComponent.hpp"
 
 #include <wil/filesystem.h>
+#include <wil/resource.h>
 
 #include <atomic>
 #include <cstdint>
 #include <filesystem>
 #include <vector>
 
-#include <Windows.h>
+#include <WinUser.h>
 
 struct Config {
     bool enabled = true;
-    int fov = 75;
-    std::vector<int> fovPresets {
+    uint8_t fov = 75;
+    std::vector<uint8_t> fovPresets {
         30, 45, 60, 75, 90, 110
     };
     float smoothing = 0.125;
