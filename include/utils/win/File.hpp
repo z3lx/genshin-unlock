@@ -31,4 +31,4 @@ template <size_t ChunkSize = detail::ReadWriteDefaultChunkSize>
 void AppendFileW(HANDLE fileHandle, std::wstring_view buffer);
 } // namespace utils
 
-#include "utils/win/FilesystemInl.hpp"
+#include "utils/win/FileInl.hpp"

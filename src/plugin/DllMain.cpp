@@ -1,7 +1,7 @@
 #include "plugin/Plugin.hpp"
-#include "utils/Windows.hpp"
 #include "utils/log/Logger.hpp"
 #include "utils/log/sinks/FileSink.hpp"
+#include "utils/win/Loader.hpp"
 
 #include <wil/result.h>
 
@@ -19,7 +19,8 @@ void Initialize() noexcept {
         wil::SetResultLoggingCallback(nullptr);
 
         try {
-            const auto workingDirectory = GetModulePath().parent_path();
+            const auto workingDirectory =
+                utils::GetCurrentModuleFilePath().parent_path();
             LOG_SET_LEVEL(Level::Trace);
             LOG_SET_SINKS(std::make_unique<FileSink>(
                 workingDirectory / "logs.txt", true));

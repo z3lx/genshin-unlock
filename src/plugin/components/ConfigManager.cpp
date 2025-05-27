@@ -1,5 +1,5 @@
 #include "plugin/components/ConfigManager.hpp"
-#include "utils/win/Filesystem.hpp"
+#include "utils/win/File.hpp"
 
 #include <nlohmann/json.hpp>
 #include <wil/filesystem.h>

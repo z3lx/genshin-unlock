@@ -5,8 +5,9 @@
 #include "plugin/components/KeyboardObserver.hpp"
 #include "plugin/components/Unlocker.hpp"
 #include "plugin/components/WindowObserver.hpp"
-#include "utils/Windows.hpp"
 #include "utils/log/Logger.hpp"
+#include "utils/win/Loader.hpp"
+#include "utils/win/User.hpp"
 
 #include <exception>
 #include <ranges>
@@ -22,12 +23,12 @@ Plugin::~Plugin() noexcept = default;
 void Plugin::Start() noexcept try {
     SetComponent<Unlocker>();
     SetComponent<ConfigManager>(
-        GetModulePath().parent_path() / "fov_config.json");
+        utils::GetCurrentModuleFilePath().parent_path() / "fov_config.json");
     SetComponent<WindowObserver>();
     SetComponent<CursorObserver>();
     SetComponent<KeyboardObserver>();
 
-    targetWindows = GetProcessWindows();
+    targetWindows = utils::GetCurrentProcessWindows();
 } catch (const std::exception& e) {
     LOG_E("Failed to start plugin: {}", e.what());
 }

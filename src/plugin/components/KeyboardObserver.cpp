@@ -1,6 +1,5 @@
 #include "plugin/components/KeyboardObserver.hpp"
 #include "plugin/Events.hpp"
-#include "utils/Windows.hpp"
 #include "utils/log/Logger.hpp"
 
 #include <algorithm>
@@ -12,6 +11,8 @@
 #include <thread>
 #include <utility>
 #include <vector>
+
+#include <wil/result.h>
 
 #include <Windows.h>
 
@@ -104,9 +105,8 @@ void KeyboardObserver::Hook::SetHook() {
     auto future = promise.get_future();
     const auto task = [&promise]() {
         try {
-            ThrowOnSystemError(hHook = SetWindowsHookEx(
-                WH_KEYBOARD_LL, KeyboardProc, nullptr, 0
-            ));
+            hHook = SetWindowsHookEx(WH_KEYBOARD_LL, KeyboardProc, nullptr, 0);
+            THROW_LAST_ERROR_IF(hHook == nullptr);
         } catch (...) {
             promise.set_exception(std::current_exception());
             return;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "utils/win/Filesystem.hpp"
+#include "utils/win/File.hpp"
 
 #include <algorithm>
 #include <cstdint>
@@ -9,7 +9,7 @@
 
 #include <wil/result.h>
 
-#include <Windows.h>
+#include <fileapi.h>
 
 namespace utils::detail {
 template <typename CharT, size_t ChunkSize>

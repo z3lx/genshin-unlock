@@ -1,0 +1,50 @@
+#pragma once
+
+#include "utils/win/User.hpp"
+
+#include <algorithm>
+#include <chrono>
+#include <thread>
+#include <tuple>
+#include <vector>
+
+#include <wil/result.h>
+
+#include <processthreadsapi.h>
+#include <WinUser.h>
+
+inline std::vector<HWND> utils::GetCurrentProcessWindows() {
+    return GetProcessWindows(GetCurrentProcessId());
+}
+
+inline std::vector<HWND> utils::GetProcessWindows(const DWORD processId) {
+    std::vector<HWND> windows {};
+    std::tuple params = std::tie(processId, windows);
+
+    const auto callback = [](const HWND hwnd, const LPARAM lParam) -> BOOL {
+        auto& [targetProcessId, targetWindows] = *reinterpret_cast<
+            std::tuple<DWORD&, std::vector<HWND>&>*>(lParam);
+
+        DWORD processId {};
+        if (!::GetWindowThreadProcessId(hwnd, &processId)) {
+            return FALSE;
+        }
+        if (processId == targetProcessId &&
+            !std::ranges::contains(targetWindows, hwnd)) {
+            targetWindows.push_back(hwnd);
+        }
+        return TRUE;
+    };
+
+    const auto enumerateWindows = [&callback, &params]() {
+        THROW_IF_WIN32_BOOL_FALSE(::EnumWindows(
+            callback, reinterpret_cast<LPARAM>(&params)
+        ));
+    };
+    while (windows.empty()) {
+        enumerateWindows();
+        std::this_thread::sleep_for(std::chrono::seconds { 1 });
+    }
+    enumerateWindows();
+    return windows;
+}
