@@ -5,30 +5,45 @@
 #include <string>
 #include <string_view>
 
-#include <minwindef.h>
+#include <Windows.h>
 
 namespace utils {
 namespace detail {
-constexpr auto ReadWriteDefaultChunkSize = (std::numeric_limits<DWORD>::max)();
+constexpr DWORD ReadWriteDefaultChunkSize =
+    (std::numeric_limits<DWORD>::max)();
 } // namespace detail
 
-template <size_t ChunkSize = detail::ReadWriteDefaultChunkSize>
-std::string ReadFileA(HANDLE fileHandle);
+std::string ReadFileA(
+    HANDLE fileHandle,
+    size_t chunkSize = detail::ReadWriteDefaultChunkSize
+);
 
-template <size_t ChunkSize = detail::ReadWriteDefaultChunkSize>
-std::wstring ReadFileW(HANDLE fileHandle);
+std::wstring ReadFileW(
+    HANDLE fileHandle,
+    size_t chunkSize = detail::ReadWriteDefaultChunkSize
+);
 
-template <size_t ChunkSize = detail::ReadWriteDefaultChunkSize>
-void WriteFileA(HANDLE fileHandle, std::string_view buffer);
+void WriteFileA(
+    HANDLE fileHandle,
+    std::string_view buffer,
+    size_t chunkSize = detail::ReadWriteDefaultChunkSize
+);
 
-template <size_t ChunkSize = detail::ReadWriteDefaultChunkSize>
-void WriteFileW(HANDLE fileHandle, std::wstring_view buffer);
+void WriteFileW(
+    HANDLE fileHandle,
+    std::wstring_view buffer,
+    size_t chunkSize = detail::ReadWriteDefaultChunkSize
+);
 
-template <size_t ChunkSize = detail::ReadWriteDefaultChunkSize>
-void AppendFileA(HANDLE fileHandle, std::string_view buffer);
+void AppendFileA(
+    HANDLE fileHandle,
+    std::string_view buffer,
+    size_t chunkSize = detail::ReadWriteDefaultChunkSize
+);
 
-template <size_t ChunkSize = detail::ReadWriteDefaultChunkSize>
-void AppendFileW(HANDLE fileHandle, std::wstring_view buffer);
+void AppendFileW(
+    HANDLE fileHandle,
+    std::wstring_view buffer,
+    size_t chunkSize = detail::ReadWriteDefaultChunkSize
+);
 } // namespace utils
-
-#include "utils/win/FileInl.hpp"

@@ -1,5 +1,3 @@
-#pragma once
-
 #include "utils/win/User.hpp"
 
 #include <algorithm>
@@ -10,14 +8,14 @@
 
 #include <wil/result.h>
 
-#include <processthreadsapi.h>
-#include <WinUser.h>
+#include <Windows.h>
 
-inline std::vector<HWND> utils::GetCurrentProcessWindows() {
+namespace utils {
+std::vector<HWND> GetCurrentProcessWindows() {
     return GetProcessWindows(GetCurrentProcessId());
 }
 
-inline std::vector<HWND> utils::GetProcessWindows(const DWORD processId) {
+std::vector<HWND> GetProcessWindows(const DWORD processId) {
     std::vector<HWND> windows {};
     std::tuple params = std::tie(processId, windows);
 
@@ -48,3 +46,4 @@ inline std::vector<HWND> utils::GetProcessWindows(const DWORD processId) {
     enumerateWindows();
     return windows;
 }
+} // namespace utils
