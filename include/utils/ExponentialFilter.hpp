@@ -7,6 +7,7 @@
     template <typename Real, typename Clock = std::chrono::steady_clock>        \
     requires std::is_floating_point_v<Real>
 
+namespace utils {
 EXPONENTIALFILTER_TEMPLATE
 class ExponentialFilter {
 public:
@@ -31,5 +32,6 @@ private:
     Real previousFilteredValue;
     std::chrono::time_point<Clock> previousTime;
 };
+} // namespace utils
 
 #include "utils/ExponentialFilterInl.hpp"

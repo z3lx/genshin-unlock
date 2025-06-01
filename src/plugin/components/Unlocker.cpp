@@ -27,8 +27,8 @@ void AddToBuffer(void* instance, float value);
 std::string DumpBuffer();
 
 std::mutex mutex {};
-std::optional<MinHook<void, void*, float>> hook {};
-ExponentialFilter<float> filter {};
+std::optional<utils::MinHook<void, void*, float>> hook {};
+utils::ExponentialFilter<float> filter {};
 
 bool isHooked = false;
 bool isEnabled = false;
@@ -57,7 +57,7 @@ Unlocker::Unlocker() try {
     const auto detour = reinterpret_cast<void*>(HkSetFieldOfView);
 
     std::lock_guard lock { mutex };
-    hook = MinHook<void, void*, float> { target, detour };
+    hook = utils::MinHook<void, void*, float> { target, detour };
 } catch (const std::exception& e) {
     LOG_E("Failed to create Unlocker: {}", e.what());
     throw;

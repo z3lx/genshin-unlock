@@ -1,5 +1,6 @@
 #pragma once
 
+namespace utils {
 template <typename Ret, typename... Args>
 class MinHook {
 public:
@@ -22,5 +23,6 @@ private:
     void* target;
     void* original;
 };
+} // namespace utils
 
 #include "utils/MinHookInl.hpp"

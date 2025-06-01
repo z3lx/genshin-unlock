@@ -5,10 +5,10 @@
 #include <chrono>
 #include <cmath>
 
+namespace utils {
 EXPONENTIALFILTER_TEMPLATE
 ExponentialFilter<Real, Clock>::ExponentialFilter(
-    const Real timeConstant,
-    const Real initialValue) noexcept
+    const Real timeConstant, const Real initialValue) noexcept
     : timeConstant { timeConstant }
     , previousFilteredValue { initialValue }
     , previousTime { Clock::now() } {}
@@ -81,5 +81,6 @@ Real ExponentialFilter<Real, Clock>::Update(const Real value) noexcept {
         (static_cast<Real>(1) - alpha) * value;
     return previousFilteredValue;
 }
+} // namespace utils
 
 #undef EXPONENTIALFILTER_TEMPLATE

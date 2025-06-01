@@ -8,34 +8,36 @@
 #include <mutex>
 #include <stdexcept>
 
-namespace MinHookImpl {
+namespace utils {
+namespace detail::minhook_impl {
 inline std::mutex mutex {};
 inline size_t referenceCount { 0 };
 
-inline void ThrowMhStatus(const MH_STATUS status) {
+inline void ThrowStatus(const MH_STATUS status) {
     throw std::runtime_error { MH_StatusToString(status) };
 }
 
-inline void ThrowOnMhError(const MH_STATUS status) {
+inline void ThrowOnError(const MH_STATUS status) {
     if (status != MH_OK) {
-        ThrowMhStatus(status);
+        ThrowStatus(status);
     }
 }
-} // namespace MinHookImpl
+} // namespace detail::minhook_impl
 
 template <typename Ret, typename... Args>
-MinHook<Ret, Args...>::MinHook(void* target, void* detour, const bool enable)
+MinHook<Ret, Args...>::MinHook(
+    void* target, void* detour, const bool enable)
     : enabled { enable }
     , target { target }
     , original { nullptr } {
-    using namespace MinHookImpl;
+    using namespace detail::minhook_impl;
     std::lock_guard lock { mutex };
 
     const auto handleMhError = [](const MH_STATUS status) {
         if (status != MH_OK) {
             MH_Uninitialize();
             --referenceCount;
-            ThrowMhStatus(status);
+            ThrowStatus(status);
         }
     };
 
@@ -53,7 +55,7 @@ MinHook<Ret, Args...>::MinHook(void* target, void* detour, const bool enable)
 
 template <typename Ret, typename... Args>
 MinHook<Ret, Args...>::~MinHook() noexcept {
-    using namespace MinHookImpl;
+    using namespace detail::minhook_impl;
     std::lock_guard lock { mutex };
 
     if (target == nullptr) {
@@ -101,18 +103,18 @@ bool MinHook<Ret, Args...>::IsEnabled() const noexcept {
 
 template <typename Ret, typename... Args>
 void MinHook<Ret, Args...>::Enable() {
-    using namespace MinHookImpl;
+    using namespace detail::minhook_impl;
     if (!enabled) {
-        ThrowOnMhError(MH_EnableHook(target));
+        ThrowOnError(MH_EnableHook(target));
         enabled = true;
     }
 }
 
 template <typename Ret, typename... Args>
 void MinHook<Ret, Args...>::Disable() {
-    using namespace MinHookImpl;
+    using namespace detail::minhook_impl;
     if (enabled) {
-        ThrowOnMhError(MH_DisableHook(target));
+        ThrowOnError(MH_DisableHook(target));
         enabled = false;
     }
 }
@@ -122,3 +124,4 @@ Ret MinHook<Ret, Args...>::CallOriginal(Args... args) const {
     using FuncPtr = Ret(*)(Args...);
     return reinterpret_cast<FuncPtr>(original)(args...);
 }
+} // namespace utils
