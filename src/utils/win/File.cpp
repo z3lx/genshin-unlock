@@ -10,80 +10,98 @@
 #include <Windows.h>
 
 namespace {
-template <typename CharT>
-std::basic_string<CharT> ReadFile(
+template <typename BufferCharT>
+std::basic_string<BufferCharT> ReadFile(
     HANDLE fileHandle,
-    size_t maxChunkSize
+    size_t maxBufferChunkSize
 );
 
-template <typename CharT>
+template <typename BufferCharT>
 void WriteFile(
     HANDLE fileHandle,
-    std::basic_string_view<CharT> buffer,
-    size_t maxChunkSize
+    std::basic_string_view<BufferCharT> buffer,
+    size_t maxBufferChunkSize
 );
 
-template <typename CharT>
+template <typename BufferCharT>
 void AppendFile(
     HANDLE fileHandle,
-    std::basic_string_view<CharT> buffer,
-    size_t maxChunkSize
+    std::basic_string_view<BufferCharT> buffer,
+    size_t maxBufferChunkSize
 );
 
-template <typename CharT>
-std::basic_string<CharT> ReadFile(
+template <typename BufferCharT>
+std::basic_string<BufferCharT> ReadFile(
     const HANDLE fileHandle,
-    const size_t maxChunkSize) {
+    const size_t maxBufferChunkSize) {
     THROW_IF_WIN32_BOOL_FALSE(::SetFilePointerEx(
         fileHandle, {}, nullptr, FILE_BEGIN
     ));
 
+    // Calculate buffer size
     LARGE_INTEGER fileSize {};
     THROW_IF_WIN32_BOOL_FALSE(::GetFileSizeEx(fileHandle, &fileSize));
     const auto bufferSize = static_cast<size_t>(fileSize.QuadPart);
-    std::basic_string<CharT> buffer(bufferSize / sizeof(CharT), 0);
+    const size_t bufferCharCount =
+        (bufferSize + sizeof(BufferCharT) - 1) / sizeof(BufferCharT);
+    std::basic_string<BufferCharT> buffer(bufferCharCount, 0);
 
-    DWORD bytesTransferred = 0;
-    for (size_t offset = 0; offset < bufferSize; offset += bytesTransferred) {
-        void* chunkPointer =
-            reinterpret_cast<uint8_t*>(buffer.data()) + offset;
-        const DWORD chunkSize =
-            static_cast<DWORD>((std::min)(maxChunkSize, bufferSize - offset));
-        THROW_IF_WIN32_BOOL_FALSE(::ReadFile(
-            fileHandle, chunkPointer, chunkSize, &bytesTransferred, nullptr
+    // Read file to buffer
+    for (size_t bufferSizeOffset = 0; bufferSizeOffset < bufferSize;) {
+        void* bufferChunkAddress =
+            reinterpret_cast<uint8_t*>(buffer.data()) + bufferSizeOffset;
+        const DWORD bufferChunkSize = static_cast<DWORD>((std::min)(
+            maxBufferChunkSize,
+            bufferSize - bufferSizeOffset
         ));
+        DWORD bytesRead = 0;
+        THROW_IF_WIN32_BOOL_FALSE(::ReadFile(
+            fileHandle,
+            bufferChunkAddress,
+            bufferChunkSize,
+            &bytesRead,
+            nullptr
+        ));
+        bufferSizeOffset += bytesRead;
     }
     return buffer;
 }
 
-template <typename CharT>
+template <typename BufferCharT>
 void WriteFile(
     const HANDLE fileHandle,
-    const std::basic_string_view<CharT> buffer,
-    const size_t maxChunkSize) {
+    const std::basic_string_view<BufferCharT> buffer,
+    const size_t maxBufferChunkSize) {
     THROW_IF_WIN32_BOOL_FALSE(::SetFilePointerEx(
         fileHandle, {}, nullptr, FILE_BEGIN
     ));
     THROW_IF_WIN32_BOOL_FALSE(::SetEndOfFile(fileHandle));
-    AppendFile<CharT>(fileHandle, buffer, maxChunkSize);
+    AppendFile<BufferCharT>(fileHandle, buffer, maxBufferChunkSize);
 }
 
-template <typename CharT>
+template <typename BufferCharT>
 void AppendFile(
     const HANDLE fileHandle,
-    const std::basic_string_view<CharT> buffer,
-    const size_t maxChunkSize) {
-    const size_t bufferSize = buffer.size() * sizeof(CharT);
+    const std::basic_string_view<BufferCharT> buffer,
+    const size_t maxBufferChunkSize) {
+    const size_t bufferSize = buffer.size() * sizeof(BufferCharT);
 
-    DWORD bytesTransferred = 0;
-    for (size_t offset = 0; offset < bufferSize; offset += bytesTransferred) {
-        const void* chunkPointer =
-            reinterpret_cast<const uint8_t*>(buffer.data()) + offset;
-        const DWORD chunkSize =
-            static_cast<DWORD>((std::min)(maxChunkSize, bufferSize - offset));
-        THROW_IF_WIN32_BOOL_FALSE(::WriteFile(
-            fileHandle, chunkPointer, chunkSize, &bytesTransferred, nullptr
+    for (size_t bufferSizeOffset = 0; bufferSizeOffset < bufferSize;) {
+        const void* bufferChunkAddress =
+            reinterpret_cast<const uint8_t*>(buffer.data()) + bufferSizeOffset;
+        const DWORD bufferChunkSize = static_cast<DWORD>((std::min)(
+            maxBufferChunkSize,
+            bufferSize - bufferSizeOffset
         ));
+        DWORD bytesTransferred = 0;
+        THROW_IF_WIN32_BOOL_FALSE(::WriteFile(
+            fileHandle,
+            bufferChunkAddress,
+            bufferChunkSize,
+            &bytesTransferred,
+            nullptr
+        ));
+        bufferSizeOffset += bytesTransferred;
     }
 }
 } // namespace
@@ -91,41 +109,61 @@ void AppendFile(
 namespace utils {
 std::string ReadFileA(
     const HANDLE fileHandle,
-    const size_t chunkSize) {
-    return ReadFile<char>(fileHandle, chunkSize);
+    const size_t bufferChunkSize) {
+    return ReadFile<char>(fileHandle, bufferChunkSize);
 }
 
-std::wstring ReadFileW(
+std::u8string ReadFileU8(
     const HANDLE fileHandle,
-    const size_t chunkSize) {
-    return ReadFile<wchar_t>(fileHandle, chunkSize);
+    const size_t bufferChunkSize) {
+    return ReadFile<char8_t>(fileHandle, bufferChunkSize);
+}
+
+std::u16string ReadFileU16(
+    const HANDLE fileHandle,
+    const size_t bufferChunkSize) {
+    return ReadFile<char16_t>(fileHandle, bufferChunkSize);
 }
 
 void WriteFileA(
     const HANDLE fileHandle,
     const std::string_view buffer,
-    const size_t chunkSize) {
-    WriteFile<char>(fileHandle, buffer, chunkSize);
+    const size_t bufferChunkSize) {
+    WriteFile<char>(fileHandle, buffer, bufferChunkSize);
 }
 
-void WriteFileW(
+void WriteFileU8(
     const HANDLE fileHandle,
-    const std::wstring_view buffer,
-    const size_t chunkSize) {
-    WriteFile<wchar_t>(fileHandle, buffer, chunkSize);
+    const std::u8string_view buffer,
+    const size_t bufferChunkSize) {
+    WriteFile<char8_t>(fileHandle, buffer, bufferChunkSize);
+}
+
+void WriteFileU16(
+    const HANDLE fileHandle,
+    const std::u16string_view buffer,
+    const size_t bufferChunkSize) {
+    WriteFile<char16_t>(fileHandle, buffer, bufferChunkSize);
 }
 
 void AppendFileA(
     const HANDLE fileHandle,
     const std::string_view buffer,
-    const size_t chunkSize) {
-    AppendFile<char>(fileHandle, buffer, chunkSize);
+    const size_t bufferChunkSize) {
+    AppendFile<char>(fileHandle, buffer, bufferChunkSize);
 }
 
-void AppendFileW(
+void AppendFileU8(
     const HANDLE fileHandle,
-    const std::wstring_view buffer,
-    const size_t chunkSize) {
-    AppendFile<wchar_t>(fileHandle, buffer, chunkSize);
+    const std::u8string_view buffer,
+    const size_t bufferChunkSize) {
+    AppendFile<char8_t>(fileHandle, buffer, bufferChunkSize);
+}
+
+void AppendFileU16(
+    const HANDLE fileHandle,
+    const std::u16string_view buffer,
+    const size_t bufferChunkSize) {
+    AppendFile<char16_t>(fileHandle, buffer, bufferChunkSize);
 }
 } // namespace utils

@@ -66,7 +66,7 @@ std::basic_string<BufferCharT> U16ToCodePage(
         bufferSize += bufferChunkSize;
     }
 
-    size_t bufferCharCount =
+    const size_t bufferCharCount =
         (bufferSize + sizeof(BufferCharT) - 1) / sizeof(BufferCharT);
     std::basic_string<BufferCharT> buffer(bufferCharCount, 0);
 
