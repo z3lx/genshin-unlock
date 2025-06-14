@@ -37,11 +37,11 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(wil)
 
-file(GLOB_RECURSE UTILS_SOURCES include/utils/* src/utils/*)
-add_library(utils STATIC ${UTILS_SOURCES})
-target_compile_definitions(utils PRIVATE WIN32_LEAN_AND_MEAN)
-target_include_directories(utils PRIVATE include)
-target_link_libraries(utils PUBLIC minhook WIL::WIL)
+file(GLOB_RECURSE UTIL_SOURCES include/util/* src/util/*)
+add_library(util STATIC ${UTIL_SOURCES})
+target_compile_definitions(util PRIVATE WIN32_LEAN_AND_MEAN)
+target_include_directories(util PRIVATE include)
+target_link_libraries(util PUBLIC minhook WIL::WIL)
 
 file(GLOB_RECURSE PLUGIN_SOURCES include/plugin/* src/plugin/*)
 add_library(genshin_fov_unlock SHARED ${PLUGIN_SOURCES})
@@ -49,5 +49,5 @@ target_compile_definitions(genshin_fov_unlock PRIVATE WIN32_LEAN_AND_MEAN)
 target_include_directories(genshin_fov_unlock PRIVATE include)
 target_link_libraries(genshin_fov_unlock PRIVATE
     nlohmann_json::nlohmann_json
-    utils
+    util
 )

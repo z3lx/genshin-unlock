@@ -1,6 +1,6 @@
 #pragma once
 
-namespace utils {
+namespace z3lx::util {
 template <typename Ret, typename... Args>
 class MinHook {
 public:
@@ -23,6 +23,6 @@ private:
     void* target;
     void* original;
 };
-} // namespace utils
+} // namespace z3lx::util
 
-#include "utils/MinHookInl.hpp"
+#include "util/MinHookInl.hpp"

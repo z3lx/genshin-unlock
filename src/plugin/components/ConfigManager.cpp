@@ -1,5 +1,5 @@
 #include "plugin/components/ConfigManager.hpp"
-#include "utils/win/File.hpp"
+#include "util/win/File.hpp"
 
 #include <nlohmann/json.hpp>
 #include <wil/filesystem.h>
@@ -27,6 +27,7 @@ constexpr auto PREV_KEY = "prev_key";
 constexpr auto DUMP_KEY = "dump_key";
 } // namespace
 
+namespace z3lx::gfu {
 ConfigManager::ConfigManager(std::filesystem::path filePath) try
     : filePath { std::move(filePath) }
     , fileHandle {
@@ -52,7 +53,7 @@ ConfigManager::~ConfigManager() noexcept = default;
 
 Config ConfigManager::Read() const {
     nlohmann::json j {
-        nlohmann::json::parse(utils::ReadFileA(fileHandle.get()))
+        nlohmann::json::parse(util::ReadFileA(fileHandle.get()))
     };
 
     const auto tryGetTo = [&j]<typename ValueT, typename Callable>(
@@ -119,7 +120,7 @@ void ConfigManager::Write(const Config& config) const {
         { DUMP_KEY, config.dumpKey }
     };
 
-    utils::WriteFileA(fileHandle.get(), j.dump(4));
+    util::WriteFileA(fileHandle.get(), j.dump(4));
 }
 
 void ConfigManager::OnFolderChange(
@@ -136,3 +137,4 @@ void ConfigManager::Update() noexcept {
         Notify(OnConfigChange {});
     }
 }
+} // namespace z3lx::gfu

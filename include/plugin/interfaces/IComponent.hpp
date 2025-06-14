@@ -2,6 +2,7 @@
 
 #include "plugin/interfaces/IMediator.hpp"
 
+namespace z3lx::gfu {
 template <typename Event>
 class IComponent {
     friend class IMediator<Event>;
@@ -20,5 +21,6 @@ private:
 
     IMediator<Event>* mediator;
 };
+} // namespace z3lx::gfu
 
 #include "plugin/interfaces/IComponentInl.hpp"

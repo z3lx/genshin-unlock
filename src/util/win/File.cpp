@@ -1,4 +1,4 @@
-#include "utils/win/File.hpp"
+#include "util/win/File.hpp"
 
 #include <algorithm>
 #include <cstdint>
@@ -106,7 +106,7 @@ void AppendFile(
 }
 } // namespace
 
-namespace utils {
+namespace z3lx::util {
 std::string ReadFileA(
     const HANDLE fileHandle,
     const size_t bufferChunkSize) {
@@ -166,4 +166,4 @@ void AppendFileU16(
     const size_t bufferChunkSize) {
     AppendFile<char16_t>(fileHandle, buffer, bufferChunkSize);
 }
-} // namespace utils
+} // namespace z3lx::util

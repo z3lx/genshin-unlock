@@ -2,6 +2,7 @@
 
 #include "plugin/interfaces/IComponent.hpp"
 
+namespace z3lx::gfu {
 template <typename Event>
 void IComponent<Event>::Start() noexcept {}
 
@@ -24,3 +25,4 @@ void IComponent<Event>::Notify(const Event& event) noexcept {
         mediator->events.push_back(event);
     }
 }
+} // namespace z3lx::gfu

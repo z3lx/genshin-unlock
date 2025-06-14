@@ -13,6 +13,7 @@
 
 #include <WinUser.h>
 
+namespace z3lx::gfu {
 struct Config {
     bool enabled = true;
     uint8_t fov = 75;
@@ -29,8 +30,7 @@ struct Config {
 
 class ConfigManager final : public IComponent<Event> {
 public:
-    explicit ConfigManager(
-        std::filesystem::path filePath = "fov_config.json");
+    explicit ConfigManager(std::filesystem::path filePath);
     ~ConfigManager() noexcept override;
 
     [[nodiscard]] Config Read() const;
@@ -38,7 +38,8 @@ public:
 
 private:
     void OnFolderChange(
-        wil::FolderChangeEvent event, PCWSTR filename) noexcept;
+        wil::FolderChangeEvent event,
+        PCWSTR filename) noexcept;
     void Update() noexcept override;
 
     std::filesystem::path filePath;
@@ -46,3 +47,4 @@ private:
     wil::unique_folder_change_reader changeReader;
     std::atomic<bool> changed;
 };
+} // namespace z3lx::gfu

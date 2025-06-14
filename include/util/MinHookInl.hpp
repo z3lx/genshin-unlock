@@ -1,6 +1,6 @@
 #pragma once
 
-#include "utils/MinHook.hpp"
+#include "util/MinHook.hpp"
 
 #include <MinHook.h>
 
@@ -8,7 +8,7 @@
 #include <mutex>
 #include <stdexcept>
 
-namespace utils {
+namespace z3lx::util {
 namespace detail::minhook_impl {
 inline std::mutex mutex {};
 inline size_t referenceCount { 0 };
@@ -124,4 +124,4 @@ Ret MinHook<Ret, Args...>::CallOriginal(Args... args) const {
     using FuncPtr = Ret(*)(Args...);
     return reinterpret_cast<FuncPtr>(original)(args...);
 }
-} // namespace utils
+} // namespace z3lx::util

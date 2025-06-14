@@ -1,11 +1,11 @@
 #pragma once
 
-#include "utils/ExponentialFilter.hpp"
+#include "util/ExponentialFilter.hpp"
 
 #include <chrono>
 #include <cmath>
 
-namespace utils {
+namespace z3lx::util {
 EXPONENTIALFILTER_TEMPLATE
 ExponentialFilter<Real, Clock>::ExponentialFilter(
     const Real timeConstant, const Real initialValue) noexcept
@@ -81,6 +81,6 @@ Real ExponentialFilter<Real, Clock>::Update(const Real value) noexcept {
         (static_cast<Real>(1) - alpha) * value;
     return previousFilteredValue;
 }
-} // namespace utils
+} // namespace z3lx::util
 
 #undef EXPONENTIALFILTER_TEMPLATE

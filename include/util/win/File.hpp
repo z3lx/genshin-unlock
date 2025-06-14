@@ -7,7 +7,7 @@
 
 #include <Windows.h>
 
-namespace utils {
+namespace z3lx::util {
 namespace detail {
 constexpr DWORD defaultBufferChunkSize = (std::numeric_limits<DWORD>::max)();
 } // namespace detail
@@ -62,4 +62,4 @@ void AppendFileU16(
     std::u16string_view buffer,
     size_t bufferChunkSize = detail::defaultBufferChunkSize
 );
-} // namespace utils
+} // namespace z3lx::util

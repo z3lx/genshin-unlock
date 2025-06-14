@@ -3,6 +3,7 @@
 
 #include <Windows.h>
 
+namespace z3lx::gfu {
 WindowObserver::WindowObserver() noexcept
     : previousForegroundWindow { nullptr } {}
 
@@ -15,3 +16,4 @@ void WindowObserver::Update() noexcept {
         Notify(OnForegroundWindowChange { currentForegroundWindow });
     }
 }
+} // namespace z3lx::gfu

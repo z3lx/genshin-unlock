@@ -3,6 +3,7 @@
 
 #include <Windows.h>
 
+namespace z3lx::gfu {
 CursorObserver::CursorObserver() noexcept = default;
 CursorObserver::~CursorObserver() noexcept = default;
 
@@ -18,3 +19,4 @@ void CursorObserver::Update() noexcept {
         Notify(OnCursorVisibilityChange { isCurrentCursorVisible });
     }
 }
+} // namespace z3lx::gfu

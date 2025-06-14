@@ -8,6 +8,7 @@
 
 #include <Windows.h>
 
+namespace z3lx::gfu {
 class Plugin final : public IMediator<Event> {
 public:
     Plugin() noexcept;
@@ -30,3 +31,4 @@ private:
     std::vector<HWND> targetWindows;
     Config config;
 };
+} // namespace z3lx::gfu

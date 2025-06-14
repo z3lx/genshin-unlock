@@ -2,9 +2,9 @@
 
 #include <filesystem>
 
-namespace utils {
+namespace z3lx::util {
 std::filesystem::path GetCurrentModuleFilePath();
 std::filesystem::path GetModuleFilePath(const void* address);
-} // namespace utils
+} // namespace z3lx::util
 
-#include "utils/win/LoaderInl.hpp"
+#include "util/win/LoaderInl.hpp"

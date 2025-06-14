@@ -3,20 +3,43 @@
 #include "plugin/interfaces/IMediator.hpp"
 
 #include <algorithm>
+#include <atomic>
 #include <chrono>
 #include <memory>
 #include <stdexcept>
 #include <thread>
 #include <utility>
 
+namespace z3lx::gfu {
 template <typename Event>
-IMediator<Event>::IMediator() {
-    StartThread();
+IMediator<Event>::IMediator()
+    : stopFlag { false } {
+    thread = std::thread([this]() {
+        Start();
+        while (!stopFlag.load(std::memory_order_relaxed)) {
+            // Update components
+            for (auto& component : components) {
+                component->Update();
+            }
+            Update();
+
+            // Process events
+            for (const auto& event : events) {
+                Notify(event);
+            }
+            events.clear();
+
+            // Wait until the next scheduler tick
+            std::this_thread::sleep_for(
+                std::chrono::milliseconds { 1 });
+        }
+    });
 }
 
 template <typename Event>
 IMediator<Event>::~IMediator() noexcept {
-    StopThread();
+    stopFlag.store(true, std::memory_order_relaxed);
+    thread.join();
 }
 
 template <typename Event>
@@ -84,36 +107,4 @@ typename IMediator<Event>::ConstComponentIterator
 IMediator<Event>::FindComponent() const noexcept {
     return const_cast<IMediator*>(this)->FindComponent<Component>();
 }
-
-template <typename Event>
-void IMediator<Event>::StartThread() {
-    stopFlag.store(false);
-    thread = std::thread([this]() {
-        Start();
-        while (!stopFlag.load()) {
-            // Update components
-            for (auto& component : components) {
-                component->Update();
-            }
-            Update();
-
-            // Process events
-            for (const auto& event : events) {
-                Notify(event);
-            }
-            events.clear();
-
-            // Wait until the next scheduler tick
-            std::this_thread::sleep_for(
-                std::chrono::milliseconds { 1 });
-        }
-    });
-}
-
-template <typename Event>
-void IMediator<Event>::StopThread() noexcept {
-    stopFlag.store(true);
-    if (thread.joinable()) {
-        thread.join();
-    }
-}
+} // namespace z3lx::gfu

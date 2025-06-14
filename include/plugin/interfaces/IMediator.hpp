@@ -6,6 +6,7 @@
 #include <type_traits>
 #include <vector>
 
+namespace z3lx::gfu {
 template <typename Event>
 class IComponent;
 
@@ -41,9 +42,6 @@ protected:
     void ClearComponent();
 
 private:
-    void StartThread();
-    void StopThread() noexcept;
-
     std::atomic<bool> stopFlag;
     std::thread thread;
     std::vector<std::unique_ptr<IComponent<Event>>> components;
@@ -62,5 +60,6 @@ private:
     requires IsComponent<Component, Event>
     [[nodiscard]] ConstComponentIterator FindComponent() const noexcept;
 };
+} // namespace z3lx::gfu
 
 #include "plugin/interfaces/IMediatorInl.hpp"

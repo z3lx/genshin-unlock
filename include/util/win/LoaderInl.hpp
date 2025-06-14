@@ -1,12 +1,12 @@
 #pragma once
 
-#include "utils/win/Loader.hpp"
+#include "util/win/Loader.hpp"
 
 #include <filesystem>
 
-namespace utils {
+namespace z3lx::util {
 inline std::filesystem::path GetCurrentModuleFilePath() {
     const void* address = reinterpret_cast<void*>(GetCurrentModuleFilePath);
     return GetModuleFilePath(address);
 }
-} // namespace utils
+} // namespace z3lx::util

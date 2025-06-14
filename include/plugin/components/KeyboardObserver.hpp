@@ -6,6 +6,7 @@
 #include <mutex>
 #include <vector>
 
+namespace z3lx::gfu {
 class KeyboardObserver final : public IComponent<Event> {
 public:
     KeyboardObserver();
@@ -19,3 +20,4 @@ private:
     std::mutex mutex;
     std::vector<Event> keyboardEvents;
 };
+} // namespace z3lx::gfu

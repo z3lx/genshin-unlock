@@ -14,6 +14,7 @@
 
 #include <Windows.h>
 
+namespace z3lx::gfu {
 struct KeyboardObserver::Hook {
     static void Register(KeyboardObserver* instance);
     static void Unregister(KeyboardObserver* instance) noexcept;
@@ -144,3 +145,4 @@ void KeyboardObserver::Update() noexcept {
     }
     keyboardEvents.clear();
 }
+} // namespace z3lx::gfu

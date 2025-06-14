@@ -5,14 +5,16 @@
 #include "plugin/components/KeyboardObserver.hpp"
 #include "plugin/components/Unlocker.hpp"
 #include "plugin/components/WindowObserver.hpp"
-#include "utils/win/Loader.hpp"
-#include "utils/win/User.hpp"
+#include "util/win/Loader.hpp"
+#include "util/win/User.hpp"
 
 #include <wil/result.h>
 
+#include <filesystem>
 #include <ranges>
 #include <variant>
 
+namespace z3lx::gfu {
 Plugin::Plugin() noexcept
     : isUnlockerHooked { false }
     , isWindowFocused { true }
@@ -21,14 +23,16 @@ Plugin::Plugin() noexcept
 Plugin::~Plugin() noexcept = default;
 
 void Plugin::Start() noexcept try {
+    const std::filesystem::path currenPath =
+        util::GetCurrentModuleFilePath().parent_path();
+
     SetComponent<Unlocker>();
-    SetComponent<ConfigManager>(
-        utils::GetCurrentModuleFilePath().parent_path() / "fov_config.json");
+    SetComponent<ConfigManager>(currenPath / "fov_config.json");
     SetComponent<WindowObserver>();
     SetComponent<CursorObserver>();
     SetComponent<KeyboardObserver>();
 
-    targetWindows = utils::GetCurrentProcessWindows();
+    targetWindows = util::GetCurrentProcessWindows();
 } CATCH_LOG()
 
 template <>
@@ -115,3 +119,4 @@ void Plugin::Visitor::operator()(const Event& event) const noexcept {
 void Plugin::Notify(const Event& event) noexcept {
     std::visit(Visitor { *this }, event);
 }
+} // namespace z3lx::gfu

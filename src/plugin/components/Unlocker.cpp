@@ -1,6 +1,6 @@
 #include "plugin/components/Unlocker.hpp"
-#include "utils/ExponentialFilter.hpp"
-#include "utils/MinHook.hpp"
+#include "util/ExponentialFilter.hpp"
+#include "util/MinHook.hpp"
 
 #include <nlohmann/json.hpp>
 #include <wil/result.h>
@@ -27,8 +27,8 @@ void AddToBuffer(void* instance, float value);
 std::string DumpBuffer();
 
 std::mutex mutex {};
-std::optional<utils::MinHook<void, void*, float>> hook {};
-utils::ExponentialFilter<float> filter {};
+std::optional<z3lx::util::MinHook<void, void*, float>> hook {};
+z3lx::util::ExponentialFilter<float> filter {};
 
 bool isHooked = false;
 bool isEnabled = false;
@@ -41,6 +41,7 @@ float previousFov = 45.0f;
 bool isPreviousFov = false;
 } // namespace
 
+namespace z3lx::gfu {
 Unlocker::Unlocker() try {
     auto module = reinterpret_cast<uintptr_t>(
         GetModuleHandle("GenshinImpact.exe"));
@@ -57,7 +58,7 @@ Unlocker::Unlocker() try {
     const auto detour = reinterpret_cast<void*>(HkSetFieldOfView);
 
     std::lock_guard lock { mutex };
-    hook = utils::MinHook<void, void*, float> { target, detour };
+    hook = util::MinHook<void, void*, float> { target, detour };
 } CATCH_THROW_NORMALIZED()
 
 Unlocker::~Unlocker() noexcept {
@@ -87,6 +88,7 @@ void Unlocker::SetFieldOfView(const int value) noexcept {
 void Unlocker::SetSmoothing(const float value) noexcept {
     filter.TimeConstant(value);
 }
+} // namespace z3lx::gfu
 
 namespace {
 void HkSetFieldOfView(void* instance, float value) noexcept try {

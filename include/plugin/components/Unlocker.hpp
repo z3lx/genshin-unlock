@@ -3,6 +3,7 @@
 #include "plugin/Events.hpp"
 #include "plugin/interfaces/IComponent.hpp"
 
+namespace z3lx::gfu {
 class Unlocker final : public IComponent<Event> {
 public:
     Unlocker();
@@ -13,3 +14,4 @@ public:
     void SetFieldOfView(int value) noexcept;
     void SetSmoothing(float value) noexcept;
 };
+} // namespace z3lx::gfu

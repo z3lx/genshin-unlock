@@ -1,4 +1,4 @@
-#include "utils/win/User.hpp"
+#include "util/win/User.hpp"
 
 #include <algorithm>
 #include <chrono>
@@ -10,7 +10,7 @@
 
 #include <Windows.h>
 
-namespace utils {
+namespace z3lx::util {
 std::vector<HWND> GetCurrentProcessWindows() {
     return GetProcessWindows(GetCurrentProcessId());
 }
@@ -46,4 +46,4 @@ std::vector<HWND> GetProcessWindows(const DWORD processId) {
     enumerateWindows();
     return windows;
 }
-} // namespace utils
+} // namespace z3lx::util

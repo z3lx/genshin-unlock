@@ -4,7 +4,7 @@
 
 #include <Windows.h>
 
-namespace utils {
+namespace z3lx::util {
 std::vector<HWND> GetCurrentProcessWindows();
 std::vector<HWND> GetProcessWindows(DWORD processId);
-} // namespace utils
+} // namespace z3lx::util

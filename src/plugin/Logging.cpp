@@ -1,7 +1,7 @@
 #include "plugin/Logging.hpp"
-#include "utils/win/File.hpp"
-#include "utils/win/Loader.hpp"
-#include "utils/win/String.hpp"
+#include "util/win/File.hpp"
+#include "util/win/Loader.hpp"
+#include "util/win/String.hpp"
 
 #include <cstdint>
 #include <filesystem>
@@ -36,22 +36,24 @@ void LoggingCallback(const wil::FailureInfo& info) noexcept {
 
     if (SUCCEEDED(hr)) try {
         // std::fputws(messageBuffer, stderr);
-        const std::u8string message = utils::U16ToU8(messageBuffer);
-        utils::AppendFileU8(fileHandle.get(), message);
+        const std::u8string message = z3lx::util::U16ToU8(messageBuffer);
+        z3lx::util::AppendFileU8(fileHandle.get(), message);
     } catch (...) {}
 
     isAcquired = false;
 }
 } // namespace
 
+namespace z3lx::gfu {
 LoggingCallbackFunc GetLoggingCallback() {
     static std::once_flag flag {};
     std::call_once(flag, []() {
-        const std::filesystem::path filePath =
-            utils::GetCurrentModuleFilePath().parent_path() / L"log.txt";
+        const std::filesystem::path currentPath =
+            util::GetCurrentModuleFilePath().parent_path();
         fileHandle = wil::open_or_truncate_existing_file(
-            filePath.native().c_str()
+            (currentPath / "log.txt").native().c_str()
         );
     });
     return LoggingCallback;
 }
+} // namespace z3lx::gfu

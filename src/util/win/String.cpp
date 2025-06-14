@@ -1,4 +1,4 @@
-#include "utils/win/String.hpp"
+#include "util/win/String.hpp"
 
 #include <algorithm>
 #include <concepts>
@@ -259,7 +259,7 @@ const auto getU16ViewChunkCharCount = [](
 };
 } // namespace
 
-namespace utils {
+namespace z3lx::util {
 std::u8string AToU8(const std::string_view view) {
     using ViewCharT = char;
     using BufferCharT = char16_t;
@@ -325,4 +325,4 @@ std::u8string U16ToU8(const std::u16string_view view) {
         getU16ViewChunkCharCount<ViewCharT>
     );
 }
-} // namespace utils
+} // namespace z3lx::util

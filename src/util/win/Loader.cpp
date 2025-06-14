@@ -1,4 +1,4 @@
-#include "utils/win/Loader.hpp"
+#include "util/win/Loader.hpp"
 
 #include <filesystem>
 
@@ -6,7 +6,7 @@
 
 #include <Windows.h>
 
-namespace utils {
+namespace z3lx::util {
 std::filesystem::path GetModuleFilePath(const void* address) {
     HMODULE module {};
     THROW_IF_WIN32_BOOL_FALSE(::GetModuleHandleExA(
@@ -21,4 +21,4 @@ std::filesystem::path GetModuleFilePath(const void* address) {
     THROW_LAST_ERROR_IF(stringSize == bufferSize || stringSize == 0);
     return std::filesystem::path { buffer };
 }
-} // namespace utils
+} // namespace z3lx::util

@@ -12,16 +12,16 @@ BOOL WINAPI DllMain (
     const HINSTANCE hinstDLL,
     const DWORD fdwReason,
     const LPVOID lpReserved) try {
-    static std::unique_ptr<Plugin> plugin {};
+    static std::unique_ptr<z3lx::gfu::Plugin> plugin {};
 
     switch (fdwReason) {
     case DLL_PROCESS_ATTACH:
         DisableThreadLibraryCalls(hinstDLL);
         std::thread { []() {
             try {
-                const auto callback = GetLoggingCallback();
+                const auto callback = z3lx::gfu::GetLoggingCallback();
                 wil::SetResultLoggingCallback(callback);
-                plugin = std::make_unique<Plugin>();
+                plugin = std::make_unique<z3lx::gfu::Plugin>();
             } CATCH_LOG()
         } }.detach();
         break;

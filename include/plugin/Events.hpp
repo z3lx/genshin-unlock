@@ -5,6 +5,7 @@
 
 #include <Windows.h>
 
+namespace z3lx::gfu {
 struct OnConfigChange {};
 
 struct OnKeyDown {
@@ -35,3 +36,4 @@ using Event = std::variant<
     OnCursorVisibilityChange,
     OnForegroundWindowChange
 >;
+} // namespace z3lx::gfu
