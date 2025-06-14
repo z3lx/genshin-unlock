@@ -5,11 +5,11 @@
 #include "plugin/components/KeyboardObserver.hpp"
 #include "plugin/components/Unlocker.hpp"
 #include "plugin/components/WindowObserver.hpp"
-#include "utils/log/Logger.hpp"
 #include "utils/win/Loader.hpp"
 #include "utils/win/User.hpp"
 
-#include <exception>
+#include <wil/result.h>
+
 #include <ranges>
 #include <variant>
 
@@ -29,17 +29,13 @@ void Plugin::Start() noexcept try {
     SetComponent<KeyboardObserver>();
 
     targetWindows = utils::GetCurrentProcessWindows();
-} catch (const std::exception& e) {
-    LOG_E("Failed to start plugin: {}", e.what());
-}
+} CATCH_LOG()
 
 template <>
 void Plugin::Handle(const OnConfigChange& event) noexcept {
     try {
         config = GetComponent<ConfigManager>().Read();
-    } catch (const std::exception& e) {
-        LOG_W("Failed to read config: {}", e.what());
-    }
+    } CATCH_LOG()
 
     auto& unlocker = GetComponent<Unlocker>();
     unlocker.SetEnable(config.enabled);
@@ -102,9 +98,7 @@ void Plugin::ConsumeState() noexcept try {
         GetComponent<Unlocker>().SetHook(value);
         isUnlockerHooked = value;
     }
-} catch (const std::exception& e) {
-    LOG_E("Failed to set hook: {}", e.what());
-}
+} CATCH_LOG()
 
 struct Plugin::Visitor {
     Plugin& plugin;

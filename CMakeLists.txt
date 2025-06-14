@@ -37,13 +37,6 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(wil)
 
-option(ENABLE_LOGGING "Enable logging" OFF)
-if (ENABLE_LOGGING)
-    add_compile_definitions(ACTIVE_LEVEL=LEVEL_TRACE)
-else()
-    add_compile_definitions(ACTIVE_LEVEL=LEVEL_OFF)
-endif()
-
 file(GLOB_RECURSE UTILS_SOURCES include/utils/* src/utils/*)
 add_library(utils STATIC ${UTILS_SOURCES})
 target_compile_definitions(utils PRIVATE WIN32_LEAN_AND_MEAN)

@@ -62,6 +62,7 @@ Config ConfigManager::Read() const {
             j.at(key).get_to(parsedValue);
             if (condition(parsedValue)) {
                 value = std::move(parsedValue);
+                return;
             }
             throw std::runtime_error {
                 "Invalid value for key '" + std::string { key } + "': " +

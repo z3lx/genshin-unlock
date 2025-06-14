@@ -1,57 +1,41 @@
+#include "plugin/Logging.hpp"
 #include "plugin/Plugin.hpp"
-#include "utils/log/Logger.hpp"
-#include "utils/log/sinks/FileSink.hpp"
-#include "utils/win/Loader.hpp"
 
 #include <wil/result.h>
 
-#include <exception>
 #include <memory>
 #include <thread>
 
 #include <Windows.h>
 
-namespace {
-std::unique_ptr<Plugin> plugin {};
-
-void Initialize() noexcept {
-    const auto init = []() {
-        wil::SetResultLoggingCallback(nullptr);
-
-        try {
-            const auto workingDirectory =
-                utils::GetCurrentModuleFilePath().parent_path();
-            LOG_SET_LEVEL(Level::Trace);
-            LOG_SET_SINKS(std::make_unique<FileSink>(
-                workingDirectory / "logs.txt", true));
-            // LOG_D("Working directory: {}", workingDirectory.string());
-
-            plugin = std::make_unique<Plugin>();
-        } catch (const std::exception& e) {
-            LOG_F("Failed to initialize plugin: {}", e.what());
-        }
-    };
-
-    try {
-        std::thread { init }.detach();
-    } catch (const std::exception& e) {
-        LOG_F("Failed to create thread: {}", e.what());
-    }
-}
-
-void Uninitialize() noexcept {
-    plugin = nullptr;
-}
-} // namespace
-
-BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved) {
-    DisableThreadLibraryCalls(hinstDLL);
+BOOL WINAPI DllMain (
+    const HINSTANCE hinstDLL,
+    const DWORD fdwReason,
+    const LPVOID lpReserved) try {
+    static std::unique_ptr<Plugin> plugin {};
 
     switch (fdwReason) {
-        case DLL_PROCESS_ATTACH: Initialize(); break;
-        case DLL_PROCESS_DETACH: Uninitialize(); break;
-        default: break;
+    case DLL_PROCESS_ATTACH:
+        DisableThreadLibraryCalls(hinstDLL);
+        std::thread { []() {
+            try {
+                const auto callback = GetLoggingCallback();
+                wil::SetResultLoggingCallback(callback);
+                plugin = std::make_unique<Plugin>();
+            } CATCH_LOG()
+        } }.detach();
+        break;
+
+    case DLL_PROCESS_DETACH:
+        plugin = nullptr;
+        break;
+
+    default: break;
     }
 
     return TRUE;
+} catch (...) {
+    LOG_CAUGHT_EXCEPTION();
+    SetLastError(wil::ResultFromCaughtException());
+    return FALSE;
 }

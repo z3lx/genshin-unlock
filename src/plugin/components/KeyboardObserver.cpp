@@ -1,11 +1,9 @@
 #include "plugin/components/KeyboardObserver.hpp"
 #include "plugin/Events.hpp"
-#include "utils/log/Logger.hpp"
 
 #include <algorithm>
 #include <bitset>
 #include <cstdint>
-#include <exception>
 #include <future>
 #include <mutex>
 #include <thread>
@@ -133,10 +131,7 @@ void KeyboardObserver::Hook::ClearHook() noexcept {
 
 KeyboardObserver::KeyboardObserver() try {
     Hook::Register(this);
-} catch (const std::exception& e) {
-    LOG_E("Failed to create KeyboardObserver: {}", e.what());
-    throw;
-}
+} CATCH_THROW_NORMALIZED()
 
 KeyboardObserver::~KeyboardObserver() noexcept {
     Hook::Unregister(this);

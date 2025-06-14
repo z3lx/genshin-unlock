@@ -1,9 +1,9 @@
 #include "plugin/components/Unlocker.hpp"
 #include "utils/ExponentialFilter.hpp"
 #include "utils/MinHook.hpp"
-#include "utils/log/Logger.hpp"
 
 #include <nlohmann/json.hpp>
+#include <wil/result.h>
 
 #include <bit>
 #include <chrono>
@@ -58,10 +58,7 @@ Unlocker::Unlocker() try {
 
     std::lock_guard lock { mutex };
     hook = utils::MinHook<void, void*, float> { target, detour };
-} catch (const std::exception& e) {
-    LOG_E("Failed to create Unlocker: {}", e.what());
-    throw;
-}
+} CATCH_THROW_NORMALIZED()
 
 Unlocker::~Unlocker() noexcept {
     std::lock_guard lock { mutex };
@@ -136,9 +133,7 @@ void HkSetFieldOfView(void* instance, float value) noexcept try {
 
     // AddToBuffer(instance, value);
     hook->CallOriginal(instance, value);
-} catch (const std::exception& e) {
-    LOG_E("Failed to hook set field of view: {}", e.what());
-}
+} CATCH_LOG()
 } // namespace
 
 #if false // TODO: Reimplement
