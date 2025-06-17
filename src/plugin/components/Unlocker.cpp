@@ -62,7 +62,11 @@ void Unlocker::Start() {
     hook = util::MinHook<void, void*, float> { target, detour };
 }
 
-void Unlocker::SetHook(const bool value) const {
+bool Unlocker::Hooked() const noexcept {
+    return isHooked;
+}
+
+void Unlocker::Hooked(const bool value) {
     std::lock_guard lock { mutex };
     isHooked = value;
     if (value) {
@@ -73,15 +77,27 @@ void Unlocker::SetHook(const bool value) const {
     }
 }
 
-void Unlocker::SetEnable(const bool value) const noexcept {
+bool Unlocker::Enabled() const noexcept {
+    return isEnabled;
+}
+
+void Unlocker::Enabled(const bool value) noexcept {
     isEnabled = value;
 }
 
-void Unlocker::SetFieldOfView(const int value) noexcept {
+int Unlocker::FieldOfView() const noexcept {
+    return overrideFov;
+}
+
+void Unlocker::FieldOfView(const int value) noexcept {
     overrideFov = value;
 }
 
-void Unlocker::SetSmoothing(const float value) noexcept {
+float Unlocker::Smoothing() const noexcept {
+    return filter.TimeConstant();
+}
+
+void Unlocker::Smoothing(const float value) noexcept {
     filter.TimeConstant(value);
 }
 } // namespace z3lx::gfu

@@ -30,6 +30,10 @@ namespace z3lx::gfu {
 ConfigManager::ConfigManager() noexcept = default;
 ConfigManager::~ConfigManager() noexcept = default;
 
+const std::filesystem::path& ConfigManager::FilePath() const noexcept {
+    return filePath;
+}
+
 void ConfigManager::FilePath(std::filesystem::path filePath) try {
     this->filePath = std::move(filePath);
     fileHandle = wil::open_or_create_file(
@@ -46,10 +50,6 @@ void ConfigManager::FilePath(std::filesystem::path filePath) try {
     );
     changed.store(true, std::memory_order_relaxed);
 } CATCH_THROW_NORMALIZED()
-
-const std::filesystem::path& ConfigManager::FilePath() const noexcept {
-    return filePath;
-}
 
 Config ConfigManager::Read() const {
     nlohmann::json j {

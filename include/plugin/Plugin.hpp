@@ -38,7 +38,6 @@ private:
     void ConsumeState();
 
     // State
-    bool isUnlockerHooked;
     bool isWindowFocused;
     bool isCursorVisible;
     std::vector<HWND> targetWindows;

@@ -32,8 +32,9 @@ public:
     ConfigManager() noexcept;
     ~ConfigManager() noexcept override;
 
+    [[nodiscaord]]const std::filesystem::path& FilePath() const noexcept;
     void FilePath(std::filesystem::path filePath);
-    const std::filesystem::path& FilePath() const noexcept;
+
     [[nodiscard]] Config Read() const;
     void Write(const Config& config) const;
 

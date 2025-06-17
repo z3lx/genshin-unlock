@@ -13,8 +13,7 @@
 
 namespace z3lx::gfu {
 Plugin::Plugin()
-    : isUnlockerHooked { false }
-    , isWindowFocused { true }
+    : isWindowFocused { true }
     , isCursorVisible { true } {};
 
 Plugin::~Plugin() noexcept = default;
@@ -33,9 +32,9 @@ void Plugin::Handle(const OnConfigChange& event) {
     } CATCH_LOG()
 
     auto& unlocker = GetComponent<Unlocker>();
-    unlocker.SetEnable(config.enabled);
-    unlocker.SetFieldOfView(config.fov);
-    unlocker.SetSmoothing(config.smoothing);
+    unlocker.Enabled(config.enabled);
+    unlocker.FieldOfView(config.fov);
+    unlocker.Smoothing(config.smoothing);
 }
 
 template <>
@@ -44,14 +43,14 @@ void Plugin::Handle(const OnKeyDown& event) {
     auto& [enabled, fov, fovPresets, smoothing,
         enableKey, nextKey, prevKey] = config;
 
-    if (!isUnlockerHooked) {
+    auto& unlocker = GetComponent<Unlocker>();
+    if (!unlocker.Hooked()) {
         return;
     }
 
-    auto& unlocker = GetComponent<Unlocker>();
     if (key == enableKey) {
         enabled = !enabled;
-        unlocker.SetEnable(enabled);
+        unlocker.Enabled(enabled);
     } else if (!enabled || isCursorVisible) {
         return;
     } else if (key == nextKey) {
@@ -62,7 +61,7 @@ void Plugin::Handle(const OnKeyDown& event) {
             }
         );
         fov = it != fovPresets.end() ? *it : fovPresets.front();
-        unlocker.SetFieldOfView(fov);
+        unlocker.FieldOfView(fov);
     } else if (key == prevKey) {
         const auto it = std::ranges::find_if(
             fovPresets | std::views::reverse,
@@ -71,7 +70,7 @@ void Plugin::Handle(const OnKeyDown& event) {
             }
         );
         fov = it != fovPresets.rend() ? *it : fovPresets.back();
-        unlocker.SetFieldOfView(fov);
+        unlocker.FieldOfView(fov);
     }
 }
 
@@ -92,10 +91,11 @@ template <typename Event>
 void Plugin::Handle(const Event& event) {};
 
 void Plugin::ConsumeState() {
+    auto& unlocker = GetComponent<Unlocker>();
     if (const bool value = isWindowFocused && !isCursorVisible;
-        isUnlockerHooked != value) {
-        GetComponent<Unlocker>().SetHook(value);
-        isUnlockerHooked = value;
+        unlocker.Hooked() != value) {
+        GetComponent<Unlocker>().Hooked(value);
+        unlocker.Hooked(value);
     }
 }
 
