@@ -24,7 +24,6 @@ constexpr auto SMOOTHING = "smoothing";
 constexpr auto ENABLE_KEY = "enable_key";
 constexpr auto NEXT_KEY = "next_key";
 constexpr auto PREV_KEY = "prev_key";
-constexpr auto DUMP_KEY = "dump_key";
 } // namespace
 
 namespace z3lx::gfu {
@@ -34,12 +33,12 @@ ConfigManager::~ConfigManager() noexcept = default;
 void ConfigManager::FilePath(std::filesystem::path filePath) try {
     this->filePath = std::move(filePath);
     fileHandle = wil::open_or_create_file(
-        this->filePath.wstring().c_str(),
+        this->filePath.native().c_str(),
         GENERIC_READ | GENERIC_WRITE,
         FILE_SHARE_READ | FILE_SHARE_WRITE
     );
     changeReader = wil::make_folder_change_reader(
-        this->filePath.parent_path().wstring().c_str(),
+        this->filePath.parent_path().native().c_str(),
         false, wil::FolderChangeEvents::LastWriteTime,
         [this](const auto event, const auto fileName) {
             OnFolderChange(event, fileName);
@@ -104,7 +103,6 @@ Config ConfigManager::Read() const {
     tryGetTo(ENABLE_KEY, config.enableKey, isValidKey);
     tryGetTo(NEXT_KEY, config.nextKey, isValidKey);
     tryGetTo(PREV_KEY, config.prevKey, isValidKey);
-    tryGetTo(DUMP_KEY, config.dumpKey, isValidKey);
 
     return config;
 }
@@ -117,8 +115,7 @@ void ConfigManager::Write(const Config& config) const {
         { SMOOTHING, config.smoothing },
         { ENABLE_KEY, config.enableKey },
         { NEXT_KEY, config.nextKey },
-        { PREV_KEY, config.prevKey },
-        { DUMP_KEY, config.dumpKey }
+        { PREV_KEY, config.prevKey }
     };
 
     util::WriteFileA(fileHandle.get(), j.dump(4));

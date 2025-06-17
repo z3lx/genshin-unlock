@@ -25,7 +25,6 @@ struct Config {
     uint8_t enableKey = VK_DOWN;
     uint8_t nextKey = VK_RIGHT;
     uint8_t prevKey = VK_LEFT;
-    uint8_t dumpKey = VK_F12;
 };
 
 class ConfigManager final : public IComponent<Event> {

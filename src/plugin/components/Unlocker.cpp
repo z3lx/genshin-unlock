@@ -2,29 +2,20 @@
 #include "util/ExponentialFilter.hpp"
 #include "util/MinHook.hpp"
 
-#include <nlohmann/json.hpp>
 #include <wil/result.h>
 
 #include <bit>
-#include <chrono>
 #include <cmath>
 #include <cstdint>
-#include <memory>
 #include <mutex>
-#include <queue>
-#include <string>
-#include <tuple>
-#include <utility>
 
 #include <Windows.h>
 
 namespace {
-constexpr auto OFFSET_GL = 0xFD8BE0;
-constexpr auto OFFSET_CN = 0xFD8BE0;
+constexpr uintptr_t OFFSET_GL = 0xFD8BE0;
+constexpr uintptr_t OFFSET_CN = 0xFD8BE0;
 
 void HkSetFieldOfView(void* instance, float value) noexcept;
-void AddToBuffer(void* instance, float value);
-std::string DumpBuffer();
 
 std::mutex mutex {};
 std::optional<z3lx::util::MinHook<void, void*, float>> hook {};
@@ -138,53 +129,9 @@ void HkSetFieldOfView(void* instance, float value) noexcept try {
         previousFov = value;
     }
 
-    // AddToBuffer(instance, value);
     hook->CallOriginal(instance, value);
-} CATCH_LOG()
-} // namespace
-
-#if false // TODO: Reimplement
-namespace {
-namespace sc = std::chrono;
-
-std::queue<std::tuple<
-    sc::steady_clock::time_point, uintptr_t, float>
-> buffer {};
-
-void AddToBuffer(void* instance, const float value) {
-    const auto now = sc::steady_clock::now();
-    while (!buffer.empty()) {
-        const auto [time, instance, value] = buffer.front();
-        if (const auto elapsed = now - time;
-            elapsed < sc::seconds(10)) {
-            break;
-        }
-        buffer.pop();
-    }
-    buffer.emplace(now, reinterpret_cast<uintptr_t>(instance), value);
-}
-
-std::string DumpBuffer() {
-    using namespace nlohmann;
-
-    std::lock_guard lock { mutex };
-    if (buffer.empty()) {
-        return "[]";
-    }
-
-    ordered_json j = ordered_json::array();
-    const auto firstTime = std::get<0>(buffer.front());
-    while (!buffer.empty()) {
-        const auto [time, instance, value] = buffer.front();
-        const auto elapsed = sc::duration<double>(time - firstTime).count();
-        j.push_back({
-            { "time", elapsed },
-            { "instance", instance },
-            { "value", value }
-        });
-        buffer.pop();
-    }
-    return j.dump();
+} catch (...) {
+    // Should never happen
+    hook->CallOriginal(instance, value);
 }
 } // namespace
-#endif

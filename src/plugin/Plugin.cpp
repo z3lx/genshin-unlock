@@ -5,6 +5,8 @@
 #include "util/win/Loader.hpp"
 #include "util/win/User.hpp"
 
+#include <wil/result.h>
+
 #include <filesystem>
 #include <ranges>
 #include <variant>
@@ -40,7 +42,7 @@ template <>
 void Plugin::Handle(const OnKeyDown& event) {
     const auto key = event.vKey;
     auto& [enabled, fov, fovPresets, smoothing,
-        enableKey, nextKey, prevKey, dumpKey] = config;
+        enableKey, nextKey, prevKey] = config;
 
     if (!isUnlockerHooked) {
         return;
@@ -55,17 +57,21 @@ void Plugin::Handle(const OnKeyDown& event) {
     } else if (key == nextKey) {
         const auto it = std::ranges::find_if(
             fovPresets,
-            [fov](const int fovPreset) { return fov < fovPreset; });
+            [fov](const int fovPreset) {
+                return fov < fovPreset;
+            }
+        );
         fov = it != fovPresets.end() ? *it : fovPresets.front();
         unlocker.SetFieldOfView(fov);
     } else if (key == prevKey) {
         const auto it = std::ranges::find_if(
             fovPresets | std::views::reverse,
-            [fov](const int fovPreset) { return fov > fovPreset; });
+            [fov](const int fovPreset) {
+                return fov > fovPreset;
+            }
+        );
         fov = it != fovPresets.rend() ? *it : fovPresets.back();
         unlocker.SetFieldOfView(fov);
-    } else if (key == dumpKey) {
-        // TODO: plugin.unlocker.DumpBuffer();
     }
 }
 
