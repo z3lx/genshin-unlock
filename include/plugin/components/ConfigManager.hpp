@@ -30,17 +30,20 @@ struct Config {
 
 class ConfigManager final : public IComponent<Event> {
 public:
-    explicit ConfigManager(std::filesystem::path filePath);
+    ConfigManager() noexcept;
     ~ConfigManager() noexcept override;
 
+    void FilePath(std::filesystem::path filePath);
+    const std::filesystem::path& FilePath() const noexcept;
     [[nodiscard]] Config Read() const;
     void Write(const Config& config) const;
 
 private:
+    void Update() noexcept override;
+
     void OnFolderChange(
         wil::FolderChangeEvent event,
         PCWSTR filename) noexcept;
-    void Update() noexcept override;
 
     std::filesystem::path filePath;
     wil::unique_hfile fileHandle;

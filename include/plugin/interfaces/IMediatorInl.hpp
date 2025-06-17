@@ -2,109 +2,98 @@
 
 #include "plugin/interfaces/IMediator.hpp"
 
-#include <algorithm>
 #include <atomic>
 #include <chrono>
-#include <memory>
-#include <stdexcept>
 #include <thread>
-#include <utility>
 
 namespace z3lx::gfu {
-template <typename Event>
-IMediator<Event>::IMediator()
-    : stopFlag { false } {
-    thread = std::thread([this]() {
-        Start();
-        while (!stopFlag.load(std::memory_order_relaxed)) {
-            // Update components
-            for (auto& component : components) {
-                component->Update();
-            }
-            Update();
+namespace detail {
+template <typename T>
+struct Holder {
+    T value;
+};
+} // namespace detail
 
-            // Process events
-            for (const auto& event : events) {
-                Notify(event);
-            }
-            events.clear();
+IMEDIATOR_TEMPLATE
+IMEDIATOR::IMediator()
+    : stopFlag { false }
+    , thread { [this]() -> void { UpdateLoop(); } } {}
 
-            // Wait until the next scheduler tick
-            std::this_thread::sleep_for(
-                std::chrono::milliseconds { 1 });
-        }
-    });
-}
-
-template <typename Event>
-IMediator<Event>::~IMediator() noexcept {
+IMEDIATOR_TEMPLATE
+IMEDIATOR::~IMediator() noexcept {
     stopFlag.store(true, std::memory_order_relaxed);
     thread.join();
 }
 
-template <typename Event>
-void IMediator<Event>::Start() noexcept {}
+IMEDIATOR_TEMPLATE
+void IMEDIATOR::Start() {}
 
-template <typename Event>
-void IMediator<Event>::Update() noexcept {}
+IMEDIATOR_TEMPLATE
+void IMEDIATOR::Update() {}
 
-template <typename Event>
+IMEDIATOR_TEMPLATE
+void IMEDIATOR::Notify(const Event& event) {}
+
+IMEDIATOR_TEMPLATE
 template <typename Component>
-requires IsComponent<Component, Event>
-Component* IMediator<Event>::TryGetComponent() const noexcept {
-    Component* component = nullptr;
-    if (const auto it = FindComponent<Component>(); it != components.end()) {
-        component = dynamic_cast<Component*>(it->get());
+Component& IMEDIATOR::GetComponent() noexcept {
+    return detail::Holder<Component>::value;
+}
+
+IMEDIATOR_TEMPLATE
+template <typename Component>
+const Component& IMEDIATOR::GetComponent() const noexcept {
+    return detail::Holder<Component>::value;
+}
+
+IMEDIATOR_TEMPLATE
+void IMEDIATOR::UpdateLoop() noexcept try {
+    InitializeComponents();
+    StartComponents();
+    StartMediator();
+
+    while (!stopFlag.load(std::memory_order_relaxed)) {
+        UpdateComponents();
+        UpdateMediator();
+        NotifyMediator();
+
+        // Wait until the next scheduler tick
+        std::this_thread::sleep_for(
+            std::chrono::milliseconds { 1 }
+        );
     }
-    return component;
+} catch (...) {}
+
+IMEDIATOR_TEMPLATE
+void IMEDIATOR::InitializeComponents() noexcept {
+    ((GetComponent<Components>().events = &events), ...);
 }
 
-template <typename Event>
-template <typename Component>
-requires IsComponent<Component, Event>
-Component& IMediator<Event>::GetComponent() const {
-    if (const auto component = TryGetComponent<Component>()) {
-        return *component;
+IMEDIATOR_TEMPLATE
+void IMEDIATOR::StartComponents() {
+    (static_cast<IComponent<Event>&>(GetComponent<Components>()).Start(), ...);
+}
+
+IMEDIATOR_TEMPLATE
+void IMEDIATOR::UpdateComponents() {
+    (static_cast<IComponent<Event>&>(GetComponent<Components>()).Update(), ...);
+}
+
+IMEDIATOR_TEMPLATE
+void IMEDIATOR::StartMediator() {
+    Start();
+}
+
+IMEDIATOR_TEMPLATE
+void IMEDIATOR::UpdateMediator() {
+    Update();
+}
+
+IMEDIATOR_TEMPLATE
+void IMEDIATOR::NotifyMediator() {
+    for (const Event& event : events) {
+        Notify(event);
     }
-    throw std::runtime_error { "Component not set" };
-}
-
-template <typename Event>
-template <typename Component, typename... Args>
-requires IsComponent<Component, Event>
-void IMediator<Event>::SetComponent(Args&&... args) {
-    auto component = std::make_unique<Component>(std::forward<Args>(args)...);
-    component->SetMediator(this);
-    component->Start();
-    components.push_back(std::move(component));
-}
-
-template <typename Event>
-template <typename Component>
-requires IsComponent<Component, Event>
-void IMediator<Event>::ClearComponent() {
-    if (const auto it = FindComponent<Component>(); it != components.end()) {
-        components.erase(it);
-        return;
-    }
-    throw std::runtime_error { "Component not set" };
-}
-
-template <typename Event>
-template <typename Component>
-requires IsComponent<Component, Event>
-typename IMediator<Event>::ComponentIterator
-IMediator<Event>::FindComponent() noexcept {
-    return std::ranges::find_if(components, [](const auto& component) {
-        return dynamic_cast<Component*>(component.get());
-    });
-}
-
-template <typename Event>
-template <typename Component>
-requires IsComponent<Component, Event>
-typename IMediator<Event>::ConstComponentIterator
-IMediator<Event>::FindComponent() const noexcept {
-    return const_cast<IMediator*>(this)->FindComponent<Component>();
+    events.clear();
 }
 } // namespace z3lx::gfu

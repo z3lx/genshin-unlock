@@ -4,25 +4,20 @@
 
 namespace z3lx::gfu {
 template <typename Event>
-void IComponent<Event>::Start() noexcept {}
+IComponent<Event>::IComponent() noexcept
+    : events { nullptr } {}
 
 template <typename Event>
-void IComponent<Event>::Update() noexcept {}
+IComponent<Event>::~IComponent() noexcept = default;
 
 template <typename Event>
-IMediator<Event>* IComponent<Event>::GetMediator() const noexcept {
-    return mediator;
-}
+void IComponent<Event>::Start() {}
 
 template <typename Event>
-void IComponent<Event>::SetMediator(IMediator<Event>* mediator) noexcept {
-    this->mediator = mediator;
-}
+void IComponent<Event>::Update() {}
 
 template <typename Event>
-void IComponent<Event>::Notify(const Event& event) noexcept {
-    if (mediator) {
-        mediator->events.push_back(event);
-    }
+void IComponent<Event>::Notify(const Event& event) {
+    events->push_back(event);
 }
 } // namespace z3lx::gfu

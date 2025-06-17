@@ -1,10 +1,8 @@
 #include "plugin/Plugin.hpp"
 #include "plugin/Events.hpp"
 #include "plugin/components/ConfigManager.hpp"
-#include "plugin/components/CursorObserver.hpp"
 #include "plugin/components/KeyboardObserver.hpp"
 #include "plugin/components/Unlocker.hpp"
-#include "plugin/components/WindowObserver.hpp"
 #include "util/win/Loader.hpp"
 #include "util/win/User.hpp"
 
@@ -22,18 +20,12 @@ Plugin::Plugin() noexcept
 
 Plugin::~Plugin() noexcept = default;
 
-void Plugin::Start() noexcept try {
-    const std::filesystem::path currenPath =
-        util::GetCurrentModuleFilePath().parent_path();
-
-    SetComponent<Unlocker>();
-    SetComponent<ConfigManager>(currenPath / "fov_config.json");
-    SetComponent<WindowObserver>();
-    SetComponent<CursorObserver>();
-    SetComponent<KeyboardObserver>();
-
+void Plugin::Start() try {
+    GetComponent<ConfigManager>().FilePath(
+        util::GetCurrentModuleFilePath().parent_path() / "fov_config.json"
+    );
     targetWindows = util::GetCurrentProcessWindows();
-} CATCH_LOG()
+} CATCH_THROW_NORMALIZED()
 
 template <>
 void Plugin::Handle(const OnConfigChange& event) noexcept {

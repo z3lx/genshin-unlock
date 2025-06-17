@@ -28,28 +28,29 @@ constexpr auto DUMP_KEY = "dump_key";
 } // namespace
 
 namespace z3lx::gfu {
-ConfigManager::ConfigManager(std::filesystem::path filePath) try
-    : filePath { std::move(filePath) }
-    , fileHandle {
-        wil::open_or_create_file(
-            this->filePath.wstring().c_str(),
-            GENERIC_READ | GENERIC_WRITE,
-            FILE_SHARE_READ | FILE_SHARE_WRITE
-        )
-    }
-    , changeReader {
-        wil::make_folder_change_reader(
-            this->filePath.parent_path().wstring().c_str(),
-            false, wil::FolderChangeEvents::LastWriteTime,
-            [this](const auto event, const auto fileName) {
-                OnFolderChange(event, fileName);
-            }
-        )
-    }
-    , changed { true } {
+ConfigManager::ConfigManager() noexcept = default;
+ConfigManager::~ConfigManager() noexcept = default;
+
+void ConfigManager::FilePath(std::filesystem::path filePath) try {
+    this->filePath = std::move(filePath);
+    fileHandle = wil::open_or_create_file(
+        this->filePath.wstring().c_str(),
+        GENERIC_READ | GENERIC_WRITE,
+        FILE_SHARE_READ | FILE_SHARE_WRITE
+    );
+    changeReader = wil::make_folder_change_reader(
+        this->filePath.parent_path().wstring().c_str(),
+        false, wil::FolderChangeEvents::LastWriteTime,
+        [this](const auto event, const auto fileName) {
+            OnFolderChange(event, fileName);
+        }
+    );
+    changed.store(true, std::memory_order_relaxed);
 } CATCH_THROW_NORMALIZED()
 
-ConfigManager::~ConfigManager() noexcept = default;
+const std::filesystem::path& ConfigManager::FilePath() const noexcept {
+    return filePath;
+}
 
 Config ConfigManager::Read() const {
     nlohmann::json j {
