@@ -3,14 +3,14 @@
 #include "util/win/Loader.hpp"
 #include "util/win/String.hpp"
 
+#include <wil/filesystem.h>
+#include <wil/resource.h>
+#include <wil/result.h>
+
 #include <cstdint>
 #include <filesystem>
 #include <mutex>
 #include <string>
-
-#include <wil/filesystem.h>
-#include <wil/resource.h>
-#include <wil/result.h>
 
 namespace {
 wil::unique_hfile fileHandle {};

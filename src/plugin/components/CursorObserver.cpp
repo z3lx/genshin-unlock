@@ -7,7 +7,7 @@ namespace z3lx::gfu {
 CursorObserver::CursorObserver() noexcept = default;
 CursorObserver::~CursorObserver() noexcept = default;
 
-void CursorObserver::Update() noexcept {
+void CursorObserver::Update() {
     CURSORINFO cursorInfo { .cbSize = sizeof(cursorInfo) };
     if (!GetCursorInfo(&cursorInfo)) {
         return;

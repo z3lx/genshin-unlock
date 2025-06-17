@@ -12,7 +12,7 @@ public:
     ~CursorObserver() noexcept override;
 
 private:
-    void Update() noexcept override;
+    void Update() override;
 
     std::optional<bool> isPreviousCursorVisible;
 };

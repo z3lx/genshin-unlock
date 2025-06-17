@@ -1,5 +1,7 @@
 #include "util/win/String.hpp"
 
+#include <wil/result.h>
+
 #include <algorithm>
 #include <concepts>
 #include <cstdint>
@@ -7,8 +9,6 @@
 #include <string>
 #include <string_view>
 #include <type_traits>
-
-#include <wil/result.h>
 
 #include <Windows.h>
 

@@ -39,7 +39,7 @@ public:
     void Write(const Config& config) const;
 
 private:
-    void Update() noexcept override;
+    void Update() override;
 
     void OnFolderChange(
         wil::FolderChangeEvent event,

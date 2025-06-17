@@ -1,11 +1,11 @@
 #include "util/win/File.hpp"
 
+#include <wil/result.h>
+
 #include <algorithm>
 #include <cstdint>
 #include <string>
 #include <string_view>
-
-#include <wil/result.h>
 
 #include <Windows.h>
 

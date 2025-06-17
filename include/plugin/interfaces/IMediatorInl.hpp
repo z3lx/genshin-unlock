@@ -2,6 +2,8 @@
 
 #include "plugin/interfaces/IMediator.hpp"
 
+#include <wil/result.h>
+
 #include <atomic>
 #include <chrono>
 #include <thread>
@@ -62,7 +64,7 @@ void IMEDIATOR::UpdateLoop() noexcept try {
             std::chrono::milliseconds { 1 }
         );
     }
-} catch (...) {}
+} CATCH_LOG_MSG("%hs", typeid(*this).name())
 
 IMEDIATOR_TEMPLATE
 void IMEDIATOR::InitializeComponents() noexcept {
@@ -71,29 +73,29 @@ void IMEDIATOR::InitializeComponents() noexcept {
 
 IMEDIATOR_TEMPLATE
 void IMEDIATOR::StartComponents() {
-    (static_cast<IComponent<Event>&>(GetComponent<Components>()).Start(), ...);
+    (GetComponent<Components>().StartComponent(), ...);
 }
 
 IMEDIATOR_TEMPLATE
 void IMEDIATOR::UpdateComponents() {
-    (static_cast<IComponent<Event>&>(GetComponent<Components>()).Update(), ...);
+    (GetComponent<Components>().UpdateComponent(), ...);
 }
 
 IMEDIATOR_TEMPLATE
-void IMEDIATOR::StartMediator() {
+void IMEDIATOR::StartMediator() try {
     Start();
-}
+} CATCH_THROW_NORMALIZED_MSG("%hs", typeid(*this).name())
 
 IMEDIATOR_TEMPLATE
-void IMEDIATOR::UpdateMediator() {
+void IMEDIATOR::UpdateMediator() try {
     Update();
-}
+} CATCH_THROW_NORMALIZED_MSG("%hs", typeid(*this).name())
 
 IMEDIATOR_TEMPLATE
-void IMEDIATOR::NotifyMediator() {
+void IMEDIATOR::NotifyMediator() try {
     for (const Event& event : events) {
         Notify(event);
     }
     events.clear();
-}
+} CATCH_THROW_NORMALIZED_MSG("%hs", typeid(*this).name())
 } // namespace z3lx::gfu

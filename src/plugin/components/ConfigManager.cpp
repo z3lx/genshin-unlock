@@ -125,14 +125,14 @@ void ConfigManager::Write(const Config& config) const {
 }
 
 void ConfigManager::OnFolderChange(
-    const wil::FolderChangeEvent event, const PCWSTR filename) noexcept {
+    const wil::FolderChangeEvent event, const PCWSTR filename) noexcept try {
     if (event == wil::FolderChangeEvent::Modified &&
         filename == filePath.filename()) {
         changed.store(true, std::memory_order_relaxed);
     }
-}
+} catch (...) {}
 
-void ConfigManager::Update() noexcept {
+void ConfigManager::Update() {
     if (changed.load(std::memory_order_relaxed)) {
         changed.store(false, std::memory_order_relaxed);
         Notify(OnConfigChange {});

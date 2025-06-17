@@ -1,8 +1,8 @@
 #include "util/win/Loader.hpp"
 
-#include <filesystem>
-
 #include <wil/result.h>
+
+#include <filesystem>
 
 #include <Windows.h>
 

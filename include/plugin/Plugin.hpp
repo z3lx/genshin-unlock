@@ -26,18 +26,16 @@ using Mediator = IMediator<
 
 class Plugin final : public detail::Mediator {
 public:
-    Plugin() noexcept;
+    Plugin();
     ~Plugin() noexcept override;
 
 private:
-    struct Visitor;
-
     void Start() override;
-    void Notify(const Event& event) noexcept override;
+    void Notify(const Event& event) override;
 
     template <typename Event>
-    void Handle(const Event& event) noexcept;
-    void ConsumeState() noexcept;
+    void Handle(const Event& event);
+    void ConsumeState();
 
     // State
     bool isUnlockerHooked;

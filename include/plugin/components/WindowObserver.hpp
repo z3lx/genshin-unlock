@@ -12,7 +12,7 @@ public:
     ~WindowObserver() noexcept override;
 
 private:
-    void Update() noexcept override;
+    void Update() override;
 
     HWND previousForegroundWindow;
 };

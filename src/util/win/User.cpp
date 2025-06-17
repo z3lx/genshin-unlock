@@ -1,12 +1,12 @@
 #include "util/win/User.hpp"
 
+#include <wil/result.h>
+
 #include <algorithm>
 #include <chrono>
 #include <thread>
 #include <tuple>
 #include <vector>
-
-#include <wil/result.h>
 
 #include <Windows.h>
 

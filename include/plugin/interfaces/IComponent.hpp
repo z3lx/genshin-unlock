@@ -21,6 +21,9 @@ protected:
     void Notify(const Event& event);
 
 private:
+    void StartComponent();
+    void UpdateComponent();
+
     std::vector<Event>* events;
 };
 } // namespace z3lx::gfu

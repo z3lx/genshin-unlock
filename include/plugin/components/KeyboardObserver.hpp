@@ -12,7 +12,7 @@ public:
     ~KeyboardObserver() noexcept override;
 
 private:
-    void Update() noexcept override;
+    void Update() override;
 
     std::bitset<256> isKeyDown;
 };

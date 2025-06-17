@@ -42,28 +42,33 @@ bool isPreviousFov = false;
 } // namespace
 
 namespace z3lx::gfu {
-Unlocker::Unlocker() try {
+Unlocker::Unlocker() noexcept = default;
+
+Unlocker::~Unlocker() noexcept {
+    std::lock_guard lock { mutex };
+    hook.reset();
+}
+
+void Unlocker::Start() {
+    bool global = true;
     auto module = reinterpret_cast<uintptr_t>(
-        GetModuleHandle("GenshinImpact.exe"));
-    const auto global = module ? true : (
-        module = reinterpret_cast<uintptr_t>(
-        GetModuleHandle("YuanShen.exe")), false);
+        GetModuleHandleA("GenshinImpact.exe")
+    );
+
     if (!module) {
-        throw std::runtime_error {
-            "Failed to get module handle due to unknown game"
-        };
+        global = false;
+        module = reinterpret_cast<uintptr_t>(
+            GetModuleHandleA("YuanShen.exe")
+        );
+        THROW_LAST_ERROR_IF(!module);
     }
-    const auto offset = global ? OFFSET_GL : OFFSET_CN;
+
+    const uintptr_t offset = global ? OFFSET_GL : OFFSET_CN;
     const auto target = reinterpret_cast<void*>(module + offset);
     const auto detour = reinterpret_cast<void*>(HkSetFieldOfView);
 
     std::lock_guard lock { mutex };
     hook = util::MinHook<void, void*, float> { target, detour };
-} CATCH_THROW_NORMALIZED()
-
-Unlocker::~Unlocker() noexcept {
-    std::lock_guard lock { mutex };
-    hook.reset();
 }
 
 void Unlocker::SetHook(const bool value) const {

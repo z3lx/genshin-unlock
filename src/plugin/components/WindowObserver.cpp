@@ -9,7 +9,7 @@ WindowObserver::WindowObserver() noexcept
 
 WindowObserver::~WindowObserver() noexcept = default;
 
-void WindowObserver::Update() noexcept {
+void WindowObserver::Update() {
     if (const auto currentForegroundWindow = GetForegroundWindow();
         currentForegroundWindow != previousForegroundWindow) {
         previousForegroundWindow = currentForegroundWindow;
