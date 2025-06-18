@@ -2,7 +2,9 @@
 ![GitHub all releases](https://img.shields.io/github/downloads/z3lx/genshin-fov-unlock/total)
 
 # Genshin Impact FOV Unlocker
-A plugin for Genshin Impact that unlocks the camera's field of view (FOV) to values greater than the default of 45. It includes a DLL designed to be used in conjunction with [**genshin-fps-unlock**](https://github.com/34736384/genshin-fps-unlock). If you find the plugin useful, consider starring the repository 🌟!
+A plugin for Genshin Impact that unlocks the camera's field of view (FOV) to values greater than the default of 45. It includes a DLL designed to be used in conjunction with [**genshin-fps-unlock**](https://github.com/34736384/genshin-fps-unlock). If you find this project useful, consider starring the repository 🌟!
+
+This plugin works for both GL and CN versions of Genshin Impact. It is not fully compatible with the controller layout.
 
 https://github.com/user-attachments/assets/56a11762-ebd2-4093-8c1d-768f913bd063
 
@@ -28,7 +30,7 @@ Furthermore, while the plugin itself is lightweight, increasing the field of vie
    1. Open the **fov_config.json** file in a text editor.
    2. Modify the settings as desired. Refer to the [**Configuration**](#Configuration) section for more information.
 
-The plugin should now be loaded the next time the game is launched with the **genshin-fps-unlock** tool by running the **unlockfps_nc.exe** executable. For more information on how to use the tool, refer to the project's [**README**](https://github.com/34736384/genshin-fps-unlock/blob/netcore/README.md).
+The plugin should now be loaded the next time the game is launched with the **genshin-fps-unlock** tool by running the **unlockfps_nc.exe** executable. For more information on how to use the tool, refer to the respective project's [**README**](https://github.com/34736384/genshin-fps-unlock/blob/netcore/README.md).
 
 ## Usage
 By default, the <kbd>left arrow</kbd> and <kbd>right arrow</kbd> keys cycle through the preset field of view values, and the <kbd>down arrow</kbd> key enables or disables the plugin.
@@ -43,7 +45,6 @@ The plugin's behavior and settings can optionally be customized through the **fo
 - `enable_key` (int): Key to enable or disable the plugin.
 - `next_key` (int): Key to cycle to the next FOV preset.
 - `prev_key` (int): Key to cycle to the previous FOV preset.
-- `dump_key` (int): Key to dump the current plugin state to the log. Does nothing if plugin is compiled without logging.
 
 Note: Key codes should be in decimal format. Refer to the [virtual key codes documentation](https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes) for valid values.
 
@@ -64,8 +65,7 @@ The default configuration is as follows:
     "smoothing": 0.125,
     "enable_key": 40,
     "next_key": 39,
-    "prev_key": 37,
-    "dump_key": 123
+    "prev_key": 37
 }
 ```
 
@@ -80,14 +80,14 @@ cd genshin-fov-unlock
 ```
 3. Configure the project (internet connection required for dependencies):
 ```bash
-cmake . -G "Visual Studio 17 2022" -DENABLE_LOGGING=OFF
+cmake . -G "Visual Studio 17 2022"
 ```
 4. Build the project:
 ```bash
 cmake --build . --config Release
 ```
 
-The compiled **genshin_fov_unlock.dll** library will be located in the **Release** directory. If you encounter issues with the precompiled MinHook library, consider recompiling it from source.
+The compiled **genshin_fov_unlock.dll** library will be located in the **Release** directory.
 
 ## Attributions
 - The [**minhook**](https://github.com/TsudaKageyu/minhook) library is used under the BSD-2-Clause.
