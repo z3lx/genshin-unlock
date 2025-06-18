@@ -3,6 +3,8 @@
 
 # 原神視野（FOV）解鎖插件
 
+[English](README.md) | [简体中文](README.zh-Hans.md) | **繁體中文**
+
 > ⚠️ 此文為自動翻譯，僅供參考，請以英文原文為準。
 
 這是一個用於原神（Genshin Impact）的插件，可將相機預設45°的視野（FOV）解鎖至更高數值。插件包含一個 DLL 檔案，需配合 [**genshin-fps-unlock**](https://github.com/34736384/genshin-fps-unlock) 一同使用。如果你覺得這個插件好用，別忘了給專案按個 ⭐！
