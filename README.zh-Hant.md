@@ -1,4 +1,4 @@
-![版本](https://img.shields.io/badge/版本-5.6-brightgreen)
+![版本](https://img.shields.io/badge/版本-5.7-brightgreen)
 ![下載次數](https://img.shields.io/github/downloads/z3lx/genshin-fov-unlock/total?label=下載次數)
 
 # 原神視野（FOV）解鎖插件

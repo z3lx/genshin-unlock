@@ -12,8 +12,8 @@
 #include <Windows.h>
 
 namespace {
-constexpr uintptr_t OFFSET_GL = 0xFD8BE0;
-constexpr uintptr_t OFFSET_CN = 0xFD8BE0;
+constexpr uintptr_t OFFSET_GL = 0x1066530;
+constexpr uintptr_t OFFSET_CN = 0x1068530;
 
 void HkSetFieldOfView(void* instance, float value) noexcept;
 
