@@ -5,9 +5,8 @@
 
 #include <Windows.h>
 
-struct OnPluginStart {};
-
-struct OnPluginEnd {};
+namespace z3lx::gfu {
+struct OnConfigChange {};
 
 struct OnKeyDown {
     const uint8_t vKey;
@@ -30,11 +29,11 @@ struct OnForegroundWindowChange {
 };
 
 using Event = std::variant<
-    OnPluginStart,
-    OnPluginEnd,
+    OnConfigChange,
     OnKeyDown,
     OnKeyHold,
     OnKeyUp,
     OnCursorVisibilityChange,
     OnForegroundWindowChange
 >;
+} // namespace z3lx::gfu

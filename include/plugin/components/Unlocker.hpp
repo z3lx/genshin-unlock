@@ -3,13 +3,25 @@
 #include "plugin/Events.hpp"
 #include "plugin/interfaces/IComponent.hpp"
 
+namespace z3lx::gfu {
 class Unlocker final : public IComponent<Event> {
 public:
-    Unlocker();
+    Unlocker() noexcept;
     ~Unlocker() noexcept override;
 
-    void SetHook(bool value) const;
-    void SetEnable(bool value) const noexcept;
-    void SetFieldOfView(int value) noexcept;
-    void SetSmoothing(float value) noexcept;
+    [[nodiscard]] bool Hooked() const noexcept;
+    void Hooked(bool value);
+
+    [[nodiscard]] bool Enabled() const noexcept;
+    void Enabled(bool value) noexcept;
+
+    [[nodiscard]] int FieldOfView() const noexcept;
+    void FieldOfView(int value) noexcept;
+
+    [[nodiscard]] float Smoothing() const noexcept;
+    void Smoothing(float value) noexcept;
+
+private:
+    void Start() override;
 };
+} // namespace z3lx::gfu

@@ -2,23 +2,30 @@
 
 #include "plugin/interfaces/IMediator.hpp"
 
+#include <type_traits>
+#include <vector>
+
+namespace z3lx::gfu {
 template <typename Event>
 class IComponent {
-    friend class IMediator<Event>;
+    IMEDIATOR_TEMPLATE
+    friend class IMediator;
 public:
-    IComponent() noexcept = default;
-    virtual ~IComponent() noexcept = default;
+    IComponent() noexcept;
+    virtual ~IComponent() noexcept;
 
 protected:
-    virtual void Start() noexcept;
-    virtual void Update() noexcept;
-    void Notify(const Event& event) noexcept;
+    virtual void Start();
+    virtual void Update();
+
+    void Notify(const Event& event);
 
 private:
-    [[nodiscard]] IMediator<Event>* GetMediator() const noexcept;
-    void SetMediator(IMediator<Event>* mediator) noexcept;
+    void StartComponent();
+    void UpdateComponent();
 
-    IMediator<Event>* mediator;
+    std::vector<Event>* events;
 };
+} // namespace z3lx::gfu
 
 #include "plugin/interfaces/IComponentInl.hpp"

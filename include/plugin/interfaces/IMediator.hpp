@@ -1,66 +1,60 @@
 #pragma once
 
 #include <atomic>
-#include <memory>
 #include <thread>
 #include <type_traits>
 #include <vector>
 
+namespace z3lx::gfu {
+namespace detail {
+template <typename T>
+struct Holder;
+}
+
 template <typename Event>
 class IComponent;
 
-template <typename Component, typename Event>
-concept IsComponent = std::derived_from<Component, IComponent<Event>>;
+#define IMEDIATOR_TEMPLATE                                                      \
+    template <typename Event, typename... Components>                           \
+    requires std::is_copy_constructible_v<Event> &&                             \
+        (std::derived_from<Components, IComponent<Event>> && ...) &&            \
+        (std::is_default_constructible_v<Components> && ...)
 
-template <typename Event>
-class IMediator {
-    friend class IComponent<Event>;
+#define IMEDIATOR                                                               \
+    IMediator<Event, Components...>
+
+IMEDIATOR_TEMPLATE
+class IMediator : detail::Holder<Components>... {
 public:
     IMediator();
     virtual ~IMediator() noexcept;
 
 protected:
-    virtual void Start() noexcept;
-    virtual void Update() noexcept;
-    virtual void Notify(const Event& event) noexcept = 0;
+    virtual void Start();
+    virtual void Update();
+    virtual void Notify(const Event& event);
 
     template <typename Component>
-    requires IsComponent<Component, Event>
-    [[nodiscard]] Component* TryGetComponent() const noexcept;
+    [[nodiscard]] Component& GetComponent() noexcept;
 
     template <typename Component>
-    requires IsComponent<Component, Event>
-    [[nodiscard]] Component& GetComponent() const;
-
-    template <typename Component, typename... Args>
-    requires IsComponent<Component, Event>
-    void SetComponent(Args&&... args);
-
-    template <typename Component>
-    requires IsComponent<Component, Event>
-    void ClearComponent();
+    [[nodiscard]] const Component& GetComponent() const noexcept;
 
 private:
-    void StartThread();
-    void StopThread() noexcept;
+    void UpdateLoop() noexcept;
+
+    void InitializeComponents() noexcept;
+    void StartComponents();
+    void UpdateComponents();
+
+    void StartMediator();
+    void UpdateMediator();
+    void NotifyMediator();
 
     std::atomic<bool> stopFlag;
     std::thread thread;
-    std::vector<std::unique_ptr<IComponent<Event>>> components;
     std::vector<Event> events;
-
-    using ComponentIterator =
-        typename decltype(components)::iterator;
-    using ConstComponentIterator =
-        typename decltype(components)::const_iterator;
-
-    template <typename Component>
-    requires IsComponent<Component, Event>
-    [[nodiscard]] ComponentIterator FindComponent() noexcept;
-
-    template <typename Component>
-    requires IsComponent<Component, Event>
-    [[nodiscard]] ConstComponentIterator FindComponent() const noexcept;
 };
+} // namespace z3lx::gfu
 
 #include "plugin/interfaces/IMediatorInl.hpp"

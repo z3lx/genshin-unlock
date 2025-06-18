@@ -5,13 +5,15 @@
 
 #include <optional>
 
+namespace z3lx::gfu {
 class CursorObserver final : public IComponent<Event> {
 public:
     CursorObserver() noexcept;
     ~CursorObserver() noexcept override;
 
 private:
-    void Update() noexcept override;
+    void Update() override;
 
     std::optional<bool> isPreviousCursorVisible;
 };
+} // namespace z3lx::gfu

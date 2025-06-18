@@ -26,22 +26,28 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(json)
 set(JSON_BuildTests OFF CACHE INTERNAL "")
 
-option(ENABLE_LOGGING "Enable logging" OFF)
-if (ENABLE_LOGGING)
-    add_compile_definitions(ACTIVE_LEVEL=LEVEL_TRACE)
-else()
-    add_compile_definitions(ACTIVE_LEVEL=LEVEL_OFF)
-endif()
+# microsoft/wil
+add_compile_definitions(WIL_EXCEPTION_MODE=1)
+set(WIL_BUILD_PACKAGING OFF)
+set(WIL_BUILD_TESTS OFF)
+FetchContent_Declare(
+    wil
+    GIT_REPOSITORY https://github.com/microsoft/wil.git
+    GIT_TAG v1.0.250325.1
+)
+FetchContent_MakeAvailable(wil)
 
-file(GLOB_RECURSE UTILS_SOURCES include/utils/* src/utils/*)
-add_library(utils STATIC ${UTILS_SOURCES})
-target_include_directories(utils PRIVATE include)
-target_link_libraries(utils PRIVATE minhook)
+file(GLOB_RECURSE UTIL_SOURCES include/util/* src/util/*)
+add_library(util STATIC ${UTIL_SOURCES})
+target_compile_definitions(util PRIVATE WIN32_LEAN_AND_MEAN)
+target_include_directories(util PRIVATE include)
+target_link_libraries(util PUBLIC minhook WIL::WIL)
 
 file(GLOB_RECURSE PLUGIN_SOURCES include/plugin/* src/plugin/*)
 add_library(genshin_fov_unlock SHARED ${PLUGIN_SOURCES})
+target_compile_definitions(genshin_fov_unlock PRIVATE WIN32_LEAN_AND_MEAN)
 target_include_directories(genshin_fov_unlock PRIVATE include)
 target_link_libraries(genshin_fov_unlock PRIVATE
     nlohmann_json::nlohmann_json
-    utils
+    util
 )

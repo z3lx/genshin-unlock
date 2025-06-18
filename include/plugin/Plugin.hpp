@@ -1,32 +1,46 @@
 #pragma once
 
-#include "components/ConfigManager.hpp"
 #include "plugin/Events.hpp"
+#include "plugin/components/ConfigManager.hpp"
+#include "plugin/components/CursorObserver.hpp"
+#include "plugin/components/KeyboardObserver.hpp"
+#include "plugin/components/Unlocker.hpp"
+#include "plugin/components/WindowObserver.hpp"
 #include "plugin/interfaces/IMediator.hpp"
 
 #include <vector>
 
 #include <Windows.h>
 
-class Plugin final : public IMediator<Event> {
+namespace z3lx::gfu {
+namespace detail {
+using Mediator = IMediator<
+    Event,
+    Unlocker,
+    ConfigManager,
+    WindowObserver,
+    CursorObserver,
+    KeyboardObserver
+>;
+} // namespace detail
+
+class Plugin final : public detail::Mediator {
 public:
     Plugin();
-    ~Plugin() override;
+    ~Plugin() noexcept override;
 
 private:
-    struct Visitor;
-
-    void Start() noexcept override;
-    void Notify(const Event& event) noexcept override;
+    void Start() override;
+    void Notify(const Event& event) override;
 
     template <typename Event>
-    void Handle(const Event& event) noexcept;
-    void ConsumeState() noexcept;
+    void Handle(const Event& event);
+    void ConsumeState();
 
     // State
-    bool isUnlockerHooked;
     bool isWindowFocused;
     bool isCursorVisible;
     std::vector<HWND> targetWindows;
     Config config;
 };
+} // namespace z3lx::gfu

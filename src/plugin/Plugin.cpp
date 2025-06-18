@@ -1,134 +1,108 @@
 #include "plugin/Plugin.hpp"
 #include "plugin/Events.hpp"
 #include "plugin/components/ConfigManager.hpp"
-#include "plugin/components/CursorObserver.hpp"
-#include "plugin/components/KeyboardObserver.hpp"
 #include "plugin/components/Unlocker.hpp"
-#include "plugin/components/WindowObserver.hpp"
-#include "utils/Windows.hpp"
-#include "utils/log/Logger.hpp"
+#include "util/win/Loader.hpp"
+#include "util/win/User.hpp"
 
-#include <exception>
+#include <wil/result.h>
+
+#include <filesystem>
 #include <ranges>
 #include <variant>
 
+namespace z3lx::gfu {
 Plugin::Plugin()
-    : isUnlockerHooked { false }
-    , isWindowFocused { true }
+    : isWindowFocused { true }
     , isCursorVisible { true } {};
 
-Plugin::~Plugin() {
-    Notify(OnPluginEnd {});
-}
+Plugin::~Plugin() noexcept = default;
 
-void Plugin::Start() noexcept try {
-    SetComponent<Unlocker>();
-    SetComponent<ConfigManager>(
-        GetModulePath().parent_path() / "fov_config.json");
-    SetComponent<WindowObserver>();
-    SetComponent<CursorObserver>();
-    SetComponent<KeyboardObserver>();
-
-    targetWindows = GetProcessWindows();
-    Notify(OnPluginStart {});
-} catch (const std::exception& e) {
-    LOG_E("Failed to start plugin: {}", e.what());
+void Plugin::Start() {
+    GetComponent<ConfigManager>().FilePath(
+        util::GetCurrentModuleFilePath().parent_path() / "fov_config.json"
+    );
+    targetWindows = util::GetCurrentProcessWindows();
 }
 
 template <>
-void Plugin::Handle(const OnPluginStart& event) noexcept {
+void Plugin::Handle(const OnConfigChange& event) {
     try {
         config = GetComponent<ConfigManager>().Read();
-    } catch (const std::exception& e) {
-        LOG_W("Failed to read config: {}", e.what());
-    }
+    } CATCH_LOG()
 
     auto& unlocker = GetComponent<Unlocker>();
-    unlocker.SetEnable(config.enabled);
-    unlocker.SetFieldOfView(config.fov);
-    unlocker.SetSmoothing(config.smoothing);
+    unlocker.Enabled(config.enabled);
+    unlocker.FieldOfView(config.fov);
+    unlocker.Smoothing(config.smoothing);
 }
 
 template <>
-void Plugin::Handle(const OnPluginEnd& event) noexcept {
-    try {
-        GetComponent<ConfigManager>().Write(config);
-    } catch (const std::exception& e) {
-        LOG_W("Failed to write config: {}", e.what());
-    }
-}
-
-template <>
-void Plugin::Handle(const OnKeyDown& event) noexcept {
+void Plugin::Handle(const OnKeyDown& event) {
     const auto key = event.vKey;
     auto& [enabled, fov, fovPresets, smoothing,
-        enableKey, nextKey, prevKey, dumpKey] = config;
+        enableKey, nextKey, prevKey] = config;
 
-    if (!isUnlockerHooked) {
+    auto& unlocker = GetComponent<Unlocker>();
+    if (!unlocker.Hooked()) {
         return;
     }
 
-    auto& unlocker = GetComponent<Unlocker>();
     if (key == enableKey) {
         enabled = !enabled;
-        unlocker.SetEnable(enabled);
+        unlocker.Enabled(enabled);
     } else if (!enabled || isCursorVisible) {
         return;
     } else if (key == nextKey) {
         const auto it = std::ranges::find_if(
             fovPresets,
-            [fov](const int fovPreset) { return fov < fovPreset; });
+            [fov](const int fovPreset) {
+                return fov < fovPreset;
+            }
+        );
         fov = it != fovPresets.end() ? *it : fovPresets.front();
-        unlocker.SetFieldOfView(fov);
+        unlocker.FieldOfView(fov);
     } else if (key == prevKey) {
         const auto it = std::ranges::find_if(
             fovPresets | std::views::reverse,
-            [fov](const int fovPreset) { return fov > fovPreset; });
+            [fov](const int fovPreset) {
+                return fov > fovPreset;
+            }
+        );
         fov = it != fovPresets.rend() ? *it : fovPresets.back();
-        unlocker.SetFieldOfView(fov);
-    } else if (key == dumpKey) {
-        // TODO: plugin.unlocker.DumpBuffer();
+        unlocker.FieldOfView(fov);
     }
 }
 
 template <>
-void Plugin::Handle(const OnCursorVisibilityChange& event) noexcept {
+void Plugin::Handle(const OnCursorVisibilityChange& event) {
     isCursorVisible = event.isCursorVisible;
     ConsumeState();
 }
 
 template <>
-void Plugin::Handle(const OnForegroundWindowChange& event) noexcept {
+void Plugin::Handle(const OnForegroundWindowChange& event) {
     isWindowFocused = std::ranges::contains(
         targetWindows, event.foregroundWindow);
     ConsumeState();
 }
 
 template <typename Event>
-void Plugin::Handle(const Event& event) noexcept {};
+void Plugin::Handle(const Event& event) {};
 
-void Plugin::ConsumeState() noexcept try {
+void Plugin::ConsumeState() {
+    auto& unlocker = GetComponent<Unlocker>();
     if (const bool value = isWindowFocused && !isCursorVisible;
-        isUnlockerHooked != value) {
-        GetComponent<Unlocker>().SetHook(value);
-        isUnlockerHooked = value;
+        unlocker.Hooked() != value) {
+        GetComponent<Unlocker>().Hooked(value);
+        unlocker.Hooked(value);
     }
-} catch (const std::exception& e) {
-    LOG_E("Failed to set hook: {}", e.what());
 }
 
-struct Plugin::Visitor {
-    Plugin& plugin;
-
-    template <typename Event>
-    void operator()(const Event& event) const noexcept;
-};
-
-template <typename Event>
-void Plugin::Visitor::operator()(const Event& event) const noexcept {
-    plugin.Handle(event);
+void Plugin::Notify(const Event& event) {
+    const auto visitor = [this](const auto& event) -> void {
+        Handle(event);
+    };
+    std::visit(visitor, event);
 }
-
-void Plugin::Notify(const Event& event) noexcept {
-    std::visit(Visitor { *this }, event);
-}
+} // namespace z3lx::gfu

@@ -3,19 +3,17 @@
 #include "plugin/Events.hpp"
 #include "plugin/interfaces/IComponent.hpp"
 
-#include <mutex>
-#include <vector>
+#include <bitset>
 
+namespace z3lx::gfu {
 class KeyboardObserver final : public IComponent<Event> {
 public:
-    KeyboardObserver();
+    KeyboardObserver() noexcept;
     ~KeyboardObserver() noexcept override;
 
 private:
-    struct Hook;
+    void Update() override;
 
-    void Update() noexcept override;
-
-    std::mutex mutex;
-    std::vector<Event> keyboardEvents;
+    std::bitset<256> isKeyDown;
 };
+} // namespace z3lx::gfu
