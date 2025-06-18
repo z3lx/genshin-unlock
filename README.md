@@ -1,5 +1,5 @@
-![Game Version](https://img.shields.io/badge/version-%205.6-brightgreen)
-![GitHub all releases](https://img.shields.io/github/downloads/z3lx/genshin-fov-unlock/total)
+![Game Version](https://img.shields.io/badge/version-5.6-brightgreen)
+![Download Count](https://img.shields.io/github/downloads/z3lx/genshin-fov-unlock/total?label=downloads)
 
 # Genshin Impact FOV Unlocker
 A plugin for Genshin Impact that unlocks the camera's field of view (FOV) to values greater than the default of 45. It includes a DLL designed to be used in conjunction with [**genshin-fps-unlock**](https://github.com/34736384/genshin-fps-unlock). If you find this project useful, consider starring the repository 🌟!
@@ -33,7 +33,9 @@ Furthermore, while the plugin itself is lightweight, increasing the field of vie
 The plugin should now be loaded the next time the game is launched with the **genshin-fps-unlock** tool by running the **unlockfps_nc.exe** executable. For more information on how to use the tool, refer to the respective project's [**README**](https://github.com/34736384/genshin-fps-unlock/blob/netcore/README.md).
 
 ## Usage
-By default, the <kbd>left arrow</kbd> and <kbd>right arrow</kbd> keys cycle through the preset field of view values, and the <kbd>down arrow</kbd> key enables or disables the plugin.
+By default:
+- The <kbd>←</kbd> and <kbd>→</kbd> keys cycle through the preset field of view values.
+- The <kbd>↓</kbd> key enables or disables the plugin.
 
 ## Configuration
 The plugin's behavior and settings can optionally be customized through the **fov_config.json** file located in the same directory as the **genshin_fov_unlock.dll** library. The following settings are available for configuration:
@@ -46,7 +48,7 @@ The plugin's behavior and settings can optionally be customized through the **fo
 - `next_key` (int): Key to cycle to the next FOV preset.
 - `prev_key` (int): Key to cycle to the previous FOV preset.
 
-Note: Key codes should be in decimal format. Refer to the [virtual key codes documentation](https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes) for valid values.
+> Note: Key codes should be in decimal format. Refer to the [virtual key codes documentation](https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes) for valid values.
 
 The default configuration is as follows:
 
@@ -74,18 +76,18 @@ If you just want to use the plugin, you should follow the instructions in the [I
 
 1. Ensure you are on Windows and have git, CMake, and MSVC installed.
 2. Clone the repository and navigate to the project directory:
-```bash
-git clone https://github.com/z3lx/genshin-fov-unlock.git
-cd genshin-fov-unlock
-```
+   ```bash
+   git clone https://github.com/z3lx/genshin-fov-unlock.git
+   cd genshin-fov-unlock
+   ```
 3. Configure the project (internet connection required for dependencies):
-```bash
-cmake . -G "Visual Studio 17 2022"
-```
+   ```bash
+   cmake . -G "Visual Studio 17 2022"
+   ```
 4. Build the project:
-```bash
-cmake --build . --config Release
-```
+   ```bash
+   cmake --build . --config Release
+   ```
 
 The compiled **genshin_fov_unlock.dll** library will be located in the **Release** directory.
 
