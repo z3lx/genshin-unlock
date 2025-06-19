@@ -94,7 +94,6 @@ void Plugin::ConsumeState() {
     auto& unlocker = GetComponent<Unlocker>();
     if (const bool value = isWindowFocused && !isCursorVisible;
         unlocker.Hooked() != value) {
-        GetComponent<Unlocker>().Hooked(value);
         unlocker.Hooked(value);
     }
 }
