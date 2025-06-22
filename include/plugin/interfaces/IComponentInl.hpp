@@ -1,35 +1,51 @@
 #pragma once
 
+#include "plugin/interfaces/Common.hpp"
 #include "plugin/interfaces/IComponent.hpp"
 
 #include <wil/result.h>
 
+#define ICOMPONENT                                                              \
+    IComponent<Derived, Events...>
+
 namespace z3lx::gfu {
+namespace detail {
 template <typename Event>
-IComponent<Event>::IComponent() noexcept
-    : events { nullptr } {}
+struct EventCallbackStorage {
+    void (*value)(void*, const Event& event) = nullptr;
+};
+} // namespace detail
 
-template <typename Event>
-IComponent<Event>::~IComponent() noexcept = default;
+ICOMPONENT_TEMPLATE
+ICOMPONENT::IComponent() noexcept
+    : instance { nullptr } {}
 
-template <typename Event>
-void IComponent<Event>::Start() {}
+ICOMPONENT_TEMPLATE
+ICOMPONENT::~IComponent() noexcept = default;
 
+ICOMPONENT_TEMPLATE
 template <typename Event>
-void IComponent<Event>::Update() {}
-
-template <typename Event>
-void IComponent<Event>::Notify(const Event& event) {
-    events->push_back(event);
+void ICOMPONENT::Notify(const Event& event) {
+    detail::EventCallbackStorage<Event>::value(instance, event);
 }
 
-template <typename Event>
-void IComponent<Event>::StartComponent() try {
-    Start();
-} CATCH_THROW_NORMALIZED_MSG("%hs", typeid(*this).name())
+ICOMPONENT_TEMPLATE
+template <typename Mediator>
+void ICOMPONENT::BindComponent(Mediator* mediator) {
+    instance = mediator;
+    ((detail::EventCallbackStorage<Events>::value =
+        &Mediator::template NotifyMediator<Events>), ...);
+}
 
-template <typename Event>
-void IComponent<Event>::UpdateComponent() try {
-    Update();
-} CATCH_THROW_NORMALIZED_MSG("%hs", typeid(*this).name())
+ICOMPONENT_TEMPLATE
+void ICOMPONENT::StartComponent() try {
+    TRY_CALL_DERIVED(this, Derived, Start);
+} CATCH_THROW_NORMALIZED_MSG("%hs", detail::GetTypeName<Derived>())
+
+ICOMPONENT_TEMPLATE
+void ICOMPONENT::UpdateComponent() try {
+    TRY_CALL_DERIVED(this, Derived, Update);
+} CATCH_THROW_NORMALIZED_MSG("%hs", detail::GetTypeName<Derived>())
 } // namespace z3lx::gfu
+
+#undef ICOMPONENT

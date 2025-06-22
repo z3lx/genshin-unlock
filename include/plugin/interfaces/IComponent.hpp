@@ -1,30 +1,33 @@
 #pragma once
 
-#include "plugin/interfaces/IMediator.hpp"
-
-#include <type_traits>
-#include <vector>
+#include "plugin/interfaces/Common.hpp"
 
 namespace z3lx::gfu {
+namespace detail {
 template <typename Event>
-class IComponent {
+struct EventCallbackStorage;
+} // namespace detail
+
+ICOMPONENT_TEMPLATE
+class IComponent : detail::EventCallbackStorage<Events>... {
     IMEDIATOR_TEMPLATE
     friend class IMediator;
+
 public:
     IComponent() noexcept;
-    virtual ~IComponent() noexcept;
+    ~IComponent() noexcept;
 
 protected:
-    virtual void Start();
-    virtual void Update();
-
+    template <typename Event>
     void Notify(const Event& event);
 
 private:
+    template <typename Mediator>
+    void BindComponent(Mediator* mediator);
     void StartComponent();
     void UpdateComponent();
 
-    std::vector<Event>* events;
+    void* instance;
 };
 } // namespace z3lx::gfu
 

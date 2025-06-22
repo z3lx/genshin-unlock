@@ -14,8 +14,9 @@
 
 namespace z3lx::gfu {
 namespace detail {
+template <typename Derived>
 using Mediator = IMediator<
-    Event,
+    Derived,
     Unlocker,
     ConfigManager,
     WindowObserver,
@@ -24,17 +25,18 @@ using Mediator = IMediator<
 >;
 } // namespace detail
 
-class Plugin final : public detail::Mediator {
+class Plugin final : public detail::Mediator<Plugin> {
 public:
     Plugin();
-    ~Plugin() noexcept override;
+    ~Plugin() noexcept;
+
+    void Start();
+    void Notify(const OnConfigChange& event);
+    void Notify(const OnKeyDown& event);
+    void Notify(const OnCursorVisibilityChange& event);
+    void Notify(const OnForegroundWindowChange& event);
 
 private:
-    void Start() override;
-    void Notify(const Event& event) override;
-
-    template <typename Event>
-    void Handle(const Event& event);
     void ConsumeState();
 
     // State

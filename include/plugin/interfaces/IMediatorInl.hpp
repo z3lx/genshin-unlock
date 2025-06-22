@@ -1,5 +1,6 @@
 #pragma once
 
+#include "plugin/interfaces/Common.hpp"
 #include "plugin/interfaces/IMediator.hpp"
 
 #include <wil/result.h>
@@ -8,11 +9,14 @@
 #include <chrono>
 #include <thread>
 
+#define IMEDIATOR                                                               \
+    IMediator<Derived, Components...>
+
 namespace z3lx::gfu {
 namespace detail {
-template <typename T>
-struct Holder {
-    T value;
+template <typename Component>
+struct ComponentStorage {
+    Component value {};
 };
 } // namespace detail
 
@@ -28,47 +32,37 @@ IMEDIATOR::~IMediator() noexcept {
 }
 
 IMEDIATOR_TEMPLATE
-void IMEDIATOR::Start() {}
-
-IMEDIATOR_TEMPLATE
-void IMEDIATOR::Update() {}
-
-IMEDIATOR_TEMPLATE
-void IMEDIATOR::Notify(const Event& event) {}
-
-IMEDIATOR_TEMPLATE
 template <typename Component>
 Component& IMEDIATOR::GetComponent() noexcept {
-    return detail::Holder<Component>::value;
+    return detail::ComponentStorage<Component>::value;
 }
 
 IMEDIATOR_TEMPLATE
 template <typename Component>
 const Component& IMEDIATOR::GetComponent() const noexcept {
-    return detail::Holder<Component>::value;
+    return detail::ComponentStorage<Component>::value;
 }
 
 IMEDIATOR_TEMPLATE
 void IMEDIATOR::UpdateLoop() noexcept try {
-    InitializeComponents();
+    BindComponents();
     StartComponents();
     StartMediator();
 
     while (!stopFlag.load(std::memory_order_relaxed)) {
         UpdateComponents();
         UpdateMediator();
-        NotifyMediator();
 
         // Wait until the next scheduler tick
         std::this_thread::sleep_for(
             std::chrono::milliseconds { 1 }
         );
     }
-} CATCH_LOG_MSG("%hs", typeid(*this).name())
+} CATCH_LOG_MSG("%hs", detail::GetTypeName<Derived>())
 
 IMEDIATOR_TEMPLATE
-void IMEDIATOR::InitializeComponents() noexcept {
-    ((GetComponent<Components>().events = &events), ...);
+void IMEDIATOR::BindComponents() noexcept {
+    (GetComponent<Components>().BindComponent(this), ...);
 }
 
 IMEDIATOR_TEMPLATE
@@ -83,19 +77,19 @@ void IMEDIATOR::UpdateComponents() {
 
 IMEDIATOR_TEMPLATE
 void IMEDIATOR::StartMediator() try {
-    Start();
-} CATCH_THROW_NORMALIZED_MSG("%hs", typeid(*this).name())
+    TRY_CALL_DERIVED(this, Derived, Start);
+} CATCH_THROW_NORMALIZED_MSG("%hs", detail::GetTypeName<Derived>())
 
 IMEDIATOR_TEMPLATE
 void IMEDIATOR::UpdateMediator() try {
-    Update();
-} CATCH_THROW_NORMALIZED_MSG("%hs", typeid(*this).name())
+    TRY_CALL_DERIVED(this, Derived, Update);
+} CATCH_THROW_NORMALIZED_MSG("%hs", detail::GetTypeName<Derived>())
 
 IMEDIATOR_TEMPLATE
-void IMEDIATOR::NotifyMediator() try {
-    for (const Event& event : events) {
-        Notify(event);
-    }
-    events.clear();
-} CATCH_THROW_NORMALIZED_MSG("%hs", typeid(*this).name())
+template <typename Event>
+void IMEDIATOR::NotifyMediator(void* instance, const Event& event) try {
+    TRY_CALL_DERIVED(instance, Derived, Notify, event);
+} CATCH_THROW_NORMALIZED_MSG("%hs", detail::GetTypeName<Derived>())
 } // namespace z3lx::gfu
+
+#undef IMEDIATOR

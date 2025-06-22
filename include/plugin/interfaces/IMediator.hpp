@@ -1,39 +1,26 @@
 #pragma once
 
+#include "plugin/interfaces/Common.hpp"
+
 #include <atomic>
 #include <thread>
-#include <type_traits>
-#include <vector>
 
 namespace z3lx::gfu {
 namespace detail {
-template <typename T>
-struct Holder;
-}
-
-template <typename Event>
-class IComponent;
-
-#define IMEDIATOR_TEMPLATE                                                      \
-    template <typename Event, typename... Components>                           \
-    requires std::is_copy_constructible_v<Event> &&                             \
-        (std::derived_from<Components, IComponent<Event>> && ...) &&            \
-        (std::is_default_constructible_v<Components> && ...)
-
-#define IMEDIATOR                                                               \
-    IMediator<Event, Components...>
+template <typename Component>
+struct ComponentStorage;
+} // namespace detail
 
 IMEDIATOR_TEMPLATE
-class IMediator : detail::Holder<Components>... {
+class IMediator : detail::ComponentStorage<Components>... {
+    ICOMPONENT_TEMPLATE
+    friend class IComponent;
+
 public:
     IMediator();
-    virtual ~IMediator() noexcept;
+    ~IMediator() noexcept;
 
 protected:
-    virtual void Start();
-    virtual void Update();
-    virtual void Notify(const Event& event);
-
     template <typename Component>
     [[nodiscard]] Component& GetComponent() noexcept;
 
@@ -43,17 +30,17 @@ protected:
 private:
     void UpdateLoop() noexcept;
 
-    void InitializeComponents() noexcept;
+    void BindComponents() noexcept;
     void StartComponents();
     void UpdateComponents();
 
     void StartMediator();
     void UpdateMediator();
-    void NotifyMediator();
+    template <typename Event>
+    static void NotifyMediator(void* instance, const Event& event);
 
     std::atomic<bool> stopFlag;
     std::thread thread;
-    std::vector<Event> events;
 };
 } // namespace z3lx::gfu
 

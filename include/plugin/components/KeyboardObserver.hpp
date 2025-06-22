@@ -6,14 +6,15 @@
 #include <bitset>
 
 namespace z3lx::gfu {
-class KeyboardObserver final : public IComponent<Event> {
+class KeyboardObserver final : public IComponent<
+    KeyboardObserver, OnKeyDown, OnKeyHold, OnKeyUp> {
 public:
     KeyboardObserver() noexcept;
-    ~KeyboardObserver() noexcept override;
+    ~KeyboardObserver() noexcept;
+
+    void Update();
 
 private:
-    void Update() override;
-
     std::bitset<256> isKeyDown;
 };
 } // namespace z3lx::gfu

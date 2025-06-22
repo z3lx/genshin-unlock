@@ -6,14 +6,15 @@
 #include <Windows.h>
 
 namespace z3lx::gfu {
-class WindowObserver final : public IComponent<Event> {
+class WindowObserver final : public IComponent<
+    WindowObserver, OnForegroundWindowChange> {
 public:
     WindowObserver() noexcept;
-    ~WindowObserver() noexcept override;
+    ~WindowObserver() noexcept;
+
+    void Update();
 
 private:
-    void Update() override;
-
     HWND previousForegroundWindow;
 };
 } // namespace z3lx::gfu

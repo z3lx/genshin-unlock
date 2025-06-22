@@ -9,7 +9,6 @@
 
 #include <filesystem>
 #include <ranges>
-#include <variant>
 
 namespace z3lx::gfu {
 Plugin::Plugin()
@@ -25,8 +24,7 @@ void Plugin::Start() {
     targetWindows = util::GetCurrentProcessWindows();
 }
 
-template <>
-void Plugin::Handle(const OnConfigChange& event) {
+void Plugin::Notify(const OnConfigChange& event) {
     try {
         config = GetComponent<ConfigManager>().Read();
     } CATCH_LOG()
@@ -37,8 +35,7 @@ void Plugin::Handle(const OnConfigChange& event) {
     unlocker.Smoothing(config.smoothing);
 }
 
-template <>
-void Plugin::Handle(const OnKeyDown& event) {
+void Plugin::Notify(const OnKeyDown& event) {
     const auto key = event.vKey;
     auto& [enabled, fov, fovPresets, smoothing,
         enableKey, nextKey, prevKey] = config;
@@ -74,21 +71,17 @@ void Plugin::Handle(const OnKeyDown& event) {
     }
 }
 
-template <>
-void Plugin::Handle(const OnCursorVisibilityChange& event) {
+void Plugin::Notify(const OnCursorVisibilityChange& event) {
     isCursorVisible = event.isCursorVisible;
     ConsumeState();
 }
 
-template <>
-void Plugin::Handle(const OnForegroundWindowChange& event) {
+void Plugin::Notify(const OnForegroundWindowChange& event) {
     isWindowFocused = std::ranges::contains(
-        targetWindows, event.foregroundWindow);
+        targetWindows, event.foregroundWindow
+    );
     ConsumeState();
 }
-
-template <typename Event>
-void Plugin::Handle(const Event& event) {};
 
 void Plugin::ConsumeState() {
     auto& unlocker = GetComponent<Unlocker>();
@@ -96,12 +89,5 @@ void Plugin::ConsumeState() {
         unlocker.Hooked() != value) {
         unlocker.Hooked(value);
     }
-}
-
-void Plugin::Notify(const Event& event) {
-    const auto visitor = [this](const auto& event) -> void {
-        Handle(event);
-    };
-    std::visit(visitor, event);
 }
 } // namespace z3lx::gfu

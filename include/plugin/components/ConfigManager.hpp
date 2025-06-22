@@ -27,20 +27,21 @@ struct Config {
     uint8_t prevKey = VK_LEFT;
 };
 
-class ConfigManager final : public IComponent<Event> {
+class ConfigManager final : public IComponent<
+    ConfigManager, OnConfigChange> {
 public:
     ConfigManager() noexcept;
-    ~ConfigManager() noexcept override;
+    ~ConfigManager() noexcept;
 
-    [[nodiscaord]]const std::filesystem::path& FilePath() const noexcept;
+    void Update();
+
+    [[nodiscaord]] const std::filesystem::path& FilePath() const noexcept;
     void FilePath(std::filesystem::path filePath);
 
     [[nodiscard]] Config Read() const;
     void Write(const Config& config) const;
 
 private:
-    void Update() override;
-
     void OnFolderChange(
         wil::FolderChangeEvent event,
         PCWSTR filename) noexcept;

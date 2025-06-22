@@ -1,13 +1,14 @@
 #pragma once
 
-#include "plugin/Events.hpp"
 #include "plugin/interfaces/IComponent.hpp"
 
 namespace z3lx::gfu {
-class Unlocker final : public IComponent<Event> {
+class Unlocker final : public IComponent<Unlocker> {
 public:
     Unlocker() noexcept;
-    ~Unlocker() noexcept override;
+    ~Unlocker() noexcept;
+
+    void Start();
 
     [[nodiscard]] bool Hooked() const noexcept;
     void Hooked(bool value);
@@ -20,8 +21,5 @@ public:
 
     [[nodiscard]] float Smoothing() const noexcept;
     void Smoothing(float value) noexcept;
-
-private:
-    void Start() override;
 };
 } // namespace z3lx::gfu

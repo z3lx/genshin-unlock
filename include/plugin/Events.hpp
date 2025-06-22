@@ -1,8 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include <variant>
-
 #include <Windows.h>
 
 namespace z3lx::gfu {
@@ -27,13 +25,4 @@ struct OnCursorVisibilityChange {
 struct OnForegroundWindowChange {
     const HWND foregroundWindow;
 };
-
-using Event = std::variant<
-    OnConfigChange,
-    OnKeyDown,
-    OnKeyHold,
-    OnKeyUp,
-    OnCursorVisibilityChange,
-    OnForegroundWindowChange
->;
 } // namespace z3lx::gfu
