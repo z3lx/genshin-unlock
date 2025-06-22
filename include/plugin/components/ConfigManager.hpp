@@ -1,6 +1,5 @@
 #pragma once
 
-#include "plugin/Events.hpp"
 #include "plugin/interfaces/IComponent.hpp"
 
 #include <wil/filesystem.h>
@@ -14,6 +13,8 @@
 #include <WinUser.h>
 
 namespace z3lx::gfu {
+struct OnConfigChange {};
+
 struct Config {
     bool enabled = true;
     uint8_t fov = 75;

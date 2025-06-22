@@ -1,5 +1,4 @@
 #include "plugin/Plugin.hpp"
-#include "plugin/Events.hpp"
 #include "plugin/components/ConfigManager.hpp"
 #include "plugin/components/Unlocker.hpp"
 #include "util/win/Loader.hpp"

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "plugin/Events.hpp"
 #include "plugin/components/ConfigManager.hpp"
 #include "plugin/components/CursorObserver.hpp"
 #include "plugin/components/KeyboardObserver.hpp"

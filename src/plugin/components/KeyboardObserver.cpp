@@ -1,5 +1,4 @@
 #include "plugin/components/KeyboardObserver.hpp"
-#include "plugin/Events.hpp"
 
 #include <cstdint>
 

@@ -1,5 +1,4 @@
 #include "plugin/components/WindowObserver.hpp"
-#include "plugin/Events.hpp"
 
 #include <Windows.h>
 
