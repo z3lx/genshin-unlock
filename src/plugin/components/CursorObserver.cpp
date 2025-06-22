@@ -12,10 +12,14 @@ void CursorObserver::Update() {
         return;
     }
 
-    if (const bool isCurrentCursorVisible = cursorInfo.flags & CURSOR_SHOWING;
-        isCurrentCursorVisible != isPreviousCursorVisible) {
-        isPreviousCursorVisible = isCurrentCursorVisible;
-        Notify(OnCursorVisibilityChange { isCurrentCursorVisible });
+    if (const bool isCursorVisible = (cursorInfo.flags & CURSOR_SHOWING);
+        wasCursorVisible != isCursorVisible) {
+        wasCursorVisible = isCursorVisible;
+        Notify(OnCursorVisibilityChange { isCursorVisible });
     }
+}
+
+bool CursorObserver::Visible() const noexcept {
+    return wasCursorVisible.value_or(true);
 }
 } // namespace z3lx::gfu

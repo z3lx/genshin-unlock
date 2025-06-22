@@ -9,9 +9,7 @@
 #include <ranges>
 
 namespace z3lx::gfu {
-Plugin::Plugin()
-    : isCursorVisible { true } {};
-
+Plugin::Plugin() = default;
 Plugin::~Plugin() noexcept = default;
 
 void Plugin::Start() {
@@ -44,7 +42,7 @@ void Plugin::Notify(const OnKeyDown& event) {
     if (key == enableKey) {
         enabled = !enabled;
         unlocker.Enabled(enabled);
-    } else if (!enabled || isCursorVisible) {
+    } else if (!enabled) {
         return;
     } else if (key == nextKey) {
         const auto it = std::ranges::find_if(
@@ -68,20 +66,20 @@ void Plugin::Notify(const OnKeyDown& event) {
 }
 
 void Plugin::Notify(const OnCursorVisibilityChange& event) {
-    isCursorVisible = event.isCursorVisible;
-    ConsumeState();
+    UpdateHookState();
 }
 
 void Plugin::Notify(const OnWindowFocusChange& event) {
-    ConsumeState();
+    UpdateHookState();
 }
 
-void Plugin::ConsumeState() {
+void Plugin::UpdateHookState() {
     auto& unlocker = GetComponent<Unlocker>();
-    if (const bool value = GetComponent<WindowObserver>().Focused() &&
-        !isCursorVisible;
-        unlocker.Hooked() != value) {
-        unlocker.Hooked(value);
+    if (const bool shouldHook =
+        GetComponent<WindowObserver>().Focused() &&
+        !GetComponent<CursorObserver>().Visible();
+        unlocker.Hooked() != shouldHook) {
+        unlocker.Hooked(shouldHook);
     }
 }
 } // namespace z3lx::gfu

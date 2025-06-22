@@ -6,7 +6,7 @@
 
 namespace z3lx::gfu {
 struct OnCursorVisibilityChange {
-    const bool isCursorVisible;
+    const bool visible;
 };
 
 class CursorObserver final : public IComponent<
@@ -17,7 +17,9 @@ public:
 
     void Update();
 
+    [[nodiscard]] bool Visible() const noexcept;
+
 private:
-    std::optional<bool> isPreviousCursorVisible;
+    std::optional<bool> wasCursorVisible;
 };
 } // namespace z3lx::gfu

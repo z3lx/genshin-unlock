@@ -32,10 +32,8 @@ public:
     void Notify(const OnWindowFocusChange& event);
 
 private:
-    void ConsumeState();
+    void UpdateHookState();
 
-    // State
-    bool isCursorVisible;
     Config config;
 };
 } // namespace z3lx::gfu
