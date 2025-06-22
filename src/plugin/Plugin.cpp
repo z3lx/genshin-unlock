@@ -2,7 +2,6 @@
 #include "plugin/components/ConfigManager.hpp"
 #include "plugin/components/Unlocker.hpp"
 #include "util/win/Loader.hpp"
-#include "util/win/User.hpp"
 
 #include <wil/result.h>
 
@@ -11,8 +10,7 @@
 
 namespace z3lx::gfu {
 Plugin::Plugin()
-    : isWindowFocused { true }
-    , isCursorVisible { true } {};
+    : isCursorVisible { true } {};
 
 Plugin::~Plugin() noexcept = default;
 
@@ -20,7 +18,6 @@ void Plugin::Start() {
     GetComponent<ConfigManager>().FilePath(
         util::GetCurrentModuleFilePath().parent_path() / "fov_config.json"
     );
-    targetWindows = util::GetCurrentProcessWindows();
 }
 
 void Plugin::Notify(const OnConfigChange& event) {
@@ -75,16 +72,14 @@ void Plugin::Notify(const OnCursorVisibilityChange& event) {
     ConsumeState();
 }
 
-void Plugin::Notify(const OnForegroundWindowChange& event) {
-    isWindowFocused = std::ranges::contains(
-        targetWindows, event.foregroundWindow
-    );
+void Plugin::Notify(const OnWindowFocusChange& event) {
     ConsumeState();
 }
 
 void Plugin::ConsumeState() {
     auto& unlocker = GetComponent<Unlocker>();
-    if (const bool value = isWindowFocused && !isCursorVisible;
+    if (const bool value = GetComponent<WindowObserver>().Focused() &&
+        !isCursorVisible;
         unlocker.Hooked() != value) {
         unlocker.Hooked(value);
     }

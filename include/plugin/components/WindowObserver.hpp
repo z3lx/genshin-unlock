@@ -2,22 +2,24 @@
 
 #include "plugin/interfaces/IComponent.hpp"
 
-#include <Windows.h>
+#include <optional>
 
 namespace z3lx::gfu {
-struct OnForegroundWindowChange {
-    const HWND foregroundWindow;
+struct OnWindowFocusChange {
+    const bool focused;
 };
 
 class WindowObserver final : public IComponent<
-    WindowObserver, OnForegroundWindowChange> {
+    WindowObserver, OnWindowFocusChange> {
 public:
     WindowObserver() noexcept;
     ~WindowObserver() noexcept;
 
     void Update();
 
+    [[nodiscard]] bool Focused() const noexcept;
+
 private:
-    HWND previousForegroundWindow;
+    std::optional<bool> wasWindowFocused;
 };
 } // namespace z3lx::gfu

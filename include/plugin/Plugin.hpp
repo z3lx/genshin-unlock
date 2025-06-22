@@ -7,10 +7,6 @@
 #include "plugin/components/WindowObserver.hpp"
 #include "plugin/interfaces/IMediator.hpp"
 
-#include <vector>
-
-#include <Windows.h>
-
 namespace z3lx::gfu {
 namespace detail {
 template <typename Derived>
@@ -33,15 +29,13 @@ public:
     void Notify(const OnConfigChange& event);
     void Notify(const OnKeyDown& event);
     void Notify(const OnCursorVisibilityChange& event);
-    void Notify(const OnForegroundWindowChange& event);
+    void Notify(const OnWindowFocusChange& event);
 
 private:
     void ConsumeState();
 
     // State
-    bool isWindowFocused;
     bool isCursorVisible;
-    std::vector<HWND> targetWindows;
     Config config;
 };
 } // namespace z3lx::gfu
