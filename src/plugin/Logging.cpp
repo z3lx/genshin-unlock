@@ -37,7 +37,7 @@ void LoggingCallback(const wil::FailureInfo& info) noexcept {
     if (SUCCEEDED(hr)) try {
         // std::fputws(messageBuffer, stderr);
         const std::u8string message = z3lx::util::U16ToU8(messageBuffer);
-        z3lx::util::AppendFileU8(fileHandle.get(), message);
+        z3lx::util::AppendFile(fileHandle.get(), message);
     } catch (...) {}
 
     isAcquired = false;

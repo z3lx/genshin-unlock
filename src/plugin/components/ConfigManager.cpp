@@ -53,7 +53,7 @@ void ConfigManager::FilePath(std::filesystem::path filePath) try {
 
 Config ConfigManager::Read() const {
     nlohmann::json j {
-        nlohmann::json::parse(util::ReadFileA(fileHandle.get()))
+        nlohmann::json::parse(util::ReadFile<std::string>(fileHandle.get()))
     };
 
     const auto tryGetTo = [&j]<typename ValueT, typename Callable>(
@@ -118,7 +118,7 @@ void ConfigManager::Write(const Config& config) const {
         { PREV_KEY, config.prevKey }
     };
 
-    util::WriteFileA(fileHandle.get(), j.dump(4));
+    util::WriteFile(fileHandle.get(), j.dump(4));
 }
 
 void ConfigManager::OnFolderChange(
