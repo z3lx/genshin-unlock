@@ -1,6 +1,6 @@
 #pragma once
 
-#include "plugin/components/ConfigManager.hpp"
+#include "plugin/components/PersistentObject.hpp"
 #include "util/win/File.hpp"
 
 #include <wil/filesystem.h>
@@ -12,19 +12,19 @@
 #include <utility>
 
 namespace z3lx::gfu {
-template <typename ConfigT>
-ConfigManager<ConfigT>::ConfigManager() noexcept = default;
+template <typename T>
+PersistentObject<T>::PersistentObject() noexcept = default;
 
-template <typename ConfigT>
-ConfigManager<ConfigT>::~ConfigManager() noexcept = default;
+template <typename T>
+PersistentObject<T>::~PersistentObject() noexcept = default;
 
-template <typename ConfigT>
-const std::filesystem::path& ConfigManager<ConfigT>::FilePath() const noexcept {
+template <typename T>
+const std::filesystem::path& PersistentObject<T>::FilePath() const noexcept {
     return filePath;
 }
 
-template <typename ConfigT>
-void ConfigManager<ConfigT>::FilePath(std::filesystem::path filePath) try {
+template <typename T>
+void PersistentObject<T>::FilePath(std::filesystem::path filePath) try {
     this->filePath = std::move(filePath);
     fileHandle = wil::open_or_create_file(
         this->filePath.native().c_str(),
@@ -41,30 +41,30 @@ void ConfigManager<ConfigT>::FilePath(std::filesystem::path filePath) try {
     changed.store(true, std::memory_order_relaxed);
 } CATCH_THROW_NORMALIZED()
 
-template <typename ConfigT>
-const ConfigT& ConfigManager<ConfigT>::Config() const noexcept {
-    return config;
+template <typename T>
+const T& PersistentObject<T>::Object() const noexcept {
+    return object;
 }
 
-template <typename ConfigT>
-ConfigT& ConfigManager<ConfigT>::Config() noexcept {
-    return config;
+template <typename T>
+T& PersistentObject<T>::Object() noexcept {
+    return object;
 }
 
-template <typename ConfigT>
-void ConfigManager<ConfigT>::Read() {
+template <typename T>
+void PersistentObject<T>::Read() {
     util::ReadFile(fileHandle.get(), buffer);
-    config.Deserialize(buffer);
+    object.Deserialize(buffer);
 }
 
-template <typename ConfigT>
-void ConfigManager<ConfigT>::Write() {
-    config.Serialize(buffer);
+template <typename T>
+void PersistentObject<T>::Write() {
+    object.Serialize(buffer);
     util::WriteFile(fileHandle.get(), buffer);
 }
 
-template <typename ConfigT>
-void ConfigManager<ConfigT>::OnFolderChange(
+template <typename T>
+void PersistentObject<T>::OnFolderChange(
     const wil::FolderChangeEvent event, const PCWSTR filename) noexcept try {
     if (event == wil::FolderChangeEvent::Modified &&
         filename == filePath.filename()) {
@@ -72,14 +72,14 @@ void ConfigManager<ConfigT>::OnFolderChange(
     }
 } catch (...) {}
 
-template <typename ConfigT>
-void ConfigManager<ConfigT>::Update() {
+template <typename T>
+void PersistentObject<T>::Update() {
     if (changed.load(std::memory_order_relaxed)) {
         changed.store(false, std::memory_order_relaxed);
         try {
             Read();
         } CATCH_LOG()
-        this->Notify(OnConfigChange<ConfigT> { config });
+        this->Notify(OnPersistentObjectChange<T> { object });
     }
 }
 } // namespace z3lx::gfu

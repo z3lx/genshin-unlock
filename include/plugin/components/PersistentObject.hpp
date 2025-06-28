@@ -10,25 +10,25 @@
 #include <string>
 
 namespace z3lx::gfu {
-template <typename ConfigT>
-struct OnConfigChange {
-    const ConfigT& config;
+template <typename T>
+struct OnPersistentObjectChange {
+    const T& object;
 };
 
-template <typename ConfigT>
-class ConfigManager final : public IComponent<
-    ConfigManager<ConfigT>, OnConfigChange<ConfigT>> {
+template <typename T>
+class PersistentObject final : public IComponent<
+    PersistentObject<T>, OnPersistentObjectChange<T>> {
 public:
-    ConfigManager() noexcept;
-    ~ConfigManager() noexcept;
+    PersistentObject() noexcept;
+    ~PersistentObject() noexcept;
 
     void Update();
 
     [[nodiscaord]] const std::filesystem::path& FilePath() const noexcept;
     void FilePath(std::filesystem::path filePath);
 
-    [[nodiscard]] const ConfigT& Config() const noexcept;
-    [[nodiscard]] ConfigT& Config() noexcept;
+    [[nodiscard]] const T& Object() const noexcept;
+    [[nodiscard]] T& Object() noexcept;
 
     void Read();
     void Write();
@@ -38,7 +38,7 @@ private:
         wil::FolderChangeEvent event,
         PCWSTR filename) noexcept;
 
-    ConfigT config;
+    T object;
     std::string buffer;
 
     std::filesystem::path filePath;
@@ -48,4 +48,4 @@ private:
 };
 } // namespace z3lx::gfu
 
-#include "plugin/components/ConfigManagerInl.hpp"
+#include "plugin/components/PersistentObjectInl.hpp"

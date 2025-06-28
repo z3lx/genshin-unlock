@@ -1,6 +1,6 @@
 #include "plugin/Plugin.hpp"
 #include "plugin/Config.hpp"
-#include "plugin/components/ConfigManager.hpp"
+#include "plugin/components/PersistentObject.hpp"
 #include "plugin/components/Unlocker.hpp"
 #include "util/win/Loader.hpp"
 
@@ -14,13 +14,13 @@ Plugin::Plugin() = default;
 Plugin::~Plugin() noexcept = default;
 
 void Plugin::Start() {
-    GetComponent<ConfigManager<Config>>().FilePath(
+    GetComponent<PersistentObject<Config>>().FilePath(
         util::GetCurrentModuleFilePath().parent_path() / "fov_config.json"
     );
 }
 
-void Plugin::Notify(const OnConfigChange<Config>& event) {
-    const Config& config = event.config;
+void Plugin::Notify(const OnPersistentObjectChange<Config>& event) {
+    const Config& config = event.object;
     auto& unlocker = GetComponent<Unlocker>();
     unlocker.Enabled(config.enabled);
     unlocker.FieldOfView(config.fov);
@@ -33,7 +33,7 @@ void Plugin::Notify(const OnKeyDown& event) {
         return;
     }
 
-    Config& config = GetComponent<ConfigManager<Config>>().Config();
+    Config& config = GetComponent<PersistentObject<Config>>().Object();
     if (event.vKey == config.enableKey) {
         config.enabled = !config.enabled;
         unlocker.Enabled(config.enabled);
