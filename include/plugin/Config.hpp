@@ -3,6 +3,7 @@
 #include "util/win/VirtualKey.hpp"
 
 #include <cstdint>
+#include <string>
 #include <vector>
 
 namespace z3lx::gfu {
@@ -17,5 +18,8 @@ struct Config {
     util::VirtualKey enableKey = util::VirtualKey::DownArrow;
     util::VirtualKey nextKey = util::VirtualKey::RightArrow;
     util::VirtualKey prevKey = util::VirtualKey::LeftArrow;
+
+    void Serialize(std::string& buffer);
+    void Deserialize(const std::string& buffer);
 };
 } // namespace z3lx::gfu

@@ -8,6 +8,7 @@
 
 #include <atomic>
 #include <filesystem>
+#include <string>
 
 namespace z3lx::gfu {
 struct OnConfigChange {
@@ -37,6 +38,7 @@ private:
         PCWSTR filename) noexcept;
 
     gfu::Config config;
+    std::string buffer;
 
     std::filesystem::path filePath;
     wil::unique_hfile fileHandle;
