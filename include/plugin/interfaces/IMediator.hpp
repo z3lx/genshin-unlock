@@ -19,6 +19,8 @@ class IMediator : detail::ComponentStorage<Components>... {
 public:
     IMediator();
     ~IMediator() noexcept;
+    IMediator(const IMediator&) = delete;
+    IMediator(IMediator&&) = delete;
 
 protected:
     template <typename Component>

@@ -16,6 +16,8 @@ class IComponent : detail::EventCallbackStorage<Events>... {
 public:
     IComponent() noexcept;
     ~IComponent() noexcept;
+    IComponent(const IComponent&) = delete;
+    IComponent(IComponent&&) = delete;
 
 protected:
     template <typename Event>
@@ -23,7 +25,7 @@ protected:
 
 private:
     template <typename Mediator>
-    void BindComponent(Mediator* mediator);
+    void BindComponent(Mediator* mediator) noexcept;
     void StartComponent();
     void UpdateComponent();
 

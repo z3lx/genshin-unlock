@@ -15,7 +15,7 @@
 namespace z3lx::gfu {
 namespace detail {
 template <typename T>
-constexpr const char* GetTypeName() {
+const char* GetTypeName() {
     return typeid(T).name();
 }
 } // namespace detail

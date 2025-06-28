@@ -31,7 +31,7 @@ void ICOMPONENT::Notify(const Event& event) {
 
 ICOMPONENT_TEMPLATE
 template <typename Mediator>
-void ICOMPONENT::BindComponent(Mediator* mediator) {
+void ICOMPONENT::BindComponent(Mediator* mediator) noexcept {
     instance = mediator;
     ((detail::EventCallbackStorage<Events>::value =
         &Mediator::template NotifyMediator<Events>), ...);
