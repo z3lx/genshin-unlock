@@ -1,4 +1,5 @@
 #include "plugin/components/KeyboardObserver.hpp"
+#include "util/win/VirtualKey.hpp"
 
 #include <cstdint>
 
@@ -10,9 +11,11 @@ KeyboardObserver::~KeyboardObserver() noexcept = default;
 
 void KeyboardObserver::Update() {
     for (size_t i = 0; i < isKeyDown.size(); ++i) {
-        const auto key = static_cast<uint8_t>(i);
-        const bool isCurrentKeyDown = (GetAsyncKeyState(key) & 0x8000) != 0;
-        auto isPreviousKeyDown = isKeyDown[key];
+        const auto keyIndex = static_cast<uint8_t>(i);
+        const auto key = util::VirtualKey { keyIndex };
+        const bool isCurrentKeyDown =
+            (GetAsyncKeyState(keyIndex) & 0x8000) != 0;
+        auto isPreviousKeyDown = isKeyDown[keyIndex];
 
         if (isCurrentKeyDown) {
             if (isPreviousKeyDown) {

@@ -1,21 +1,21 @@
 #pragma once
 
 #include "plugin/interfaces/IComponent.hpp"
+#include "util/win/VirtualKey.hpp"
 
 #include <bitset>
-#include <cstdint>
 
 namespace z3lx::gfu {
 struct OnKeyDown {
-    const uint8_t vKey;
+    const util::VirtualKey vKey;
 };
 
 struct OnKeyHold {
-    const uint8_t vKey;
+    const util::VirtualKey vKey;
 };
 
 struct OnKeyUp {
-    const uint8_t vKey;
+    const util::VirtualKey vKey;
 };
 
 class KeyboardObserver final : public IComponent<

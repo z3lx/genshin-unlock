@@ -90,9 +90,6 @@ Config ConfigManager::Read() const {
     const auto isValidSmoothing = [](const float smoothing) noexcept {
         return smoothing >= 0.0f && smoothing <= 1.0f;
     };
-    const auto isValidKey = [](const uint8_t key) noexcept {
-        return key > 0 && key < 255;
-    };
 
     Config config {};
 
@@ -100,9 +97,9 @@ Config ConfigManager::Read() const {
     tryGetTo(FOV, config.fov, isValidFov);
     tryGetTo(FOV_PRESETS, config.fovPresets, isValidFovPresets);
     tryGetTo(SMOOTHING, config.smoothing, isValidSmoothing);
-    tryGetTo(ENABLE_KEY, config.enableKey, isValidKey);
-    tryGetTo(NEXT_KEY, config.nextKey, isValidKey);
-    tryGetTo(PREV_KEY, config.prevKey, isValidKey);
+    tryGetTo(ENABLE_KEY, config.enableKey, isAlwaysValid);
+    tryGetTo(NEXT_KEY, config.nextKey, isAlwaysValid);
+    tryGetTo(PREV_KEY, config.prevKey, isAlwaysValid);
 
     return config;
 }

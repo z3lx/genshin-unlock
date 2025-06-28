@@ -1,6 +1,7 @@
 #pragma once
 
 #include "plugin/interfaces/IComponent.hpp"
+#include "util/win/VirtualKey.hpp"
 
 #include <wil/filesystem.h>
 #include <wil/resource.h>
@@ -9,8 +10,6 @@
 #include <cstdint>
 #include <filesystem>
 #include <vector>
-
-#include <WinUser.h>
 
 namespace z3lx::gfu {
 struct OnConfigChange {};
@@ -23,9 +22,9 @@ struct Config {
     };
     float smoothing = 0.125;
 
-    uint8_t enableKey = VK_DOWN;
-    uint8_t nextKey = VK_RIGHT;
-    uint8_t prevKey = VK_LEFT;
+    util::VirtualKey enableKey = util::VirtualKey::DownArrow;
+    util::VirtualKey nextKey = util::VirtualKey::RightArrow;
+    util::VirtualKey prevKey = util::VirtualKey::LeftArrow;
 };
 
 class ConfigManager final : public IComponent<
