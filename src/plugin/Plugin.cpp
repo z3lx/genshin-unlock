@@ -1,4 +1,5 @@
 #include "plugin/Plugin.hpp"
+#include "plugin/Config.hpp"
 #include "plugin/components/ConfigManager.hpp"
 #include "plugin/components/Unlocker.hpp"
 #include "util/win/Loader.hpp"
@@ -19,10 +20,7 @@ void Plugin::Start() {
 }
 
 void Plugin::Notify(const OnConfigChange& event) {
-    try {
-        config = GetComponent<ConfigManager>().Read();
-    } CATCH_LOG()
-
+    const Config& config = event.config;
     auto& unlocker = GetComponent<Unlocker>();
     unlocker.Enabled(config.enabled);
     unlocker.FieldOfView(config.fov);
@@ -30,38 +28,37 @@ void Plugin::Notify(const OnConfigChange& event) {
 }
 
 void Plugin::Notify(const OnKeyDown& event) {
-    const auto key = event.vKey;
-    auto& [enabled, fov, fovPresets, smoothing,
-        enableKey, nextKey, prevKey] = config;
-
     auto& unlocker = GetComponent<Unlocker>();
     if (!unlocker.Hooked()) {
         return;
     }
 
-    if (key == enableKey) {
-        enabled = !enabled;
-        unlocker.Enabled(enabled);
-    } else if (!enabled) {
+    Config& config = GetComponent<ConfigManager>().Config();
+    if (event.vKey == config.enableKey) {
+        config.enabled = !config.enabled;
+        unlocker.Enabled(config.enabled);
+    } else if (!config.enabled) {
         return;
-    } else if (key == nextKey) {
+    } else if (event.vKey == config.nextKey) {
         const auto it = std::ranges::find_if(
-            fovPresets,
-            [fov](const int fovPreset) {
-                return fov < fovPreset;
+            config.fovPresets,
+            [&](const int fovPreset) {
+                return config.fov < fovPreset;
             }
         );
-        fov = it != fovPresets.end() ? *it : fovPresets.front();
-        unlocker.FieldOfView(fov);
-    } else if (key == prevKey) {
+        config.fov = (it != config.fovPresets.end()) ?
+            *it : config.fovPresets.front();
+        unlocker.FieldOfView(config.fov);
+    } else if (event.vKey == config.prevKey) {
         const auto it = std::ranges::find_if(
-            fovPresets | std::views::reverse,
-            [fov](const int fovPreset) {
-                return fov > fovPreset;
+            config.fovPresets | std::views::reverse,
+            [&](const int fovPreset) {
+                return config.fov > fovPreset;
             }
         );
-        fov = it != fovPresets.rend() ? *it : fovPresets.back();
-        unlocker.FieldOfView(fov);
+        config.fov = (it != config.fovPresets.rend()) ?
+            *it : config.fovPresets.back();
+        unlocker.FieldOfView(config.fov);
     }
 }
 
@@ -75,9 +72,10 @@ void Plugin::Notify(const OnWindowFocusChange& event) {
 
 void Plugin::UpdateHookState() {
     auto& unlocker = GetComponent<Unlocker>();
-    if (const bool shouldHook =
-        GetComponent<WindowObserver>().Focused() &&
-        !GetComponent<CursorObserver>().Visible();
+    const auto& window = GetComponent<WindowObserver>();
+    const auto& cursor = GetComponent<CursorObserver>();
+
+    if (const bool shouldHook = window.Focused() && !cursor.Visible();
         unlocker.Hooked() != shouldHook) {
         unlocker.Hooked(shouldHook);
     }

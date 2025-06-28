@@ -33,7 +33,5 @@ public:
 
 private:
     void UpdateHookState();
-
-    Config config;
 };
 } // namespace z3lx::gfu

@@ -1,30 +1,17 @@
 #pragma once
 
+#include "plugin/Config.hpp"
 #include "plugin/interfaces/IComponent.hpp"
-#include "util/win/VirtualKey.hpp"
 
 #include <wil/filesystem.h>
 #include <wil/resource.h>
 
 #include <atomic>
-#include <cstdint>
 #include <filesystem>
-#include <vector>
 
 namespace z3lx::gfu {
-struct OnConfigChange {};
-
-struct Config {
-    bool enabled = true;
-    uint8_t fov = 75;
-    std::vector<uint8_t> fovPresets {
-        30, 45, 60, 75, 90, 110
-    };
-    float smoothing = 0.125;
-
-    util::VirtualKey enableKey = util::VirtualKey::DownArrow;
-    util::VirtualKey nextKey = util::VirtualKey::RightArrow;
-    util::VirtualKey prevKey = util::VirtualKey::LeftArrow;
+struct OnConfigChange {
+    const Config& config;
 };
 
 class ConfigManager final : public IComponent<
@@ -38,13 +25,18 @@ public:
     [[nodiscaord]] const std::filesystem::path& FilePath() const noexcept;
     void FilePath(std::filesystem::path filePath);
 
-    [[nodiscard]] Config Read() const;
-    void Write(const Config& config) const;
+    [[nodiscard]] const gfu::Config& Config() const noexcept;
+    [[nodiscard]] gfu::Config& Config() noexcept;
+
+    void Read();
+    void Write();
 
 private:
     void OnFolderChange(
         wil::FolderChangeEvent event,
         PCWSTR filename) noexcept;
+
+    gfu::Config config;
 
     std::filesystem::path filePath;
     wil::unique_hfile fileHandle;

@@ -1,4 +1,5 @@
 #include "plugin/components/ConfigManager.hpp"
+#include "plugin/Config.hpp"
 #include "util/win/File.hpp"
 
 #include <nlohmann/json.hpp>
@@ -51,7 +52,15 @@ void ConfigManager::FilePath(std::filesystem::path filePath) try {
     changed.store(true, std::memory_order_relaxed);
 } CATCH_THROW_NORMALIZED()
 
-Config ConfigManager::Read() const {
+const Config& ConfigManager::Config() const noexcept {
+    return config;
+}
+
+Config& ConfigManager::Config() noexcept {
+    return config;
+}
+
+void ConfigManager::Read() {
     nlohmann::json j {
         nlohmann::json::parse(util::ReadFile<std::string>(fileHandle.get()))
     };
@@ -91,8 +100,6 @@ Config ConfigManager::Read() const {
         return smoothing >= 0.0f && smoothing <= 1.0f;
     };
 
-    Config config {};
-
     tryGetTo(ENABLED, config.enabled, isAlwaysValid);
     tryGetTo(FOV, config.fov, isValidFov);
     tryGetTo(FOV_PRESETS, config.fovPresets, isValidFovPresets);
@@ -100,11 +107,9 @@ Config ConfigManager::Read() const {
     tryGetTo(ENABLE_KEY, config.enableKey, isAlwaysValid);
     tryGetTo(NEXT_KEY, config.nextKey, isAlwaysValid);
     tryGetTo(PREV_KEY, config.prevKey, isAlwaysValid);
-
-    return config;
 }
 
-void ConfigManager::Write(const Config& config) const {
+void ConfigManager::Write() {
     const nlohmann::ordered_json j {
         { ENABLED, config.enabled },
         { FOV, config.fov },
@@ -129,7 +134,10 @@ void ConfigManager::OnFolderChange(
 void ConfigManager::Update() {
     if (changed.load(std::memory_order_relaxed)) {
         changed.store(false, std::memory_order_relaxed);
-        Notify(OnConfigChange {});
+        try {
+            Read();
+        } CATCH_LOG()
+        Notify(OnConfigChange { config });
     }
 }
 } // namespace z3lx::gfu
