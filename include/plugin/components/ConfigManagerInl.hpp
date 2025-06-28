@@ -1,5 +1,6 @@
+#pragma once
+
 #include "plugin/components/ConfigManager.hpp"
-#include "plugin/Config.hpp"
 #include "util/win/File.hpp"
 
 #include <wil/filesystem.h>
@@ -11,14 +12,19 @@
 #include <utility>
 
 namespace z3lx::gfu {
-ConfigManager::ConfigManager() noexcept = default;
-ConfigManager::~ConfigManager() noexcept = default;
+template <typename ConfigT>
+ConfigManager<ConfigT>::ConfigManager() noexcept = default;
 
-const std::filesystem::path& ConfigManager::FilePath() const noexcept {
+template <typename ConfigT>
+ConfigManager<ConfigT>::~ConfigManager() noexcept = default;
+
+template <typename ConfigT>
+const std::filesystem::path& ConfigManager<ConfigT>::FilePath() const noexcept {
     return filePath;
 }
 
-void ConfigManager::FilePath(std::filesystem::path filePath) try {
+template <typename ConfigT>
+void ConfigManager<ConfigT>::FilePath(std::filesystem::path filePath) try {
     this->filePath = std::move(filePath);
     fileHandle = wil::open_or_create_file(
         this->filePath.native().c_str(),
@@ -35,25 +41,30 @@ void ConfigManager::FilePath(std::filesystem::path filePath) try {
     changed.store(true, std::memory_order_relaxed);
 } CATCH_THROW_NORMALIZED()
 
-const Config& ConfigManager::Config() const noexcept {
+template <typename ConfigT>
+const ConfigT& ConfigManager<ConfigT>::Config() const noexcept {
     return config;
 }
 
-Config& ConfigManager::Config() noexcept {
+template <typename ConfigT>
+ConfigT& ConfigManager<ConfigT>::Config() noexcept {
     return config;
 }
 
-void ConfigManager::Read() {
+template <typename ConfigT>
+void ConfigManager<ConfigT>::Read() {
     util::ReadFile(fileHandle.get(), buffer);
     config.Deserialize(buffer);
 }
 
-void ConfigManager::Write() {
+template <typename ConfigT>
+void ConfigManager<ConfigT>::Write() {
     config.Serialize(buffer);
     util::WriteFile(fileHandle.get(), buffer);
 }
 
-void ConfigManager::OnFolderChange(
+template <typename ConfigT>
+void ConfigManager<ConfigT>::OnFolderChange(
     const wil::FolderChangeEvent event, const PCWSTR filename) noexcept try {
     if (event == wil::FolderChangeEvent::Modified &&
         filename == filePath.filename()) {
@@ -61,13 +72,14 @@ void ConfigManager::OnFolderChange(
     }
 } catch (...) {}
 
-void ConfigManager::Update() {
+template <typename ConfigT>
+void ConfigManager<ConfigT>::Update() {
     if (changed.load(std::memory_order_relaxed)) {
         changed.store(false, std::memory_order_relaxed);
         try {
             Read();
         } CATCH_LOG()
-        Notify(OnConfigChange { config });
+        this->Notify(OnConfigChange<ConfigT> { config });
     }
 }
 } // namespace z3lx::gfu

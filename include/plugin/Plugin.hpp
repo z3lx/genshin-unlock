@@ -1,5 +1,6 @@
 #pragma once
 
+#include "plugin/Config.hpp"
 #include "plugin/components/ConfigManager.hpp"
 #include "plugin/components/CursorObserver.hpp"
 #include "plugin/components/KeyboardObserver.hpp"
@@ -13,7 +14,7 @@ template <typename Derived>
 using Mediator = IMediator<
     Derived,
     Unlocker,
-    ConfigManager,
+    ConfigManager<Config>,
     WindowObserver,
     CursorObserver,
     KeyboardObserver
@@ -26,7 +27,7 @@ public:
     ~Plugin() noexcept;
 
     void Start();
-    void Notify(const OnConfigChange& event);
+    void Notify(const OnConfigChange<Config>& event);
     void Notify(const OnKeyDown& event);
     void Notify(const OnCursorVisibilityChange& event);
     void Notify(const OnWindowFocusChange& event);

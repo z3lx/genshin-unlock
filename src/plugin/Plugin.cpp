@@ -14,12 +14,12 @@ Plugin::Plugin() = default;
 Plugin::~Plugin() noexcept = default;
 
 void Plugin::Start() {
-    GetComponent<ConfigManager>().FilePath(
+    GetComponent<ConfigManager<Config>>().FilePath(
         util::GetCurrentModuleFilePath().parent_path() / "fov_config.json"
     );
 }
 
-void Plugin::Notify(const OnConfigChange& event) {
+void Plugin::Notify(const OnConfigChange<Config>& event) {
     const Config& config = event.config;
     auto& unlocker = GetComponent<Unlocker>();
     unlocker.Enabled(config.enabled);
@@ -33,7 +33,7 @@ void Plugin::Notify(const OnKeyDown& event) {
         return;
     }
 
-    Config& config = GetComponent<ConfigManager>().Config();
+    Config& config = GetComponent<ConfigManager<Config>>().Config();
     if (event.vKey == config.enableKey) {
         config.enabled = !config.enabled;
         unlocker.Enabled(config.enabled);

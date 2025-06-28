@@ -1,6 +1,5 @@
 #pragma once
 
-#include "plugin/Config.hpp"
 #include "plugin/interfaces/IComponent.hpp"
 
 #include <wil/filesystem.h>
@@ -11,12 +10,14 @@
 #include <string>
 
 namespace z3lx::gfu {
+template <typename ConfigT>
 struct OnConfigChange {
-    const Config& config;
+    const ConfigT& config;
 };
 
+template <typename ConfigT>
 class ConfigManager final : public IComponent<
-    ConfigManager, OnConfigChange> {
+    ConfigManager<ConfigT>, OnConfigChange<ConfigT>> {
 public:
     ConfigManager() noexcept;
     ~ConfigManager() noexcept;
@@ -26,8 +27,8 @@ public:
     [[nodiscaord]] const std::filesystem::path& FilePath() const noexcept;
     void FilePath(std::filesystem::path filePath);
 
-    [[nodiscard]] const gfu::Config& Config() const noexcept;
-    [[nodiscard]] gfu::Config& Config() noexcept;
+    [[nodiscard]] const ConfigT& Config() const noexcept;
+    [[nodiscard]] ConfigT& Config() noexcept;
 
     void Read();
     void Write();
@@ -37,7 +38,7 @@ private:
         wil::FolderChangeEvent event,
         PCWSTR filename) noexcept;
 
-    gfu::Config config;
+    ConfigT config;
     std::string buffer;
 
     std::filesystem::path filePath;
@@ -46,3 +47,5 @@ private:
     std::atomic<bool> changed;
 };
 } // namespace z3lx::gfu
+
+#include "plugin/components/ConfigManagerInl.hpp"
