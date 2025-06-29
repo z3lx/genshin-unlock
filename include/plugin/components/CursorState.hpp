@@ -9,11 +9,11 @@ struct OnCursorVisibilityChange {
     const bool visible;
 };
 
-class CursorObserver final : public IComponent<
-    CursorObserver, OnCursorVisibilityChange> {
+class CursorState final : public IComponent<
+    CursorState, OnCursorVisibilityChange> {
 public:
-    CursorObserver() noexcept;
-    ~CursorObserver() noexcept;
+    CursorState() noexcept;
+    ~CursorState() noexcept;
 
     void Update();
 

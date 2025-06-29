@@ -1,12 +1,12 @@
-#include "plugin/components/CursorObserver.hpp"
+#include "plugin/components/CursorState.hpp"
 
 #include <Windows.h>
 
 namespace z3lx::gfu {
-CursorObserver::CursorObserver() noexcept = default;
-CursorObserver::~CursorObserver() noexcept = default;
+CursorState::CursorState() noexcept = default;
+CursorState::~CursorState() noexcept = default;
 
-void CursorObserver::Update() {
+void CursorState::Update() {
     CURSORINFO cursorInfo { .cbSize = sizeof(cursorInfo) };
     if (!GetCursorInfo(&cursorInfo)) {
         return;
@@ -19,7 +19,7 @@ void CursorObserver::Update() {
     }
 }
 
-bool CursorObserver::Visible() const noexcept {
+bool CursorState::Visible() const noexcept {
     return wasCursorVisible.value_or(true);
 }
 } // namespace z3lx::gfu

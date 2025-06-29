@@ -1,10 +1,11 @@
 #include "plugin/Plugin.hpp"
 #include "plugin/Config.hpp"
+#include "plugin/components/CursorState.hpp"
 #include "plugin/components/PersistentObject.hpp"
 #include "plugin/components/Unlocker.hpp"
+#include "plugin/components/VirtualKeyInput.hpp"
+#include "plugin/components/WindowState.hpp"
 #include "util/win/Loader.hpp"
-
-#include <wil/result.h>
 
 #include <filesystem>
 #include <ranges>
@@ -73,7 +74,7 @@ void Plugin::Notify(const OnWindowFocusChange& event) {
 void Plugin::UpdateHookState() {
     auto& unlocker = GetComponent<Unlocker>();
     const auto& window = GetComponent<WindowState>();
-    const auto& cursor = GetComponent<CursorObserver>();
+    const auto& cursor = GetComponent<CursorState>();
 
     if (const bool shouldHook = window.Focused() && !cursor.Visible();
         unlocker.Hooked() != shouldHook) {

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "plugin/Config.hpp"
-#include "plugin/components/CursorObserver.hpp"
+#include "plugin/components/CursorState.hpp"
 #include "plugin/components/PersistentObject.hpp"
 #include "plugin/components/Unlocker.hpp"
 #include "plugin/components/VirtualKeyInput.hpp"
@@ -16,7 +16,7 @@ using Mediator = IMediator<
     Unlocker,
     PersistentObject<Config>,
     WindowState,
-    CursorObserver,
+    CursorState,
     VirtualKeyInput
 >;
 } // namespace detail
