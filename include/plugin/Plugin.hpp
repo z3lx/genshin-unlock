@@ -5,7 +5,7 @@
 #include "plugin/components/PersistentObject.hpp"
 #include "plugin/components/Unlocker.hpp"
 #include "plugin/components/VirtualKeyInput.hpp"
-#include "plugin/components/WindowObserver.hpp"
+#include "plugin/components/WindowState.hpp"
 #include "plugin/interfaces/IMediator.hpp"
 
 namespace z3lx::gfu {
@@ -15,7 +15,7 @@ using Mediator = IMediator<
     Derived,
     Unlocker,
     PersistentObject<Config>,
-    WindowObserver,
+    WindowState,
     CursorObserver,
     VirtualKeyInput
 >;

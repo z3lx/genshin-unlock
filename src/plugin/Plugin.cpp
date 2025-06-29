@@ -72,7 +72,7 @@ void Plugin::Notify(const OnWindowFocusChange& event) {
 
 void Plugin::UpdateHookState() {
     auto& unlocker = GetComponent<Unlocker>();
-    const auto& window = GetComponent<WindowObserver>();
+    const auto& window = GetComponent<WindowState>();
     const auto& cursor = GetComponent<CursorObserver>();
 
     if (const bool shouldHook = window.Focused() && !cursor.Visible();
