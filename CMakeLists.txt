@@ -20,7 +20,8 @@ include(FetchContent)
 FetchContent_Declare(
     minhook
     GIT_REPOSITORY https://github.com/TsudaKageyu/minhook.git
-    GIT_COMMIT c1a7c3843bd1a5fe3eb779b64c0d823bca3dc339
+    GIT_COMMIT v1.3.4
+    GIT_SHALLOW TRUE
 )
 FetchContent_MakeAvailable(minhook)
 
