@@ -27,19 +27,19 @@ void Plugin::Notify(const OnPersistentObjectChange<Config>& event) {
     unlocker.Smoothing(config.smoothing);
 }
 
-void Plugin::Notify(const OnKeyDown& event) {
+void Plugin::Notify(const OnVirtualKeyDown& event) {
     auto& unlocker = GetComponent<Unlocker>();
     if (!unlocker.Hooked()) {
         return;
     }
 
     Config& config = GetComponent<PersistentObject<Config>>().Object();
-    if (event.vKey == config.enableKey) {
+    if (event.key == config.enableKey) {
         config.enabled = !config.enabled;
         unlocker.Enabled(config.enabled);
     } else if (!config.enabled) {
         return;
-    } else if (event.vKey == config.nextKey) {
+    } else if (event.key == config.nextKey) {
         const auto it = std::ranges::find_if(
             config.fovPresets,
             [&](const int fovPreset) {
@@ -49,7 +49,7 @@ void Plugin::Notify(const OnKeyDown& event) {
         config.fov = (it != config.fovPresets.end()) ?
             *it : config.fovPresets.front();
         unlocker.FieldOfView(config.fov);
-    } else if (event.vKey == config.prevKey) {
+    } else if (event.key == config.prevKey) {
         const auto it = std::ranges::find_if(
             config.fovPresets | std::views::reverse,
             [&](const int fovPreset) {

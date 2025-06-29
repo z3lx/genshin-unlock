@@ -2,9 +2,9 @@
 
 #include "plugin/Config.hpp"
 #include "plugin/components/CursorObserver.hpp"
-#include "plugin/components/KeyboardObserver.hpp"
 #include "plugin/components/PersistentObject.hpp"
 #include "plugin/components/Unlocker.hpp"
+#include "plugin/components/VirtualKeyInput.hpp"
 #include "plugin/components/WindowObserver.hpp"
 #include "plugin/interfaces/IMediator.hpp"
 
@@ -17,7 +17,7 @@ using Mediator = IMediator<
     PersistentObject<Config>,
     WindowObserver,
     CursorObserver,
-    KeyboardObserver
+    VirtualKeyInput
 >;
 } // namespace detail
 
@@ -28,7 +28,7 @@ public:
 
     void Start();
     void Notify(const OnPersistentObjectChange<Config>& event);
-    void Notify(const OnKeyDown& event);
+    void Notify(const OnVirtualKeyDown& event);
     void Notify(const OnCursorVisibilityChange& event);
     void Notify(const OnWindowFocusChange& event);
 
