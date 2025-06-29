@@ -6,8 +6,9 @@
 #include <wil/resource.h>
 
 #include <atomic>
+#include <cstdint>
 #include <filesystem>
-#include <string>
+#include <vector>
 
 namespace z3lx::gfu {
 template <typename T>
@@ -39,7 +40,7 @@ private:
         PCWSTR filename) noexcept;
 
     T object;
-    std::string buffer;
+    std::vector<uint8_t> buffer;
 
     std::filesystem::path filePath;
     wil::unique_hfile fileHandle;

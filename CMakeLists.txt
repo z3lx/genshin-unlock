@@ -4,7 +4,14 @@ project(genshin-fov-unlock)
 set(CMAKE_CXX_STANDARD 23)
 
 if (MSVC)
-    add_compile_options(/Zc:preprocessor)
+    add_compile_options(
+        /permissive-
+        "$<$<CONFIG:Release>:/GL>"
+        "$<$<CONFIG:Release>:/Gw>"
+    )
+    add_link_options(
+        "$<$<CONFIG:Release>:/LTCG>"
+    )
 endif()
 
 include(FetchContent)
@@ -17,14 +24,14 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(minhook)
 
-# nlohmann/json
+# stephenberry/glaze
 FetchContent_Declare(
-    json
-    GIT_REPOSITORY https://github.com/nlohmann/json.git
-    GIT_TAG v3.11.3
+    glaze
+    GIT_REPOSITORY https://github.com/stephenberry/glaze.git
+    GIT_TAG v5.5.2
+    GIT_SHALLOW TRUE
 )
-FetchContent_MakeAvailable(json)
-set(JSON_BuildTests OFF CACHE INTERNAL "")
+FetchContent_MakeAvailable(glaze)
 
 # microsoft/wil
 add_compile_definitions(WIL_EXCEPTION_MODE=1)
@@ -34,20 +41,16 @@ FetchContent_Declare(
     wil
     GIT_REPOSITORY https://github.com/microsoft/wil.git
     GIT_TAG v1.0.250325.1
+    GIT_SHALLOW TRUE
 )
 FetchContent_MakeAvailable(wil)
 
-file(GLOB_RECURSE UTIL_SOURCES include/util/* src/util/*)
-add_library(util STATIC ${UTIL_SOURCES})
-target_compile_definitions(util PRIVATE WIN32_LEAN_AND_MEAN)
-target_include_directories(util PRIVATE include)
-target_link_libraries(util PUBLIC minhook WIL::WIL)
-
-file(GLOB_RECURSE PLUGIN_SOURCES include/plugin/* src/plugin/*)
-add_library(genshin_fov_unlock SHARED ${PLUGIN_SOURCES})
+file(GLOB_RECURSE SOURCES src/*)
+add_library(genshin_fov_unlock SHARED ${SOURCES})
 target_compile_definitions(genshin_fov_unlock PRIVATE WIN32_LEAN_AND_MEAN)
 target_include_directories(genshin_fov_unlock PRIVATE include)
-target_link_libraries(genshin_fov_unlock PRIVATE
-    nlohmann_json::nlohmann_json
-    util
+target_link_libraries(genshin_fov_unlock
+    PRIVATE minhook
+    PRIVATE glaze::glaze
+    PRIVATE WIL::WIL
 )

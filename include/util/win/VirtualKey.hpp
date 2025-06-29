@@ -46,7 +46,7 @@ enum class VirtualKey : uint8_t {
     Select = VK_SELECT,
     Print = VK_PRINT,
     Execute = VK_EXECUTE,
-    PrtSc = VK_SNAPSHOT,
+    PrintScreen = VK_SNAPSHOT,
     Insert = VK_INSERT,
     Delete = VK_DELETE,
     Help = VK_HELP,

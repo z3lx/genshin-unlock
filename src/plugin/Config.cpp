@@ -1,81 +1,277 @@
 #include "plugin/Config.hpp"
+#include "util/win/VirtualKey.hpp"
 
-#include <nlohmann/json.hpp>
+#include <glaze/glaze.hpp>
+#include <glaze/glaze_exceptions.hpp>
 
 #include <algorithm>
 #include <cstdint>
-#include <stdexcept>
-#include <string>
-#include <string_view>
-#include <utility>
 #include <vector>
 
 namespace {
-constexpr auto ENABLED = "enabled";
-constexpr auto FOV = "fov";
-constexpr auto FOV_PRESETS = "fov_presets";
-constexpr auto SMOOTHING = "smoothing";
-constexpr auto ENABLE_KEY = "enable_key";
-constexpr auto NEXT_KEY = "next_key";
-constexpr auto PREV_KEY = "prev_key";
+constexpr glz::opts opts {
+    .null_terminated = false,
+    .comments = false,
+    .error_on_unknown_keys = true,
+    .skip_null_members = false,
+    .prettify = true,
+    .minified = false,
+    .indentation_char = ' ',
+    .indentation_width = 4,
+    .new_lines_in_arrays = true,
+    .append_arrays = false,
+    .error_on_missing_keys = true,
+    .error_on_const_read = true,
+    .bools_as_numbers = false,
+    .quoted_num = false,
+    .number = false,
+    .raw = false,
+    .raw_string = false,
+    .structs_as_arrays = false,
+    .partial_read = false
+};
 } // namespace
 
-namespace z3lx::gfu {
-void Config::Serialize(std::string& buffer) {
-    const nlohmann::ordered_json j {
-        { ENABLED, enabled },
-        { FOV, fov },
-        { FOV_PRESETS, fovPresets },
-        { SMOOTHING, smoothing },
-        { ENABLE_KEY, enableKey },
-        { NEXT_KEY, nextKey },
-        { PREV_KEY, prevKey }
-    };
-    buffer = j.dump(4);
-}
+template <>
+struct glz::meta<z3lx::gfu::Config> {
+    using T = z3lx::gfu::Config;
 
-void Config::Deserialize(const std::string& buffer) {
-    nlohmann::json j { nlohmann::json::parse(buffer) };
-
-    const auto tryGetTo = [&j]<typename ValueT, typename Callable>(
-        std::string_view key, ValueT& value, Callable condition) {
-        ValueT parsedValue {};
-        j.at(key).get_to(parsedValue);
-        if (condition(parsedValue)) {
-            value = std::move(parsedValue);
-            return;
-        }
-        throw std::runtime_error {
-            "Invalid value for key '" + std::string { key } + "': " +
-            "condition is not satisfied"
-        };
-    };
-
-    const auto isAlwaysValid = [](const auto&) { return true; };
-    const auto isValidFov = [](const uint8_t fov) noexcept {
+    static constexpr auto isValidFov = [](const uint8_t fov) {
         return fov > 0 && fov < 180;
     };
-    const auto isValidFovPresets = [isValidFov](
-        std::vector<uint8_t>& fovPresets) noexcept {
-        const bool valid = !fovPresets.empty() &&
-            std::ranges::all_of(fovPresets, isValidFov);
-        if (valid) {
+
+    static constexpr auto fovConstraintCondition = [](
+        const T&, const uint8_t fov) {
+        return isValidFov(fov);
+    };
+    static constexpr auto fovConstraint = read_constraint<
+        &T::fov, fovConstraintCondition,
+        "FOV must be between 1 and 179 degrees"
+    >;
+
+    static constexpr auto fovPresetsConstraintCondition = [](
+        const T&, std::vector<uint8_t>& fovPresets) {
+        if (!fovPresets.empty() &&
+            std::ranges::all_of(fovPresets, isValidFov)) {
             std::ranges::sort(fovPresets);
             const auto last = std::ranges::unique(fovPresets).begin();
             fovPresets.erase(last, fovPresets.end());
+            return true;
         }
-        return valid;
+        return false;
     };
-    const auto isValidSmoothing = [](const float smoothing) noexcept {
+    static constexpr auto fovPresetsConstraint = read_constraint<
+        &T::fovPresets, fovPresetsConstraintCondition,
+        "All FOV presets must be between 1 and 179 degrees"
+    >;
+
+    static constexpr auto smoothingConstraintCondition = [](
+        const T&, const float smoothing) {
         return smoothing >= 0.0f && smoothing <= 1.0f;
     };
+    static constexpr auto smoothingConstraint = read_constraint<
+        &T::smoothing, smoothingConstraintCondition,
+        "Smoothing must be between 0.0 and 1.0"
+    >;
 
-    tryGetTo(ENABLED, enabled, isAlwaysValid);
-    tryGetTo(FOV, fov, isValidFov);
-    tryGetTo(FOV_PRESETS, fovPresets, isValidFovPresets);
-    tryGetTo(SMOOTHING, smoothing, isValidSmoothing);
-    tryGetTo(ENABLE_KEY, enableKey, isAlwaysValid);
-    tryGetTo(NEXT_KEY, nextKey, isAlwaysValid);
-    tryGetTo(PREV_KEY, prevKey, isAlwaysValid);
+    static constexpr auto value = object(
+        "enabled", &T::enabled,
+        "fov", fovConstraint,
+        "fovPresets", fovPresetsConstraint,
+        "smoothing", smoothingConstraint,
+        "enableKey", &T::enableKey,
+        "nextKey", &T::nextKey,
+        "prevKey", &T::prevKey
+    );
+};
+
+template <>
+struct glz::meta<z3lx::util::VirtualKey> {
+    using enum z3lx::util::VirtualKey;
+    static constexpr auto value = enumerate(
+        LeftMouse,
+        RightMouse,
+        // Cancel,
+        MiddleMouse,
+        X1Mouse,
+        X2Mouse,
+        Backspace,
+        Tab,
+        Clear,
+        Enter,
+        Shift,
+        Ctrl,
+        Alt,
+        Pause,
+        CapsLock,
+        // ImeKana,
+        // ImeHangul,
+        // ImeOn,
+        // ImeJunja,
+        // ImeFinal,
+        // ImeHanja,
+        // ImeKanji,
+        // ImeOff,
+        Esc,
+        // ImeConvert,
+        // ImeNonConvert,
+        // ImeAccept,
+        // ImeModeChange,
+        Space,
+        PageUp,
+        PageDown,
+        End,
+        Home,
+        LeftArrow,
+        UpArrow,
+        RightArrow,
+        DownArrow,
+        // Select,
+        // Print,
+        // Execute,
+        PrintScreen,
+        Insert,
+        Delete,
+        // Help,
+        "0", D0,
+        "1", D1,
+        "2", D2,
+        "3", D3,
+        "4", D4,
+        "5", D5,
+        "6", D6,
+        "7", D7,
+        "8", D8,
+        "9", D9,
+        A,
+        B,
+        C,
+        D,
+        E,
+        F,
+        G,
+        H,
+        I,
+        J,
+        K,
+        L,
+        M,
+        N,
+        O,
+        P,
+        Q,
+        R,
+        S,
+        T,
+        U,
+        V,
+        W,
+        X,
+        Y,
+        Z,
+        LeftWindows,
+        RightWindows,
+        Apps,
+        // Sleep,
+        Numpad0,
+        Numpad1,
+        Numpad2,
+        Numpad3,
+        Numpad4,
+        Numpad5,
+        Numpad6,
+        Numpad7,
+        Numpad8,
+        Numpad9,
+        NumpadMultiply,
+        NumpadAdd,
+        NumpadSeparator,
+        NumpadSubtract,
+        NumpadDecimal,
+        NumpadDivide,
+        F1,
+        F2,
+        F3,
+        F4,
+        F5,
+        F6,
+        F7,
+        F8,
+        F9,
+        F10,
+        F11,
+        F12,
+        F13,
+        F14,
+        F15,
+        F16,
+        F17,
+        F18,
+        F19,
+        F20,
+        F21,
+        F22,
+        F23,
+        F24,
+        NumLock,
+        ScrollLock,
+        LeftShift,
+        RightShift,
+        LeftCtrl,
+        RightCtrl,
+        LeftAlt,
+        RightAlt,
+        // BrowserBack,
+        // BrowserForward,
+        // BrowserRefresh,
+        // BrowserStop,
+        // BrowserSearch,
+        // BrowserFavorites,
+        // BrowserHome,
+        // VolumeMute,
+        // VolumeDown,
+        // VolumeUp,
+        // MediaNextTrack,
+        // MediaPrevTrack,
+        // MediaStop,
+        // MediaPlayPause,
+        // LaunchMail,
+        // LaunchMediaSelect,
+        // LaunchApp1,
+        // LaunchApp2,
+        Oem1,
+        "Plus", OemPlus,
+        "Comma", OemComma,
+        "Minus", OemMinus,
+        "Period", OemPeriod,
+        Oem2,
+        Oem3,
+        Oem4,
+        Oem5,
+        Oem6,
+        Oem7,
+        Oem8,
+        Oem102,
+        // ImeProcess,
+        // Packet,
+        // Attn,
+        // CrSel,
+        // ExSel,
+        // EraseEof,
+        // Play,
+        // Zoom,
+        // NoName,
+        // Pa1,
+        OemClear
+    );
+};
+
+namespace z3lx::gfu {
+void Config::Serialize(std::vector<uint8_t>& buffer) {
+    glz::ex::write<opts>(*this, buffer);
+}
+
+void Config::Deserialize(const std::vector<uint8_t>& buffer) {
+    glz::ex::read<opts>(*this, buffer);
 }
 } // namespace z3lx::gfu
