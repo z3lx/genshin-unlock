@@ -10,16 +10,16 @@ public:
 
     void Start();
 
-    [[nodiscard]] bool Hooked() const noexcept;
-    void Hooked(bool value);
+    [[nodiscard]] bool IsHooked() const noexcept;
+    void Hook(bool hook);
 
-    [[nodiscard]] bool Enabled() const noexcept;
-    void Enabled(bool value) noexcept;
+    [[nodiscard]] bool IsEnabled() const noexcept;
+    void Enable(bool enable) noexcept;
 
-    [[nodiscard]] int FieldOfView() const noexcept;
-    void FieldOfView(int value) noexcept;
+    [[nodiscard]] int GetFieldOfView() const noexcept;
+    void SetFieldOfView(int fieldOfView) noexcept;
 
-    [[nodiscard]] float Smoothing() const noexcept;
-    void Smoothing(float value) noexcept;
+    [[nodiscard]] float GetSmoothing() const noexcept;
+    void SetSmoothing(float smoothing) noexcept;
 };
 } // namespace z3lx::gfu

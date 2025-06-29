@@ -6,7 +6,7 @@
 
 namespace z3lx::gfu {
 struct OnWindowFocusChange {
-    const bool focused;
+    const bool isFocused;
 };
 
 class WindowState final : public IComponent<
@@ -17,7 +17,7 @@ public:
 
     void Update();
 
-    [[nodiscard]] bool Focused() const noexcept;
+    [[nodiscard]] bool IsFocused() const noexcept;
 
 private:
     std::optional<bool> wasFocused;

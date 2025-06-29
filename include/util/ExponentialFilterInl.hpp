@@ -35,22 +35,22 @@ ExponentialFilter<Real, Clock>::operator=(
     ExponentialFilter&& other) noexcept = default;
 
 EXPONENTIALFILTER_TEMPLATE
-Real ExponentialFilter<Real, Clock>::TimeConstant() const noexcept {
+Real ExponentialFilter<Real, Clock>::GetTimeConstant() const noexcept {
     return timeConstant;
 }
 
 EXPONENTIALFILTER_TEMPLATE
-void ExponentialFilter<Real, Clock>::TimeConstant(const Real value) noexcept {
+void ExponentialFilter<Real, Clock>::SetTimeConstant(const Real value) noexcept {
     timeConstant = value;
 }
 
 EXPONENTIALFILTER_TEMPLATE
-Real ExponentialFilter<Real, Clock>::InitialValue() const noexcept {
+Real ExponentialFilter<Real, Clock>::GetInitialValue() const noexcept {
     return previousFilteredValue;
 }
 
 EXPONENTIALFILTER_TEMPLATE
-void ExponentialFilter<Real, Clock>::InitialValue(const Real value) noexcept {
+void ExponentialFilter<Real, Clock>::SetInitialValue(const Real value) noexcept {
     previousFilteredValue = value;
     previousTime = Clock::now();
 }

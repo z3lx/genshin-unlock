@@ -10,6 +10,8 @@
 #include <filesystem>
 #include <vector>
 
+#undef GetObject
+
 namespace z3lx::gfu {
 template <typename T>
 struct OnPersistentObjectChange {
@@ -25,19 +27,17 @@ public:
 
     void Update();
 
-    [[nodiscaord]] const std::filesystem::path& FilePath() const noexcept;
-    void FilePath(std::filesystem::path filePath);
+    [[nodiscaord]] const std::filesystem::path& GetFilePath() const noexcept;
+    void SetFilePath(std::filesystem::path filePath);
 
-    [[nodiscard]] const T& Object() const noexcept;
-    [[nodiscard]] T& Object() noexcept;
+    [[nodiscard]] const T& GetObject() const noexcept;
+    [[nodiscard]] T& GetObject() noexcept;
 
     void Read();
     void Write();
 
 private:
-    void OnFolderChange(
-        wil::FolderChangeEvent event,
-        PCWSTR filename) noexcept;
+    void OnFolderChange(wil::FolderChangeEvent event, PCWSTR filename) noexcept;
 
     T object;
     std::vector<uint8_t> buffer;

@@ -18,7 +18,7 @@ constexpr uintptr_t OFFSET_CN = 0x1068530;
 void HkSetFieldOfView(void* instance, float value) noexcept;
 
 std::mutex mutex {};
-std::optional<z3lx::util::MinHook<void, void*, float>> hook {};
+std::optional<z3lx::util::MinHook<void, void*, float>> minhook {};
 z3lx::util::ExponentialFilter<float> filter {};
 
 bool isHooked = false;
@@ -37,7 +37,7 @@ Unlocker::Unlocker() noexcept = default;
 
 Unlocker::~Unlocker() noexcept {
     std::lock_guard lock { mutex };
-    hook.reset();
+    minhook.reset();
 }
 
 void Unlocker::Start() {
@@ -59,53 +59,53 @@ void Unlocker::Start() {
     const auto detour = reinterpret_cast<void*>(HkSetFieldOfView);
 
     std::lock_guard lock { mutex };
-    hook = util::MinHook<void, void*, float> { target, detour };
+    minhook = util::MinHook<void, void*, float> { target, detour };
 }
 
-bool Unlocker::Hooked() const noexcept {
+bool Unlocker::IsHooked() const noexcept {
     return isHooked;
 }
 
-void Unlocker::Hooked(const bool value) {
+void Unlocker::Hook(const bool hook) {
     std::lock_guard lock { mutex };
-    isHooked = value;
-    if (value) {
-        hook->Enable();
+    isHooked = hook;
+    if (hook) {
+        minhook->Enable(true);
         isEnabledOnce = true;
     } else {
-        // hook->Disable();
+        // minhook->Enable(false);
     }
 }
 
-bool Unlocker::Enabled() const noexcept {
+bool Unlocker::IsEnabled() const noexcept {
     return isEnabled;
 }
 
-void Unlocker::Enabled(const bool value) noexcept {
-    isEnabled = value;
+void Unlocker::Enable(const bool enable) noexcept {
+    isEnabled = enable;
 }
 
-int Unlocker::FieldOfView() const noexcept {
+int Unlocker::GetFieldOfView() const noexcept {
     return overrideFov;
 }
 
-void Unlocker::FieldOfView(const int value) noexcept {
-    overrideFov = value;
+void Unlocker::SetFieldOfView(const int fieldOfView) noexcept {
+    overrideFov = fieldOfView;
 }
 
-float Unlocker::Smoothing() const noexcept {
-    return filter.TimeConstant();
+float Unlocker::GetSmoothing() const noexcept {
+    return filter.GetTimeConstant();
 }
 
-void Unlocker::Smoothing(const float value) noexcept {
-    filter.TimeConstant(value);
+void Unlocker::SetSmoothing(const float smoothing) noexcept {
+    filter.SetTimeConstant(smoothing);
 }
 } // namespace z3lx::gfu
 
 namespace {
 void HkSetFieldOfView(void* instance, float value) noexcept try {
     std::lock_guard lock { mutex };
-    if (!hook.has_value()) {
+    if (!minhook.has_value()) {
         return;
     }
 
@@ -119,7 +119,7 @@ void HkSetFieldOfView(void* instance, float value) noexcept try {
         }
 
         if (setFovCount > 8) {
-            filter.InitialValue(value);
+            filter.SetInitialValue(value);
         }
         setFovCount = 0;
 
@@ -136,7 +136,7 @@ void HkSetFieldOfView(void* instance, float value) noexcept try {
             value = filtered;
         } else if (!isHooked) {
             isPreviousFov = false;
-            hook->Disable();
+            minhook->Enable(false);
         }
     } else {
         const auto rep = std::bit_cast<std::uint32_t>(value);
@@ -145,9 +145,9 @@ void HkSetFieldOfView(void* instance, float value) noexcept try {
         previousFov = value;
     }
 
-    hook->CallOriginal(instance, value);
+    minhook->CallOriginal(instance, value);
 } catch (...) {
     // Should never happen
-    hook->CallOriginal(instance, value);
+    minhook->CallOriginal(instance, value);
 }
 } // namespace

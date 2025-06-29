@@ -27,7 +27,7 @@ inline void ThrowOnError(const MH_STATUS status) {
 template <typename Ret, typename... Args>
 MinHook<Ret, Args...>::MinHook(
     void* target, void* detour, const bool enable)
-    : enabled { enable }
+    : isEnabled { enable }
     , target { target }
     , original { nullptr } {
     using namespace detail::minhook_impl;
@@ -48,7 +48,7 @@ MinHook<Ret, Args...>::MinHook(
 
     // Create and enable the hook
     handleMhError(MH_CreateHook(target, detour, &original));
-    if (enable) {
+    if (isEnabled) {
         handleMhError(MH_EnableHook(target));
     }
 }
@@ -70,10 +70,10 @@ MinHook<Ret, Args...>::~MinHook() noexcept {
 
 template <typename Ret, typename... Args>
 MinHook<Ret, Args...>::MinHook(MinHook&& other) noexcept
-    : enabled { other.enabled }
+    : isEnabled { other.isEnabled }
     , target { other.target }
     , original { other.original } {
-    other.enabled = false;
+    other.isEnabled = false;
     other.target = nullptr;
     other.original = nullptr;
 }
@@ -85,11 +85,11 @@ MinHook<Ret, Args...>::operator=(MinHook&& other) noexcept {
         return *this;
     }
 
-    enabled = other.enabled;
+    isEnabled = other.isEnabled;
     target = other.target;
     original = other.original;
 
-    other.enabled = false;
+    other.isEnabled = false;
     other.target = nullptr;
     other.original = nullptr;
 
@@ -98,25 +98,18 @@ MinHook<Ret, Args...>::operator=(MinHook&& other) noexcept {
 
 template <typename Ret, typename... Args>
 bool MinHook<Ret, Args...>::IsEnabled() const noexcept {
-    return enabled;
+    return isEnabled;
 }
 
 template <typename Ret, typename... Args>
-void MinHook<Ret, Args...>::Enable() {
+void MinHook<Ret, Args...>::Enable(const bool enable) {
     using namespace detail::minhook_impl;
-    if (!enabled) {
+    if (enable && !isEnabled) {
         ThrowOnError(MH_EnableHook(target));
-        enabled = true;
-    }
-}
-
-template <typename Ret, typename... Args>
-void MinHook<Ret, Args...>::Disable() {
-    using namespace detail::minhook_impl;
-    if (enabled) {
+    } else if (!enable && isEnabled) {
         ThrowOnError(MH_DisableHook(target));
-        enabled = false;
     }
+    isEnabled = enable;
 }
 
 template <typename Ret, typename... Args>

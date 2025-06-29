@@ -30,7 +30,7 @@ void VirtualKeyState::Update() {
     }
 }
 
-bool VirtualKeyState::KeyDown(const util::VirtualKey key) const noexcept {
+bool VirtualKeyState::IsKeyDown(const util::VirtualKey key) const noexcept {
     return keyStates[static_cast<uint8_t>(key)];
 }
 } // namespace z3lx::gfu

@@ -27,7 +27,7 @@ void WindowState::Update() {
     }
 }
 
-bool WindowState::Focused() const noexcept {
+bool WindowState::IsFocused() const noexcept {
     return wasFocused.value_or(false);
 }
 } // namespace z3lx::gfu

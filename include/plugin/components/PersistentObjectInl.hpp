@@ -11,6 +11,8 @@
 #include <filesystem>
 #include <utility>
 
+#undef GetObject
+
 namespace z3lx::gfu {
 template <typename T>
 PersistentObject<T>::PersistentObject() noexcept = default;
@@ -19,12 +21,12 @@ template <typename T>
 PersistentObject<T>::~PersistentObject() noexcept = default;
 
 template <typename T>
-const std::filesystem::path& PersistentObject<T>::FilePath() const noexcept {
+const std::filesystem::path& PersistentObject<T>::GetFilePath() const noexcept {
     return filePath;
 }
 
 template <typename T>
-void PersistentObject<T>::FilePath(std::filesystem::path filePath) try {
+void PersistentObject<T>::SetFilePath(std::filesystem::path filePath) try {
     this->filePath = std::move(filePath);
     fileHandle = wil::open_or_create_file(
         this->filePath.native().c_str(),
@@ -42,12 +44,12 @@ void PersistentObject<T>::FilePath(std::filesystem::path filePath) try {
 } CATCH_THROW_NORMALIZED()
 
 template <typename T>
-const T& PersistentObject<T>::Object() const noexcept {
+const T& PersistentObject<T>::GetObject() const noexcept {
     return object;
 }
 
 template <typename T>
-T& PersistentObject<T>::Object() noexcept {
+T& PersistentObject<T>::GetObject() noexcept {
     return object;
 }
 

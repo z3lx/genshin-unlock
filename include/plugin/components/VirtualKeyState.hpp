@@ -26,7 +26,7 @@ public:
 
     void Update();
 
-    [[nodiscard]] bool KeyDown(util::VirtualKey key) const noexcept;
+    [[nodiscard]] bool IsKeyDown(util::VirtualKey key) const noexcept;
 
 private:
     std::bitset<256> keyStates;

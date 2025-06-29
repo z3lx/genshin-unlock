@@ -15,7 +15,7 @@ Plugin::Plugin() = default;
 Plugin::~Plugin() noexcept = default;
 
 void Plugin::Start() {
-    GetComponent<PersistentObject<Config>>().FilePath(
+    GetComponent<PersistentObject<Config>>().SetFilePath(
         util::GetCurrentModuleFilePath().parent_path() / "fov_config.json"
     );
 }
@@ -23,21 +23,21 @@ void Plugin::Start() {
 void Plugin::Notify(const OnPersistentObjectChange<Config>& event) {
     const Config& config = event.object;
     auto& unlocker = GetComponent<Unlocker>();
-    unlocker.Enabled(config.enabled);
-    unlocker.FieldOfView(config.fov);
-    unlocker.Smoothing(config.smoothing);
+    unlocker.Enable(config.enabled);
+    unlocker.SetFieldOfView(config.fov);
+    unlocker.SetSmoothing(config.smoothing);
 }
 
 void Plugin::Notify(const OnVirtualKeyDown& event) {
     auto& unlocker = GetComponent<Unlocker>();
-    if (!unlocker.Hooked()) {
+    if (!unlocker.IsHooked()) {
         return;
     }
 
-    Config& config = GetComponent<PersistentObject<Config>>().Object();
+    Config& config = GetComponent<PersistentObject<Config>>().GetObject();
     if (event.key == config.enableKey) {
         config.enabled = !config.enabled;
-        unlocker.Enabled(config.enabled);
+        unlocker.Enable(config.enabled);
     } else if (!config.enabled) {
         return;
     } else if (event.key == config.nextKey) {
@@ -49,7 +49,7 @@ void Plugin::Notify(const OnVirtualKeyDown& event) {
         );
         config.fov = (it != config.fovPresets.end()) ?
             *it : config.fovPresets.front();
-        unlocker.FieldOfView(config.fov);
+        unlocker.SetFieldOfView(config.fov);
     } else if (event.key == config.prevKey) {
         const auto it = std::ranges::find_if(
             config.fovPresets | std::views::reverse,
@@ -59,7 +59,7 @@ void Plugin::Notify(const OnVirtualKeyDown& event) {
         );
         config.fov = (it != config.fovPresets.rend()) ?
             *it : config.fovPresets.back();
-        unlocker.FieldOfView(config.fov);
+        unlocker.SetFieldOfView(config.fov);
     }
 }
 
@@ -76,9 +76,9 @@ void Plugin::UpdateHookState() {
     const auto& window = GetComponent<WindowState>();
     const auto& cursor = GetComponent<CursorState>();
 
-    if (const bool shouldHook = window.Focused() && !cursor.Visible();
-        unlocker.Hooked() != shouldHook) {
-        unlocker.Hooked(shouldHook);
+    if (const bool shouldHook = window.IsFocused() && !cursor.IsVisible();
+        unlocker.IsHooked() != shouldHook) {
+        unlocker.Hook(shouldHook);
     }
 }
 } // namespace z3lx::gfu
