@@ -3,7 +3,7 @@
 #include "plugin/components/CursorState.hpp"
 #include "plugin/components/PersistentObject.hpp"
 #include "plugin/components/Unlocker.hpp"
-#include "plugin/components/VirtualKeyInput.hpp"
+#include "plugin/components/VirtualKeyState.hpp"
 #include "plugin/components/WindowState.hpp"
 #include "util/win/Loader.hpp"
 

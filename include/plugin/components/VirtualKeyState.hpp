@@ -18,11 +18,11 @@ struct OnVirtualKeyUp {
     const util::VirtualKey key;
 };
 
-class VirtualKeyInput final : public IComponent<
-    VirtualKeyInput, OnVirtualKeyDown, OnVirtualKeyHold, OnVirtualKeyUp> {
+class VirtualKeyState final : public IComponent<
+    VirtualKeyState, OnVirtualKeyDown, OnVirtualKeyHold, OnVirtualKeyUp> {
 public:
-    VirtualKeyInput() noexcept;
-    ~VirtualKeyInput() noexcept;
+    VirtualKeyState() noexcept;
+    ~VirtualKeyState() noexcept;
 
     void Update();
 
