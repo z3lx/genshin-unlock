@@ -7,6 +7,7 @@
 #include <wil/resource.h>
 #include <wil/result.h>
 
+#include <array>
 #include <cstdint>
 #include <filesystem>
 #include <mutex>
@@ -26,17 +27,17 @@ void LoggingCallback(const wil::FailureInfo& info) noexcept {
     isAcquired = true;
 
     // Log message to file
-    constexpr size_t messageBufferSize = 2048;
-    wchar_t messageBuffer[messageBufferSize] {};
+    static std::array<wchar_t, 2048> messageBuffer {};
     const HRESULT hr = wil::GetFailureLogString(
-        messageBuffer,
-        messageBufferSize,
+        messageBuffer.data(),
+        messageBuffer.size(),
         info
     );
 
     if (SUCCEEDED(hr)) try {
         // std::fputws(messageBuffer, stderr);
-        const std::u8string message = z3lx::util::U16ToU8(messageBuffer);
+        static std::u8string message {};
+        z3lx::util::U16ToU8(messageBuffer, message);
         z3lx::util::AppendFile(fileHandle.get(), message);
     } catch (...) {}
 
