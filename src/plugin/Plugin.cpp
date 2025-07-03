@@ -34,7 +34,9 @@ void Plugin::Notify(const OnVirtualKeyDown& event) {
         return;
     }
 
-    Config& config = GetComponent<PersistentObject<Config>>().GetObject();
+    auto& configFile = GetComponent<PersistentObject<Config>>();
+    Config& config = configFile.GetObject();
+
     if (event.key == config.enableKey) {
         config.enabled = !config.enabled;
         unlocker.Enable(config.enabled);
@@ -61,6 +63,8 @@ void Plugin::Notify(const OnVirtualKeyDown& event) {
             *it : config.fovPresets.back();
         unlocker.SetFieldOfView(config.fov);
     }
+
+    configFile.TryWrite();
 }
 
 void Plugin::Notify(const OnCursorVisibilityChange& event) {

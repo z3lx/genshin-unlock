@@ -35,6 +35,8 @@ public:
 
     void Read();
     void Write();
+    HRESULT TryRead() noexcept;
+    HRESULT TryWrite() noexcept;
 
 private:
     void OnFolderChange(wil::FolderChangeEvent event, PCWSTR filename) noexcept;

@@ -26,7 +26,7 @@ const std::filesystem::path& PersistentObject<T>::GetFilePath() const noexcept {
 }
 
 template <typename T>
-void PersistentObject<T>::SetFilePath(std::filesystem::path filePath) try {
+void PersistentObject<T>::SetFilePath(std::filesystem::path filePath) {
     this->filePath = std::move(filePath);
     fileHandle = wil::open_or_create_file(
         this->filePath.native().c_str(),
@@ -41,7 +41,7 @@ void PersistentObject<T>::SetFilePath(std::filesystem::path filePath) try {
         }
     );
     changed.store(true, std::memory_order_relaxed);
-} CATCH_THROW_NORMALIZED()
+}
 
 template <typename T>
 const T& PersistentObject<T>::GetObject() const noexcept {
@@ -66,6 +66,18 @@ void PersistentObject<T>::Write() {
 }
 
 template <typename T>
+HRESULT PersistentObject<T>::TryRead() noexcept try {
+    Read();
+    return S_OK;
+} CATCH_RETURN()
+
+template <typename T>
+HRESULT PersistentObject<T>::TryWrite() noexcept try {
+    Write();
+    return S_OK;
+} CATCH_RETURN()
+
+template <typename T>
 void PersistentObject<T>::OnFolderChange(
     const wil::FolderChangeEvent event, const PCWSTR filename) noexcept try {
     if (event == wil::FolderChangeEvent::Modified &&
@@ -78,9 +90,9 @@ template <typename T>
 void PersistentObject<T>::Update() {
     if (changed.load(std::memory_order_relaxed)) {
         changed.store(false, std::memory_order_relaxed);
-        try {
-            Read();
-        } CATCH_LOG()
+        if (FAILED(TryRead())) {
+            return;
+        }
         this->Notify(OnPersistentObjectChange<T> { object });
     }
 }
