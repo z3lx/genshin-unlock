@@ -78,18 +78,28 @@ void IMEDIATOR::UpdateComponents() {
 IMEDIATOR_TEMPLATE
 void IMEDIATOR::StartMediator() try {
     TRY_CALL_DERIVED(this, Derived, Start);
-} CATCH_THROW_NORMALIZED_MSG("%hs", detail::GetTypeName<Derived>())
+} CATCH_THROW_NORMALIZED_MSG(
+    "From Start method in mediator %hs",
+    detail::GetTypeName<Derived>()
+)
 
 IMEDIATOR_TEMPLATE
 void IMEDIATOR::UpdateMediator() try {
     TRY_CALL_DERIVED(this, Derived, Update);
-} CATCH_THROW_NORMALIZED_MSG("%hs", detail::GetTypeName<Derived>())
+} CATCH_THROW_NORMALIZED_MSG(
+    "From Update method in mediator %hs",
+    detail::GetTypeName<Derived>()
+)
 
 IMEDIATOR_TEMPLATE
 template <typename Event>
 void IMEDIATOR::NotifyMediator(void* instance, const Event& event) try {
     TRY_CALL_DERIVED(instance, Derived, Notify, event);
-} CATCH_THROW_NORMALIZED_MSG("%hs", detail::GetTypeName<Derived>())
+} CATCH_THROW_NORMALIZED_MSG(
+    "From Notify method in mediator %hs with event %hs",
+    detail::GetTypeName<Derived>(),
+    detail::GetTypeName<Event>()
+)
 } // namespace z3lx::gfu
 
 #undef IMEDIATOR

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <typeinfo>
+
 #define TRY_CALL_DERIVED(pointer, Class, Method, ...)                           \
     if constexpr (requires {                                                    \
         static_cast<Class*>(pointer)->Method(__VA_ARGS__); }) {                 \

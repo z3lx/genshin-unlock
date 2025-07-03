@@ -40,12 +40,18 @@ void ICOMPONENT::BindComponent(Mediator* mediator) noexcept {
 ICOMPONENT_TEMPLATE
 void ICOMPONENT::StartComponent() try {
     TRY_CALL_DERIVED(this, Derived, Start);
-} CATCH_THROW_NORMALIZED_MSG("%hs", detail::GetTypeName<Derived>())
+} CATCH_THROW_NORMALIZED_MSG(
+    "From Start method in component %hs",
+    detail::GetTypeName<Derived>()
+)
 
 ICOMPONENT_TEMPLATE
 void ICOMPONENT::UpdateComponent() try {
     TRY_CALL_DERIVED(this, Derived, Update);
-} CATCH_THROW_NORMALIZED_MSG("%hs", detail::GetTypeName<Derived>())
+} CATCH_THROW_NORMALIZED_MSG(
+    "From Update method in component %hs",
+    detail::GetTypeName<Derived>()
+)
 } // namespace z3lx::gfu
 
 #undef ICOMPONENT
