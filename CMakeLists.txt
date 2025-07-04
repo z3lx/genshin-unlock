@@ -46,12 +46,41 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(wil)
 
-file(GLOB_RECURSE SOURCES src/*)
-add_library(genshin_fov_unlock SHARED ${SOURCES})
-target_compile_definitions(genshin_fov_unlock PRIVATE WIN32_LEAN_AND_MEAN)
-target_include_directories(genshin_fov_unlock PRIVATE include)
-target_link_libraries(genshin_fov_unlock
-    PRIVATE minhook
-    PRIVATE glaze::glaze
-    PRIVATE WIL::WIL
+set(MAJOR_VERSION 1)
+set(MINOR_VERSION 7)
+set(PATCH_VERSION 0)
+
+set(VERSION_RC ${CMAKE_CURRENT_BINARY_DIR}/version.rc)
+configure_file(
+    res/version.rc.in
+    ${VERSION_RC}
+    @ONLY
+)
+
+add_compile_definitions(WIN32_LEAN_AND_MEAN)
+
+file(GLOB_RECURSE UTIL_SOURCES src/util/*)
+add_library(util STATIC ${UTIL_SOURCES})
+target_include_directories(util PRIVATE include)
+target_link_libraries(util PUBLIC
+    minhook
+    WIL::WIL
+)
+
+file(GLOB_RECURSE LOADER_SOURCES src/loader/*)
+add_executable(loader ${LOADER_SOURCES} ${VERSION_RC})
+target_include_directories(loader PRIVATE include)
+target_link_libraries(loader PRIVATE
+    glaze::glaze
+    WIL::WIL
+    util
+)
+
+file(GLOB_RECURSE PLUGIN_SOURCES src/plugin/*)
+add_library(plugin SHARED ${PLUGIN_SOURCES} ${VERSION_RC})
+target_include_directories(plugin PRIVATE include)
+target_link_libraries(plugin PRIVATE
+    glaze::glaze
+    WIL::WIL
+    util
 )
