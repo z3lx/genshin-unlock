@@ -1,3 +1,4 @@
+#include "util/Concepts.hpp"
 #include "util/win/Loader.hpp"
 
 #include <wil/resource.h>
@@ -58,7 +59,7 @@ void RequestElevation() try {
 
 void InjectDlls(
     const HANDLE processHandle,
-    const std::vector<std::filesystem::path>& dllPaths) try {
+    const z3lx::util::Container<fs::path> auto& dllPaths) try {
     if (dllPaths.empty()) {
         return;
     }
