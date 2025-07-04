@@ -11,18 +11,18 @@
 #include <vector>
 
 #include <Windows.h>
+#include <conio.h>
 #include <shellapi.h>
 
 namespace fs = std::filesystem;
 
-void RequestElevation() {
+namespace {
+void RequestElevation() try {
     // Check if process is elevated
-    const auto currentProcess = GetCurrentProcess();
-    constexpr auto desiredAccess = TOKEN_QUERY;
     wil::unique_handle token {};
     THROW_IF_WIN32_BOOL_FALSE(OpenProcessToken(
-        currentProcess,
-        desiredAccess,
+        GetCurrentProcess(),
+        TOKEN_QUERY,
         token.put()
     ));
 
@@ -41,13 +41,12 @@ void RequestElevation() {
     }
 
     // Restart process with elevated privileges
-    const std::filesystem::path filePath =
-        z3lx::util::GetCurrentModuleFilePath();
+    const fs::path filePath = z3lx::util::GetCurrentModuleFilePath();
     SHELLEXECUTEINFOW info {
         .cbSize = sizeof(info),
         .hwnd = nullptr,
         .lpVerb = L"runas",
-        .lpFile = filePath.native().c_str(),
+        .lpFile = filePath.c_str(),
         .nShow = SW_NORMAL
     };
     THROW_IF_WIN32_BOOL_FALSE(ShellExecuteExW(
@@ -55,11 +54,11 @@ void RequestElevation() {
     ));
 
     std::exit(0);
-}
+} CATCH_THROW_NORMALIZED()
 
 void InjectDlls(
     const HANDLE processHandle,
-    const std::vector<std::filesystem::path>& dllPaths) {
+    const std::vector<std::filesystem::path>& dllPaths) try {
     if (dllPaths.empty()) {
         return;
     }
@@ -120,7 +119,7 @@ void InjectDlls(
         PAGE_READWRITE
     );
     THROW_LAST_ERROR_IF_NULL(buffer);
-    const auto cleanup = wil::scope_exit([=] {
+    const auto bufferCleanup = wil::scope_exit([=] {
         VirtualFreeEx(
             processHandle,
             buffer,
@@ -128,8 +127,6 @@ void InjectDlls(
             MEM_RELEASE
         );
     });
-
-    // const std::vector<char> emptyBuffer(bufferSize, 0);
 
     for (const fs::path& dllPath : dllPaths) {
         // Write dll path to process
@@ -153,14 +150,14 @@ void InjectDlls(
         ) };
         THROW_LAST_ERROR_IF_NULL(thread.get());
         WaitForSingleObject(thread.get(), INFINITE);
-
-    //     // Cleanup
-    //     WriteProcessMemory(
-    //         processHandle, buffer, emptyBuffer.data(), dllPathBufferSize,
-    //         &bytesWritten
-    //     );
     }
+} CATCH_THROW_NORMALIZED()
+
+void Pause() noexcept {
+    std::cout << "Press any key to continue..." << std::endl;
+    _getch();
 }
+} // namespace
 
 int main() try {
     RequestElevation();
@@ -185,17 +182,17 @@ int main() try {
         &si,
         &pi
     ));
+    const wil::unique_handle process { pi.hProcess };
+    const wil::unique_handle thread { pi.hThread };
 
-    InjectDlls(pi.hProcess, dllPaths);
+    InjectDlls(process.get(), dllPaths);
 
     if (suspendLoad) {
-        ResumeThread(pi.hThread);
+        ResumeThread(thread.get());
     }
-    CloseHandle(pi.hThread);
-    CloseHandle(pi.hProcess);
-
     return 0;
 } catch (const std::exception& e) {
-    std::cerr << e.what() << std::endl;
+    std::cerr << "Error: " << e.what() << std::endl;
+    Pause();
     return 1;
 }
