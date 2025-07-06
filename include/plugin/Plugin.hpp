@@ -35,4 +35,4 @@ public:
 private:
     void UpdateHookState();
 };
-} // namespace z3lx::gfu
+} // namespace z3lx::plugin

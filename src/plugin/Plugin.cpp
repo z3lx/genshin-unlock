@@ -85,4 +85,4 @@ void Plugin::UpdateHookState() {
         unlocker.Hook(shouldHook);
     }
 }
-} // namespace z3lx::gfu
+} // namespace z3lx::plugin

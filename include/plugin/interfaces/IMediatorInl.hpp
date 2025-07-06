@@ -100,6 +100,6 @@ void IMEDIATOR::NotifyMediator(void* instance, const Event& event) try {
     detail::GetTypeName<Derived>(),
     detail::GetTypeName<Event>()
 )
-} // namespace z3lx::gfu
+} // namespace z3lx::plugin
 
 #undef IMEDIATOR

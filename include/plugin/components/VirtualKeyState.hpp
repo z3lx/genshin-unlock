@@ -31,4 +31,4 @@ public:
 private:
     std::bitset<256> keyStates;
 };
-} // namespace z3lx::gfu
+} // namespace z3lx::plugin

@@ -100,7 +100,7 @@ float Unlocker::GetSmoothing() const noexcept {
 void Unlocker::SetSmoothing(const float smoothing) noexcept {
     filter.SetTimeConstant(smoothing);
 }
-} // namespace z3lx::gfu
+} // namespace z3lx::plugin
 
 namespace {
 void HkSetFieldOfView(void* instance, float value) noexcept try {

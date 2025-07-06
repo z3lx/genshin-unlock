@@ -44,6 +44,6 @@ private:
     std::atomic<bool> stopFlag;
     std::thread thread;
 };
-} // namespace z3lx::gfu
+} // namespace z3lx::plugin
 
 #include "plugin/interfaces/IMediatorInl.hpp"

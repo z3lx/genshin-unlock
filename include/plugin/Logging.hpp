@@ -5,4 +5,4 @@
 namespace z3lx::plugin {
 using LoggingCallbackFunc = void(*)(const wil::FailureInfo& info) noexcept;
 LoggingCallbackFunc GetLoggingCallback();
-} // namespace z3lx::gfu
+} // namespace z3lx::plugin

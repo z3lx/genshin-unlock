@@ -22,4 +22,4 @@ public:
     [[nodiscard]] float GetSmoothing() const noexcept;
     void SetSmoothing(float smoothing) noexcept;
 };
-} // namespace z3lx::gfu
+} // namespace z3lx::plugin

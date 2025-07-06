@@ -274,4 +274,4 @@ void Config::Serialize(std::vector<uint8_t>& buffer) {
 void Config::Deserialize(const std::vector<uint8_t>& buffer) {
     glz::ex::read<opts>(*this, buffer);
 }
-} // namespace z3lx::gfu
+} // namespace z3lx::plugin

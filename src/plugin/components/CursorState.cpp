@@ -22,4 +22,4 @@ void CursorState::Update() {
 bool CursorState::IsVisible() const noexcept {
     return wasVisible.value_or(true);
 }
-} // namespace z3lx::gfu
+} // namespace z3lx::plugin

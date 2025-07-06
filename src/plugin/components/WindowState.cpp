@@ -30,4 +30,4 @@ void WindowState::Update() {
 bool WindowState::IsFocused() const noexcept {
     return wasFocused.value_or(false);
 }
-} // namespace z3lx::gfu
+} // namespace z3lx::plugin

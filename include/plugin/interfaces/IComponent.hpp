@@ -31,6 +31,6 @@ private:
 
     void* instance;
 };
-} // namespace z3lx::gfu
+} // namespace z3lx::plugin
 
 #include "plugin/interfaces/IComponentInl.hpp"

@@ -49,6 +49,6 @@ private:
     wil::unique_folder_change_reader changeReader;
     std::atomic<bool> changed;
 };
-} // namespace z3lx::gfu
+} // namespace z3lx::plugin
 
 #include "plugin/components/PersistentObjectInl.hpp"

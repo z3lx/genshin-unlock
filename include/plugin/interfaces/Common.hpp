@@ -27,4 +27,4 @@ class IMediator;
 
 ICOMPONENT_TEMPLATE
 class IComponent;
-} // namespace z3lx::gfu
+} // namespace z3lx::plugin

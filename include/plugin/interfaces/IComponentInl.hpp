@@ -52,6 +52,6 @@ void ICOMPONENT::UpdateComponent() try {
     "From Update method in component %hs",
     detail::GetTypeName<Derived>()
 )
-} // namespace z3lx::gfu
+} // namespace z3lx::plugin
 
 #undef ICOMPONENT

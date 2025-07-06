@@ -96,4 +96,4 @@ void PersistentObject<T>::Update() {
         this->Notify(OnPersistentObjectChange<T> { object });
     }
 }
-} // namespace z3lx::gfu
+} // namespace z3lx::plugin
