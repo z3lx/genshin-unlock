@@ -1,6 +1,6 @@
 #include <Windows.h>
 
-#define VER_FILEVERSION                 @MAJOR_VERSION@,@MINOR_VERSION@,@PATCH_VERSION@,0
+#define VER_FILEVERSION                 @PROJECT_VERSION_MAJOR@,@PROJECT_VERSION_MINOR@,@PROJECT_VERSION_PATCH@,@PROJECT_VERSION_TWEAK@
 #define VER_PRODUCTVERSION              VER_FILEVERSION
 #define VER_FILEFLAGSMASK               0
 #define VER_FILEFLAGS                   0
@@ -10,7 +10,7 @@
 
 #define VER_COMPANYNAME_STR             "z3lx"
 #define VER_FILEDESCRIPTION_STR         "z3lx/genshin-fov-unlock"
-#define VER_FILEVERSION_STR             "@MAJOR_VERSION@.@MINOR_VERSION@.@PATCH_VERSION@.0"
+#define VER_FILEVERSION_STR             "@PROJECT_VERSION_MAJOR@.@PROJECT_VERSION_MINOR@.@PROJECT_VERSION_PATCH@.@PROJECT_VERSION_TWEAK@"
 #define VER_INTERNALNAME_STR            ""
 #define VER_LEGALCOPYRIGHT_STR          "Copyright (c) 2024 z3lx"
 #define VER_LEGALTRADEMARKS1_STR        ""

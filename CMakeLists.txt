@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.28)
-project(genshin-fov-unlock)
+project(genshin-fov-unlock
+    VERSION 1.7.0.0
+)
 
 set(CMAKE_CXX_STANDARD 23)
 
@@ -45,10 +47,6 @@ FetchContent_Declare(
     GIT_SHALLOW TRUE
 )
 FetchContent_MakeAvailable(wil)
-
-set(MAJOR_VERSION 1)
-set(MINOR_VERSION 7)
-set(PATCH_VERSION 0)
 
 set(VERSION_RC ${CMAKE_CURRENT_BINARY_DIR}/version.rc)
 configure_file(
