@@ -1,14 +1,20 @@
+#include "loader/Config.hpp"
 #include "util/Concepts.hpp"
+#include "util/win/File.hpp"
 #include "util/win/Loader.hpp"
 
+#include <wil/filesystem.h>
 #include <wil/resource.h>
 #include <wil/result.h>
 
 #include <algorithm>
+#include <chrono>
+#include <cstdint>
 #include <exception>
 #include <filesystem>
 #include <iostream>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include <Windows.h>
@@ -163,34 +169,50 @@ void Pause() noexcept {
 int main() try {
     RequestElevation();
 
-    const fs::path gamePath = R"(C:\Program Files\HoYoPlay\games\Genshin Impact game\GenshinImpact.exe)";
-    std::wstring gameArgs = gamePath.wstring() + L" -popupwindow -screen-fullscreen 0";
-    const fs::path gameDirectory = gamePath.parent_path();
-    const std::vector dllPaths { fs::absolute("plugin.dll") };
-    constexpr bool suspendLoad = false;
+    // Read configuration
+    std::vector<uint8_t> buffer {};
+    constexpr auto configFileName = L"loader_config.json";
+    const bool configFileExists = fs::exists(configFileName);
+    const wil::unique_hfile configFile =
+        wil::open_or_create_file(configFileName);
 
+    if (configFileExists) {
+        z3lx::util::ReadFile(configFile.get(), buffer);
+    } else {
+        z3lx::loader::Config {}.Serialize(buffer);
+        z3lx::util::WriteFile(configFile.get(), buffer);
+    }
+
+    z3lx::loader::Config config =
+        z3lx::loader::Config::Deserialize(buffer);
+
+    // Start game process
     STARTUPINFOW si { .cb = sizeof(si) };
     PROCESS_INFORMATION pi {};
     THROW_IF_WIN32_BOOL_FALSE(CreateProcessW(
-        gamePath.c_str(),
-        gameArgs.data(),
+        config.gamePath.c_str(),
+        config.gameArgs.data(),
         nullptr,
         nullptr,
         FALSE,
-        suspendLoad ? CREATE_SUSPENDED : 0,
+        config.suspendLoad ? CREATE_SUSPENDED : 0,
         nullptr,
-        gameDirectory.c_str(),
+        config.gamePath.parent_path().c_str(),
         &si,
         &pi
     ));
     const wil::unique_handle process { pi.hProcess };
     const wil::unique_handle thread { pi.hThread };
 
-    InjectDlls(process.get(), dllPaths);
-
-    if (suspendLoad) {
+    // Inject DLLs
+    InjectDlls(process.get(), config.dllPaths);
+    if (config.suspendLoad) {
         ResumeThread(thread.get());
     }
+
+    std::cout << "Game started successfully." << std::endl;
+    std::this_thread::sleep_for(std::chrono::seconds { 1 });
+
     return 0;
 } catch (const std::exception& e) {
     std::cerr << "Error: " << e.what() << std::endl;
