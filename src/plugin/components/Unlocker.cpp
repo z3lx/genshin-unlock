@@ -32,7 +32,7 @@ float previousFov = 45.0f;
 bool isPreviousFov = false;
 } // namespace
 
-namespace z3lx::gfu {
+namespace z3lx::plugin {
 Unlocker::Unlocker() noexcept = default;
 
 Unlocker::~Unlocker() noexcept {

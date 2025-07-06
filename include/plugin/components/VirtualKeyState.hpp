@@ -5,7 +5,7 @@
 
 #include <bitset>
 
-namespace z3lx::gfu {
+namespace z3lx::plugin {
 struct OnVirtualKeyDown {
     const util::VirtualKey key;
 };

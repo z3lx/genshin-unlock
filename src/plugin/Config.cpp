@@ -33,8 +33,8 @@ constexpr glz::opts opts {
 } // namespace
 
 template <>
-struct glz::meta<z3lx::gfu::Config> {
-    using T = z3lx::gfu::Config;
+struct glz::meta<z3lx::plugin::Config> {
+    using T = z3lx::plugin::Config;
 
     static constexpr auto isValidFov = [](const uint8_t fov) {
         return fov > 0 && fov < 180;
@@ -266,7 +266,7 @@ struct glz::meta<z3lx::util::VirtualKey> {
     );
 };
 
-namespace z3lx::gfu {
+namespace z3lx::plugin {
 void Config::Serialize(std::vector<uint8_t>& buffer) {
     glz::ex::write<opts>(*this, buffer);
 }

@@ -2,7 +2,7 @@
 
 #include <Windows.h>
 
-namespace z3lx::gfu {
+namespace z3lx::plugin {
 WindowState::WindowState() noexcept = default;
 WindowState::~WindowState() noexcept = default;
 

@@ -45,7 +45,7 @@ void LoggingCallback(const wil::FailureInfo& info) noexcept {
 }
 } // namespace
 
-namespace z3lx::gfu {
+namespace z3lx::plugin {
 LoggingCallbackFunc GetLoggingCallback() {
     static std::once_flag flag {};
     std::call_once(flag, []() {

@@ -13,7 +13,7 @@
 
 #undef GetObject
 
-namespace z3lx::gfu {
+namespace z3lx::plugin {
 template <typename T>
 PersistentObject<T>::PersistentObject() noexcept = default;
 

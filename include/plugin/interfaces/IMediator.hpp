@@ -5,7 +5,7 @@
 #include <atomic>
 #include <thread>
 
-namespace z3lx::gfu {
+namespace z3lx::plugin {
 namespace detail {
 template <typename Component>
 struct ComponentStorage;

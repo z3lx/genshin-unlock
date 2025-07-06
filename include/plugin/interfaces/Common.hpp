@@ -14,7 +14,7 @@
 #define ICOMPONENT_TEMPLATE                                                     \
     template <typename Derived, typename... Events>
 
-namespace z3lx::gfu {
+namespace z3lx::plugin {
 namespace detail {
 template <typename T>
 const char* GetTypeName() {

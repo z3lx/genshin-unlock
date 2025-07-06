@@ -2,7 +2,7 @@
 
 #include <Windows.h>
 
-namespace z3lx::gfu {
+namespace z3lx::plugin {
 CursorState::CursorState() noexcept = default;
 CursorState::~CursorState() noexcept = default;
 

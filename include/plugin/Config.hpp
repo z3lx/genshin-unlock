@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <vector>
 
-namespace z3lx::gfu {
+namespace z3lx::plugin {
 struct Config {
     bool enabled = true;
     uint8_t fov = 75;

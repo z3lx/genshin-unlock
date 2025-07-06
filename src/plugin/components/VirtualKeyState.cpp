@@ -5,7 +5,7 @@
 
 #include <Windows.h>
 
-namespace z3lx::gfu {
+namespace z3lx::plugin {
 VirtualKeyState::VirtualKeyState() noexcept = default;
 VirtualKeyState::~VirtualKeyState() noexcept = default;
 

@@ -4,7 +4,7 @@
 
 #include <optional>
 
-namespace z3lx::gfu {
+namespace z3lx::plugin {
 struct OnWindowFocusChange {
     const bool isFocused;
 };

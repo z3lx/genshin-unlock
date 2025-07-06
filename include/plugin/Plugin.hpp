@@ -8,7 +8,7 @@
 #include "plugin/components/WindowState.hpp"
 #include "plugin/interfaces/IMediator.hpp"
 
-namespace z3lx::gfu {
+namespace z3lx::plugin {
 namespace detail {
 template <typename Derived>
 using Mediator = IMediator<

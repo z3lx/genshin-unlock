@@ -2,7 +2,7 @@
 
 #include "plugin/interfaces/IComponent.hpp"
 
-namespace z3lx::gfu {
+namespace z3lx::plugin {
 class Unlocker final : public IComponent<Unlocker> {
 public:
     Unlocker() noexcept;

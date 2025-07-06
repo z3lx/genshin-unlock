@@ -2,7 +2,7 @@
 
 #include "plugin/interfaces/Common.hpp"
 
-namespace z3lx::gfu {
+namespace z3lx::plugin {
 namespace detail {
 template <typename Event>
 struct EventCallbackStorage;

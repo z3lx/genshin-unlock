@@ -10,7 +10,7 @@
 #include <filesystem>
 #include <ranges>
 
-namespace z3lx::gfu {
+namespace z3lx::plugin {
 Plugin::Plugin() = default;
 Plugin::~Plugin() noexcept = default;
 
