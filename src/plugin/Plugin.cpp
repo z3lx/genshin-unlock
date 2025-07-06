@@ -16,7 +16,7 @@ Plugin::~Plugin() noexcept = default;
 
 void Plugin::Start() {
     GetComponent<PersistentObject<Config>>().SetFilePath(
-        util::GetCurrentModuleFilePath().parent_path() / "fov_config.json"
+        util::GetCurrentModuleFilePath().parent_path() / "plugin_config.json"
     );
 }
 
