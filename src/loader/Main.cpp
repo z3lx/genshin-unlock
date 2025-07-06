@@ -92,14 +92,30 @@ void InjectDlls(
             .Attributes = SE_PRIVILEGE_ENABLED
         }}
     };
+    TOKEN_PRIVILEGES oldPrivileges {};
+    DWORD returnLength = 0;
     THROW_IF_WIN32_BOOL_FALSE(AdjustTokenPrivileges(
         token.get(),
         FALSE,
         &newPrivileges,
         sizeof(newPrivileges),
-        nullptr,
-        nullptr
+        &oldPrivileges,
+        &returnLength
     ));
+    const auto privilegesCleanup = wil::scope_exit([&] {
+        AdjustTokenPrivileges(
+            token.get(),
+            FALSE,
+            &oldPrivileges,
+            returnLength,
+            nullptr,
+            nullptr
+        );
+    });
+    THROW_WIN32_IF(
+        ERROR_PRIVILEGE_NOT_HELD,
+        GetLastError() == ERROR_NOT_ALL_ASSIGNED
+    );
 
     // Get LoadLibraryW
     const HMODULE kernel32 = GetModuleHandleA("kernel32.dll");
