@@ -167,6 +167,9 @@ void Pause() noexcept {
 } // namespace
 
 int main() try {
+    using namespace z3lx::loader;
+    using namespace z3lx::util;
+
     RequestElevation();
 
     // Read configuration
@@ -177,14 +180,13 @@ int main() try {
         wil::open_or_create_file(configFileName);
 
     if (configFileExists) {
-        z3lx::util::ReadFile(configFile.get(), buffer);
+        ReadFile(configFile.get(), buffer);
     } else {
-        z3lx::loader::Config {}.Serialize(buffer);
-        z3lx::util::WriteFile(configFile.get(), buffer);
+        Config {}.Serialize(buffer);
+        WriteFile(configFile.get(), buffer);
     }
 
-    z3lx::loader::Config config =
-        z3lx::loader::Config::Deserialize(buffer);
+    Config config = Config::Deserialize(buffer);
 
     // Start game process
     STARTUPINFOW si { .cb = sizeof(si) };
