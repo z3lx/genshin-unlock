@@ -96,9 +96,7 @@ void Config::Serialize(std::vector<uint8_t>& buffer) {
     glz::ex::write<opts>(*this, buffer);
 }
 
-Config Config::Deserialize(const std::vector<uint8_t>& buffer) {
-    Config config {};
-    glz::ex::read<opts>(config, buffer);
-    return config;
+void Config::Deserialize(const std::vector<uint8_t>& buffer) {
+    glz::ex::read<opts>(*this, buffer);
 }
 } // namespace z3lx::loader

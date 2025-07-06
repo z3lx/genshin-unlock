@@ -173,7 +173,9 @@ int main() try {
     RequestElevation();
 
     // Read configuration
+    Config config {};
     std::vector<uint8_t> buffer {};
+
     constexpr auto configFileName = L"loader_config.json";
     const bool configFileExists = fs::exists(configFileName);
     const wil::unique_hfile configFile =
@@ -182,11 +184,10 @@ int main() try {
     if (configFileExists) {
         ReadFile(configFile.get(), buffer);
     } else {
-        Config {}.Serialize(buffer);
+        config.Serialize(buffer);
         WriteFile(configFile.get(), buffer);
     }
-
-    Config config = Config::Deserialize(buffer);
+    config.Deserialize(buffer);
 
     // Start game process
     STARTUPINFOW si { .cb = sizeof(si) };
