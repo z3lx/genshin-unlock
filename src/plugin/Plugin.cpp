@@ -19,14 +19,11 @@ Plugin::~Plugin() noexcept = default;
 void Plugin::Start() {
     auto& configFile = GetComponent<PersistentObject<Config>>();
     configFile.SetFilePath(configFilePath);
+    ApplyConfig();
 }
 
 void Plugin::Notify(const OnPersistentObjectChange<Config>& event) {
-    const Config& config = event.object;
-    auto& unlocker = GetComponent<Unlocker>();
-    unlocker.Enable(config.enabled);
-    unlocker.SetFieldOfView(config.fov);
-    unlocker.SetSmoothing(config.smoothing);
+    ApplyConfig();
 }
 
 void Plugin::Notify(const OnVirtualKeyDown& event) {
@@ -74,6 +71,16 @@ void Plugin::Notify(const OnCursorVisibilityChange& event) {
 
 void Plugin::Notify(const OnWindowFocusChange& event) {
     UpdateHookState();
+}
+
+void Plugin::ApplyConfig() {
+    auto& unlocker = GetComponent<Unlocker>();
+    auto& configFile = GetComponent<PersistentObject<Config>>();
+
+    const Config& config = configFile.GetObject();
+    unlocker.Enable(config.enabled);
+    unlocker.SetFieldOfView(config.fov);
+    unlocker.SetSmoothing(config.smoothing);
 }
 
 void Plugin::UpdateHookState() {

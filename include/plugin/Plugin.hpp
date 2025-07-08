@@ -35,6 +35,7 @@ public:
     void Notify(const OnWindowFocusChange& event);
 
 private:
+    void ApplyConfig();
     void UpdateHookState();
 
     std::filesystem::path configFilePath;
