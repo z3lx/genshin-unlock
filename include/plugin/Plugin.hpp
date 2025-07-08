@@ -8,6 +8,8 @@
 #include "plugin/components/WindowState.hpp"
 #include "plugin/interfaces/IMediator.hpp"
 
+#include <filesystem>
+
 namespace z3lx::plugin {
 namespace detail {
 template <typename Derived>
@@ -23,7 +25,7 @@ using Mediator = IMediator<
 
 class Plugin final : public detail::Mediator<Plugin> {
 public:
-    Plugin();
+    explicit Plugin(std::filesystem::path configFilePath);
     ~Plugin() noexcept;
 
     void Start();
@@ -34,5 +36,7 @@ public:
 
 private:
     void UpdateHookState();
+
+    std::filesystem::path configFilePath;
 };
 } // namespace z3lx::plugin

@@ -5,19 +5,20 @@
 #include "plugin/components/Unlocker.hpp"
 #include "plugin/components/VirtualKeyState.hpp"
 #include "plugin/components/WindowState.hpp"
-#include "util/win/Loader.hpp"
 
 #include <filesystem>
 #include <ranges>
+#include <utility>
 
 namespace z3lx::plugin {
-Plugin::Plugin() = default;
+Plugin::Plugin(std::filesystem::path configFilePath)
+    : configFilePath { std::move(configFilePath) } {}
+
 Plugin::~Plugin() noexcept = default;
 
 void Plugin::Start() {
-    GetComponent<PersistentObject<Config>>().SetFilePath(
-        util::GetCurrentModuleFilePath().parent_path() / "plugin_config.json"
-    );
+    auto& configFile = GetComponent<PersistentObject<Config>>();
+    configFile.SetFilePath(configFilePath);
 }
 
 void Plugin::Notify(const OnPersistentObjectChange<Config>& event) {

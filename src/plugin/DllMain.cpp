@@ -1,39 +1,34 @@
 #include "plugin/Logging.hpp"
 #include "plugin/Plugin.hpp"
+#include "util/win/Loader.hpp"
 
 #include <wil/result.h>
 
-#include <memory>
 #include <thread>
 
 #include <Windows.h>
+
+namespace {
+void Initialize() try {
+    const std::filesystem::path currentPath =
+        z3lx::util::GetCurrentModuleFilePath().parent_path();
+    wil::SetResultLoggingCallback(z3lx::plugin::GetLoggingCallback(
+        currentPath / "plugin_log.txt"
+    ));
+    static z3lx::plugin::Plugin plugin {
+        currentPath / "plugin_config.json"
+    };
+} CATCH_LOG()
+} // namespace
 
 BOOL WINAPI DllMain (
     const HINSTANCE hinstDLL,
     const DWORD fdwReason,
     const LPVOID lpReserved) try {
-    using namespace z3lx::plugin;
-    static std::unique_ptr<Plugin> plugin {};
-
-    switch (fdwReason) {
-    case DLL_PROCESS_ATTACH:
+    if (fdwReason == DLL_PROCESS_ATTACH) {
         DisableThreadLibraryCalls(hinstDLL);
-        std::thread { []() {
-            try {
-                const auto callback = GetLoggingCallback();
-                wil::SetResultLoggingCallback(callback);
-                plugin = std::make_unique<Plugin>();
-            } CATCH_LOG()
-        } }.detach();
-        break;
-
-    case DLL_PROCESS_DETACH:
-        plugin = nullptr;
-        break;
-
-    default: break;
+        std::thread { Initialize }.detach();
     }
-
     return TRUE;
 } catch (...) {
     LOG_CAUGHT_EXCEPTION();
