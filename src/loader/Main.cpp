@@ -1,5 +1,6 @@
 #include "loader/Config.hpp"
 #include "util/Concepts.hpp"
+#include "util/win/Console.hpp"
 #include "util/win/File.hpp"
 #include "util/win/Loader.hpp"
 
@@ -7,7 +8,6 @@
 #include <wil/resource.h>
 #include <wil/result.h>
 
-#include <algorithm>
 #include <chrono>
 #include <cstdint>
 #include <exception>
@@ -18,7 +18,6 @@
 #include <vector>
 
 #include <Windows.h>
-#include <conio.h>
 #include <shellapi.h>
 
 namespace fs = std::filesystem;
@@ -62,134 +61,13 @@ void RequestElevation() try {
 
     std::exit(0);
 } CATCH_THROW_NORMALIZED()
-
-void InjectDlls(
-    const HANDLE processHandle,
-    const z3lx::util::Container<fs::path> auto& dllPaths) try {
-    if (dllPaths.empty()) {
-        return;
-    }
-
-    // Adjust privileges
-    LUID luid {};
-    THROW_IF_WIN32_BOOL_FALSE(LookupPrivilegeValueA(
-        nullptr,
-        "SeDebugPrivilege", // SE_DEBUG_NAME 20L
-        &luid
-    ));
-
-    wil::unique_handle token {};
-    THROW_IF_WIN32_BOOL_FALSE(OpenProcessToken(
-        GetCurrentProcess(),
-        TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY,
-        token.put()
-    ));
-
-    TOKEN_PRIVILEGES newPrivileges {
-        .PrivilegeCount = 1,
-        .Privileges = {{
-            .Luid = luid,
-            .Attributes = SE_PRIVILEGE_ENABLED
-        }}
-    };
-    TOKEN_PRIVILEGES oldPrivileges {};
-    DWORD returnLength = 0;
-    THROW_IF_WIN32_BOOL_FALSE(AdjustTokenPrivileges(
-        token.get(),
-        FALSE,
-        &newPrivileges,
-        sizeof(newPrivileges),
-        &oldPrivileges,
-        &returnLength
-    ));
-    const auto privilegesCleanup = wil::scope_exit([&] {
-        AdjustTokenPrivileges(
-            token.get(),
-            FALSE,
-            &oldPrivileges,
-            returnLength,
-            nullptr,
-            nullptr
-        );
-    });
-    THROW_WIN32_IF(
-        ERROR_PRIVILEGE_NOT_HELD,
-        GetLastError() == ERROR_NOT_ALL_ASSIGNED
-    );
-
-    // Get LoadLibraryW
-    const HMODULE kernel32 = GetModuleHandleA("kernel32.dll");
-    THROW_LAST_ERROR_IF_NULL(kernel32);
-    const FARPROC loadLibraryW = GetProcAddress(kernel32, "LoadLibraryW");
-    THROW_LAST_ERROR_IF_NULL(loadLibraryW);
-
-    // Calculate buffer size
-    const fs::path& longestFilePath = *std::ranges::max_element(
-        dllPaths,
-        [](const fs::path& a, const fs::path& b) {
-            return a.native().size() < b.native().size();
-        }
-    );
-    const size_t bufferSize =
-        (longestFilePath.native().size() + 1) * sizeof(wchar_t);
-
-    // Allocate buffer
-    const LPVOID buffer = VirtualAllocEx(
-        processHandle,
-        nullptr,
-        bufferSize,
-        MEM_COMMIT | MEM_RESERVE,
-        PAGE_READWRITE
-    );
-    THROW_LAST_ERROR_IF_NULL(buffer);
-    const auto bufferCleanup = wil::scope_exit([=] {
-        VirtualFreeEx(
-            processHandle,
-            buffer,
-            0,
-            MEM_RELEASE
-        );
-    });
-
-    for (const fs::path& dllPath : dllPaths) {
-        // Write dll path to process
-        THROW_IF_WIN32_BOOL_FALSE(WriteProcessMemory(
-            processHandle,
-            buffer,
-            dllPath.c_str(),
-            (dllPath.native().size() + 1) * sizeof(wchar_t),
-            nullptr
-        ));
-
-        // Create thread to load dll
-        const wil::unique_handle thread { CreateRemoteThread(
-            processHandle,
-            nullptr,
-            0,
-            reinterpret_cast<LPTHREAD_START_ROUTINE>(loadLibraryW),
-            buffer,
-            0,
-            nullptr
-        ) };
-        THROW_LAST_ERROR_IF_NULL(thread.get());
-        WaitForSingleObject(thread.get(), INFINITE);
-    }
-} CATCH_THROW_NORMALIZED()
-
-void Pause() noexcept {
-    std::cout << "Press any key to continue..." << std::endl;
-    _getch();
-}
 } // namespace
 
 int main() try {
-    using namespace z3lx::loader;
-    using namespace z3lx::util;
-
     RequestElevation();
 
     // Read configuration
-    Config config {};
+    z3lx::loader::Config config {};
     std::vector<uint8_t> buffer {};
 
     constexpr auto configFileName = L"loader_config.json";
@@ -198,10 +76,10 @@ int main() try {
         wil::open_or_create_file(configFileName);
 
     if (configFileExists) {
-        ReadFile(configFile.get(), buffer);
+        z3lx::util::ReadFile(configFile.get(), buffer);
     } else {
         config.Serialize(buffer);
-        WriteFile(configFile.get(), buffer);
+        z3lx::util::WriteFile(configFile.get(), buffer);
     }
     config.Deserialize(buffer);
 
@@ -224,7 +102,7 @@ int main() try {
     const wil::unique_handle thread { pi.hThread };
 
     // Inject DLLs
-    InjectDlls(process.get(), config.dllPaths);
+    z3lx::util::LoadRemoteLibrary(process.get(), config.dllPaths);
     if (config.suspendLoad) {
         ResumeThread(thread.get());
     }
@@ -235,6 +113,6 @@ int main() try {
     return 0;
 } catch (const std::exception& e) {
     std::cerr << "Error: " << e.what() << std::endl;
-    Pause();
+    z3lx::util::Pause();
     return 1;
 }
