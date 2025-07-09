@@ -5,15 +5,8 @@ project(genshin-fov-unlock
 
 set(CMAKE_CXX_STANDARD 23)
 
-if (MSVC)
-    add_compile_options(
-        /permissive-
-        "$<$<CONFIG:Release>:/GL>"
-        "$<$<CONFIG:Release>:/Gw>"
-    )
-    add_link_options(
-        "$<$<CONFIG:Release>:/LTCG>"
-    )
+if (NOT MSVC)
+    message(FATAL_ERROR "This project requires MSVC to build.")
 endif()
 
 include(FetchContent)
@@ -48,6 +41,15 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(wil)
 
+add_compile_options(
+    /permissive-
+    "$<$<CONFIG:Release>:/GL>"
+    "$<$<CONFIG:Release>:/Gw>"
+)
+add_link_options(
+    "$<$<CONFIG:Release>:/LTCG>"
+)
+
 set(VERSION_RC ${CMAKE_CURRENT_BINARY_DIR}/version.rc)
 configure_file(
     res/version.rc.in
@@ -72,6 +74,9 @@ target_link_libraries(loader PRIVATE
     glaze::glaze
     WIL::WIL
     util
+)
+target_link_options(loader PRIVATE
+    /MANIFESTUAC:level='requireAdministrator'
 )
 
 file(GLOB_RECURSE PLUGIN_SOURCES src/plugin/*)
