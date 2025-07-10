@@ -91,6 +91,7 @@ void PersistentObject<T>::Update() {
     if (changed.load(std::memory_order_relaxed)) {
         changed.store(false, std::memory_order_relaxed);
         if (FAILED(TryRead())) {
+            TryWrite();
             return;
         }
         this->Notify(OnPersistentObjectChange<T> { object });
