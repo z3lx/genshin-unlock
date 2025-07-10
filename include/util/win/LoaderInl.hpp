@@ -17,9 +17,10 @@ inline std::filesystem::path GetCurrentModuleFilePath() {
     return GetModuleFilePath(address);
 }
 
+template <typename Container>
 void LoadRemoteLibrary(
     const HANDLE processHandle,
-    const Container<std::filesystem::path> auto& libraryPaths) try {
+    const Container& libraryPaths) {
     if (libraryPaths.empty()) {
         return;
     }
@@ -128,5 +129,5 @@ void LoadRemoteLibrary(
         THROW_LAST_ERROR_IF_NULL(thread.get());
         WaitForSingleObject(thread.get(), INFINITE);
     }
-} CATCH_THROW_NORMALIZED()
+}
 } // namespace z3lx::util
