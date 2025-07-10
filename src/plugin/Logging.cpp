@@ -10,6 +10,7 @@
 #include <filesystem>
 #include <mutex>
 #include <string>
+#include <string_view>
 
 namespace {
 std::filesystem::path logFilePath {};
@@ -43,9 +44,10 @@ void LoggingCallback(const wil::FailureInfo& info) noexcept {
 
         if (SUCCEEDED(hr)) {
             // std::fputws(messageBuffer, stderr);
-            static std::u8string message {};
-            z3lx::util::U16ToU8(messageBuffer, message);
-            z3lx::util::AppendFile(fileHandle.get(), message);
+            const std::wstring_view message { messageBuffer.data() };
+            static std::u8string converted {};
+            z3lx::util::U16ToU8(message, converted);
+            z3lx::util::AppendFile(fileHandle.get(), converted);
         }
     } catch (...) {}
 
