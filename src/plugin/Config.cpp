@@ -36,21 +36,30 @@ template <>
 struct glz::meta<z3lx::plugin::Config> {
     using T = z3lx::plugin::Config;
 
-    static constexpr auto isValidFov = [](const uint8_t fov) {
+    static constexpr auto fpsOverrideConstraintCondition = [](
+        const T&, const int fps) -> bool {
+        return fps >= -1;
+    };
+    static constexpr auto fpsOverrideConstraint = read_constraint<
+        &T::fpsOverride, fpsOverrideConstraintCondition,
+        "FPS override must be -1 or greater"
+    >;
+
+    static constexpr auto isValidFov = [](const uint8_t fov) -> bool {
         return fov > 0 && fov < 180;
     };
 
-    static constexpr auto fovConstraintCondition = [](
-        const T&, const uint8_t fov) {
+    static constexpr auto fovOverrideConstraintCondition = [](
+        const T&, const int fov) -> bool {
         return isValidFov(fov);
     };
-    static constexpr auto fovConstraint = read_constraint<
-        &T::fov, fovConstraintCondition,
-        "FOV must be between 1 and 179 degrees"
+    static constexpr auto fovOverrideConstraint = read_constraint<
+        &T::fovOverride, fovOverrideConstraintCondition,
+        "FOV override must be between 1 and 179 degrees"
     >;
 
     static constexpr auto fovPresetsConstraintCondition = [](
-        const T&, std::vector<uint8_t>& fovPresets) {
+        const T&, std::vector<int>& fovPresets) -> bool {
         if (!fovPresets.empty() &&
             std::ranges::all_of(fovPresets, isValidFov)) {
             std::ranges::sort(fovPresets);
@@ -62,26 +71,28 @@ struct glz::meta<z3lx::plugin::Config> {
     };
     static constexpr auto fovPresetsConstraint = read_constraint<
         &T::fovPresets, fovPresetsConstraintCondition,
-        "All FOV presets must be between 1 and 179 degrees"
+        "All FOV override presets must be between 1 and 179 degrees"
     >;
 
-    static constexpr auto smoothingConstraintCondition = [](
-        const T&, const float smoothing) {
+    static constexpr auto fovSmoothingConstraintCondition = [](
+        const T&, const float smoothing) -> bool {
         return smoothing >= 0.0f && smoothing <= 1.0f;
     };
-    static constexpr auto smoothingConstraint = read_constraint<
-        &T::smoothing, smoothingConstraintCondition,
-        "Smoothing must be between 0.0 and 1.0"
+    static constexpr auto fovSmoothingConstraint = read_constraint<
+        &T::fovSmoothing, fovSmoothingConstraintCondition,
+        "FOV smoothing must be between 0.0 and 1.0"
     >;
 
     static constexpr auto value = object(
-        "enabled", &T::enabled,
-        "fov", fovConstraint,
+        "fpsEnabled", &T::fpsEnabled,
+        "fpsOverride", fpsOverrideConstraint,
+        "fovEnabled", &T::fovEnabled,
+        "fovOverride", fovOverrideConstraint,
         "fovPresets", fovPresetsConstraint,
-        "smoothing", smoothingConstraint,
-        "enableKey", &T::enableKey,
-        "nextKey", &T::nextKey,
-        "prevKey", &T::prevKey
+        "fovSmoothing", fovSmoothingConstraint,
+        "fovEnableKey", &T::fovEnableKey,
+        "fovNextPresetKey", &T::fovNextPresetKey,
+        "fovPrevPresetKey", &T::fovPrevPresetKey
     );
 };
 

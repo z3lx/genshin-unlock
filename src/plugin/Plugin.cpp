@@ -1,8 +1,9 @@
 #include "plugin/Plugin.hpp"
 #include "plugin/Config.hpp"
 #include "plugin/components/CursorState.hpp"
+#include "plugin/components/FovUnlocker.hpp"
+#include "plugin/components/FpsUnlocker.hpp"
 #include "plugin/components/PersistentObject.hpp"
-#include "plugin/components/Unlocker.hpp"
 #include "plugin/components/VirtualKeyState.hpp"
 #include "plugin/components/WindowState.hpp"
 
@@ -27,7 +28,7 @@ void Plugin::Notify(const OnPersistentObjectChange<Config>& event) {
 }
 
 void Plugin::Notify(const OnVirtualKeyDown& event) {
-    auto& unlocker = GetComponent<Unlocker>();
+    auto& unlocker = GetComponent<FovUnlocker>();
     if (!unlocker.IsHooked()) {
         return;
     }
@@ -35,31 +36,31 @@ void Plugin::Notify(const OnVirtualKeyDown& event) {
     auto& configFile = GetComponent<PersistentObject<Config>>();
     Config& config = configFile.GetObject();
 
-    if (event.key == config.enableKey) {
-        config.enabled = !config.enabled;
-        unlocker.Enable(config.enabled);
-    } else if (!config.enabled) {
+    if (event.key == config.fovEnableKey) {
+        config.fovEnabled = !config.fovEnabled;
+        unlocker.Enable(config.fovEnabled);
+    } else if (!config.fovEnabled) {
         return;
-    } else if (event.key == config.nextKey) {
+    } else if (event.key == config.fovNextPresetKey) {
         const auto it = std::ranges::find_if(
             config.fovPresets,
             [&](const int fovPreset) {
-                return config.fov < fovPreset;
+                return config.fovOverride < fovPreset;
             }
         );
-        config.fov = (it != config.fovPresets.end()) ?
+        config.fovOverride = (it != config.fovPresets.end()) ?
             *it : config.fovPresets.front();
-        unlocker.SetFieldOfView(config.fov);
-    } else if (event.key == config.prevKey) {
+        unlocker.SetOverrideFov(config.fovOverride);
+    } else if (event.key == config.fovPrevPresetKey) {
         const auto it = std::ranges::find_if(
             config.fovPresets | std::views::reverse,
             [&](const int fovPreset) {
-                return config.fov > fovPreset;
+                return config.fovOverride > fovPreset;
             }
         );
-        config.fov = (it != config.fovPresets.rend()) ?
+        config.fovOverride = (it != config.fovPresets.rend()) ?
             *it : config.fovPresets.back();
-        unlocker.SetFieldOfView(config.fov);
+        unlocker.SetOverrideFov(config.fovOverride);
     }
 
     configFile.TryWrite();
@@ -74,17 +75,20 @@ void Plugin::Notify(const OnWindowFocusChange& event) {
 }
 
 void Plugin::ApplyConfig() {
-    auto& unlocker = GetComponent<Unlocker>();
     auto& configFile = GetComponent<PersistentObject<Config>>();
+    auto& fpsUnlocker = GetComponent<FpsUnlocker>();
+    auto& fovUnlocker = GetComponent<FovUnlocker>();
 
     const Config& config = configFile.GetObject();
-    unlocker.Enable(config.enabled);
-    unlocker.SetFieldOfView(config.fov);
-    unlocker.SetSmoothing(config.smoothing);
+    fpsUnlocker.Enable(config.fpsEnabled);
+    fpsUnlocker.SetOverrideFps(config.fpsOverride);
+    fovUnlocker.Enable(config.fovEnabled);
+    fovUnlocker.SetOverrideFov(config.fovOverride);
+    fovUnlocker.SetSmoothing(config.fovSmoothing);
 }
 
 void Plugin::UpdateHookState() {
-    auto& unlocker = GetComponent<Unlocker>();
+    auto& unlocker = GetComponent<FovUnlocker>();
     const auto& window = GetComponent<WindowState>();
     const auto& cursor = GetComponent<CursorState>();
 

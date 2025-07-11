@@ -2,8 +2,9 @@
 
 #include "plugin/Config.hpp"
 #include "plugin/components/CursorState.hpp"
+#include "plugin/components/FovUnlocker.hpp"
+#include "plugin/components/FpsUnlocker.hpp"
 #include "plugin/components/PersistentObject.hpp"
-#include "plugin/components/Unlocker.hpp"
 #include "plugin/components/VirtualKeyState.hpp"
 #include "plugin/components/WindowState.hpp"
 #include "plugin/interfaces/IMediator.hpp"
@@ -15,7 +16,8 @@ namespace detail {
 template <typename Derived>
 using Mediator = IMediator<
     Derived,
-    Unlocker,
+    FpsUnlocker,
+    FovUnlocker,
     PersistentObject<Config>,
     WindowState,
     CursorState,

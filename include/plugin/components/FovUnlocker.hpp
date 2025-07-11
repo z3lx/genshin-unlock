@@ -3,10 +3,10 @@
 #include "plugin/interfaces/IComponent.hpp"
 
 namespace z3lx::plugin {
-class Unlocker final : public IComponent<Unlocker> {
+class FovUnlocker final : public IComponent<FovUnlocker> {
 public:
-    Unlocker() noexcept;
-    ~Unlocker() noexcept;
+    FovUnlocker() noexcept;
+    ~FovUnlocker() noexcept;
 
     void Start();
 
@@ -16,8 +16,8 @@ public:
     [[nodiscard]] bool IsEnabled() const noexcept;
     void Enable(bool enable) noexcept;
 
-    [[nodiscard]] int GetFieldOfView() const noexcept;
-    void SetFieldOfView(int fieldOfView) noexcept;
+    [[nodiscard]] int GetOverrideFov() const noexcept;
+    void SetOverrideFov(int overrideFov) noexcept;
 
     [[nodiscard]] float GetSmoothing() const noexcept;
     void SetSmoothing(float smoothing) noexcept;

@@ -1,4 +1,4 @@
-#include "plugin/components/Unlocker.hpp"
+#include "plugin/components/FovUnlocker.hpp"
 #include "util/ExponentialFilter.hpp"
 #include "util/MinHook.hpp"
 
@@ -33,14 +33,14 @@ bool isPreviousFov = false;
 } // namespace
 
 namespace z3lx::plugin {
-Unlocker::Unlocker() noexcept = default;
+FovUnlocker::FovUnlocker() noexcept = default;
 
-Unlocker::~Unlocker() noexcept {
+FovUnlocker::~FovUnlocker() noexcept {
     std::lock_guard lock { mutex };
     minhook.reset();
 }
 
-void Unlocker::Start() {
+void FovUnlocker::Start() {
     bool global = true;
     auto module = reinterpret_cast<uintptr_t>(
         GetModuleHandleA("GenshinImpact.exe")
@@ -62,11 +62,11 @@ void Unlocker::Start() {
     minhook = util::MinHook<void, void*, float> { target, detour };
 }
 
-bool Unlocker::IsHooked() const noexcept {
+bool FovUnlocker::IsHooked() const noexcept {
     return isHooked;
 }
 
-void Unlocker::Hook(const bool hook) {
+void FovUnlocker::Hook(const bool hook) {
     std::lock_guard lock { mutex };
     isHooked = hook;
     if (hook) {
@@ -77,27 +77,27 @@ void Unlocker::Hook(const bool hook) {
     }
 }
 
-bool Unlocker::IsEnabled() const noexcept {
+bool FovUnlocker::IsEnabled() const noexcept {
     return isEnabled;
 }
 
-void Unlocker::Enable(const bool enable) noexcept {
+void FovUnlocker::Enable(const bool enable) noexcept {
     isEnabled = enable;
 }
 
-int Unlocker::GetFieldOfView() const noexcept {
+int FovUnlocker::GetOverrideFov() const noexcept {
     return overrideFov;
 }
 
-void Unlocker::SetFieldOfView(const int fieldOfView) noexcept {
-    overrideFov = fieldOfView;
+void FovUnlocker::SetOverrideFov(const int overrideFov) noexcept {
+    ::overrideFov = overrideFov;
 }
 
-float Unlocker::GetSmoothing() const noexcept {
+float FovUnlocker::GetSmoothing() const noexcept {
     return filter.GetTimeConstant();
 }
 
-void Unlocker::SetSmoothing(const float smoothing) noexcept {
+void FovUnlocker::SetSmoothing(const float smoothing) noexcept {
     filter.SetTimeConstant(smoothing);
 }
 } // namespace z3lx::plugin

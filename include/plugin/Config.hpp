@@ -7,13 +7,16 @@
 
 namespace z3lx::plugin {
 struct Config {
-    bool enabled = true;
-    uint8_t fov = 75;
-    std::vector<uint8_t> fovPresets { 30, 45, 60, 75, 90, 110 };
-    float smoothing = 0.125;
-    util::VirtualKey enableKey = util::VirtualKey::DownArrow;
-    util::VirtualKey nextKey = util::VirtualKey::RightArrow;
-    util::VirtualKey prevKey = util::VirtualKey::LeftArrow;
+    bool fpsEnabled = true;
+    int fpsOverride = 120;
+
+    bool fovEnabled = true;
+    int fovOverride = 75;
+    std::vector<int> fovPresets { 30, 45, 60, 75, 90, 110 };
+    float fovSmoothing = 0.125;
+    util::VirtualKey fovEnableKey = util::VirtualKey::DownArrow;
+    util::VirtualKey fovNextPresetKey = util::VirtualKey::RightArrow;
+    util::VirtualKey fovPrevPresetKey = util::VirtualKey::LeftArrow;
 
     void Serialize(std::vector<uint8_t>& buffer);
     void Deserialize(const std::vector<uint8_t>& buffer);
