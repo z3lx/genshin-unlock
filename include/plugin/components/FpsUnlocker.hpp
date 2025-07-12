@@ -14,12 +14,12 @@ public:
     [[nodiscard]] bool IsEnabled() const noexcept;
     void Enable(bool enable) noexcept;
 
-    [[nodiscard]] int GetOverrideFps() const noexcept;
-    void SetOverrideFps(int overrideFps) noexcept;
+    [[nodiscard]] int GetTargetFps() const noexcept;
+    void SetTargetFps(int targetFps) noexcept;
 
 private:
     bool isEnabled;
-    int overrideFps;
-    int* targetFps;
+    int targetFps;
+    int* targetFpsPtr;
 };
 } // namespace z3lx::plugin

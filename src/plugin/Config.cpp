@@ -41,8 +41,8 @@ struct glz::meta<z3lx::plugin::Config> {
         return fps >= -1;
     };
     static constexpr auto fpsOverrideConstraint = read_constraint<
-        &T::fpsOverride, fpsOverrideConstraintCondition,
-        "FPS override must be -1 or greater"
+        &T::targetFps, fpsOverrideConstraintCondition,
+        "Target FPS must be -1 or greater"
     >;
 
     static constexpr auto isValidFov = [](const uint8_t fov) -> bool {
@@ -54,8 +54,8 @@ struct glz::meta<z3lx::plugin::Config> {
         return isValidFov(fov);
     };
     static constexpr auto fovOverrideConstraint = read_constraint<
-        &T::fovOverride, fovOverrideConstraintCondition,
-        "FOV override must be between 1 and 179 degrees"
+        &T::targetFov, fovOverrideConstraintCondition,
+        "Target FOV must be between 1 and 179 degrees"
     >;
 
     static constexpr auto fovPresetsConstraintCondition = [](
@@ -71,7 +71,7 @@ struct glz::meta<z3lx::plugin::Config> {
     };
     static constexpr auto fovPresetsConstraint = read_constraint<
         &T::fovPresets, fovPresetsConstraintCondition,
-        "All FOV override presets must be between 1 and 179 degrees"
+        "FOV presets must be between 1 and 179 degrees"
     >;
 
     static constexpr auto fovSmoothingConstraintCondition = [](
@@ -84,15 +84,15 @@ struct glz::meta<z3lx::plugin::Config> {
     >;
 
     static constexpr auto value = object(
-        "fpsEnabled", &T::fpsEnabled,
-        "fpsOverride", fpsOverrideConstraint,
-        "fovEnabled", &T::fovEnabled,
-        "fovOverride", fovOverrideConstraint,
+        "unlockFps", &T::unlockFps,
+        "targetFps", fpsOverrideConstraint,
+        "unlockFov", &T::unlockFov,
+        "targetFov", fovOverrideConstraint,
         "fovPresets", fovPresetsConstraint,
         "fovSmoothing", fovSmoothingConstraint,
-        "fovEnableKey", &T::fovEnableKey,
-        "fovNextPresetKey", &T::fovNextPresetKey,
-        "fovPrevPresetKey", &T::fovPrevPresetKey
+        "unlockFovKey", &T::unlockFovKey,
+        "nextFovPresetKey", &T::nextFovPresetKey,
+        "prevFovPresetKey", &T::prevFovPresetKey
     );
 };
 

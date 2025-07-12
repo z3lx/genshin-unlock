@@ -24,7 +24,7 @@ z3lx::util::ExponentialFilter<float> filter {};
 bool isHooked = false;
 bool isEnabled = false;
 bool isEnabledOnce = false;
-int overrideFov = 45;
+int targetFov = 45;
 
 int setFovCount = 0;
 void* previousInstance = nullptr;
@@ -85,12 +85,12 @@ void FovUnlocker::Enable(const bool enable) noexcept {
     isEnabled = enable;
 }
 
-int FovUnlocker::GetOverrideFov() const noexcept {
-    return overrideFov;
+int FovUnlocker::GetTargetFov() const noexcept {
+    return targetFov;
 }
 
-void FovUnlocker::SetOverrideFov(const int overrideFov) noexcept {
-    ::overrideFov = overrideFov;
+void FovUnlocker::SetTargetFov(const int targetFov) noexcept {
+    ::targetFov = targetFov;
 }
 
 float FovUnlocker::GetSmoothing() const noexcept {
@@ -128,7 +128,7 @@ void HkSetFieldOfView(void* instance, float value) noexcept try {
             filter.Update(value);
         }
         const float target = (isHooked && isEnabled) ?
-            static_cast<float>(overrideFov) : previousFov;
+            static_cast<float>(targetFov) : previousFov;
         const float filtered = filter.Update(target);
 
         if ((isHooked && isEnabled) || !isPreviousFov) {

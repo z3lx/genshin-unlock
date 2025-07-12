@@ -28,39 +28,39 @@ void Plugin::Notify(const OnPersistentObjectChange<Config>& event) {
 }
 
 void Plugin::Notify(const OnVirtualKeyDown& event) {
-    auto& unlocker = GetComponent<FovUnlocker>();
-    if (!unlocker.IsHooked()) {
+    auto& fovUnlocker = GetComponent<FovUnlocker>();
+    if (!fovUnlocker.IsHooked()) {
         return;
     }
 
     auto& configFile = GetComponent<PersistentObject<Config>>();
     Config& config = configFile.GetObject();
 
-    if (event.key == config.fovEnableKey) {
-        config.fovEnabled = !config.fovEnabled;
-        unlocker.Enable(config.fovEnabled);
-    } else if (!config.fovEnabled) {
+    if (event.key == config.unlockFovKey) {
+        config.unlockFov = !config.unlockFov;
+        fovUnlocker.Enable(config.unlockFov);
+    } else if (!config.unlockFov) {
         return;
-    } else if (event.key == config.fovNextPresetKey) {
+    } else if (event.key == config.nextFovPresetKey) {
         const auto it = std::ranges::find_if(
             config.fovPresets,
             [&](const int fovPreset) {
-                return config.fovOverride < fovPreset;
+                return config.targetFov < fovPreset;
             }
         );
-        config.fovOverride = (it != config.fovPresets.end()) ?
+        config.targetFov = (it != config.fovPresets.end()) ?
             *it : config.fovPresets.front();
-        unlocker.SetOverrideFov(config.fovOverride);
-    } else if (event.key == config.fovPrevPresetKey) {
+        fovUnlocker.SetTargetFov(config.targetFov);
+    } else if (event.key == config.prevFovPresetKey) {
         const auto it = std::ranges::find_if(
             config.fovPresets | std::views::reverse,
             [&](const int fovPreset) {
-                return config.fovOverride > fovPreset;
+                return config.targetFov > fovPreset;
             }
         );
-        config.fovOverride = (it != config.fovPresets.rend()) ?
+        config.targetFov = (it != config.fovPresets.rend()) ?
             *it : config.fovPresets.back();
-        unlocker.SetOverrideFov(config.fovOverride);
+        fovUnlocker.SetTargetFov(config.targetFov);
     }
 
     configFile.TryWrite();
@@ -80,10 +80,10 @@ void Plugin::ApplyConfig() {
     auto& fovUnlocker = GetComponent<FovUnlocker>();
 
     const Config& config = configFile.GetObject();
-    fpsUnlocker.Enable(config.fpsEnabled);
-    fpsUnlocker.SetOverrideFps(config.fpsOverride);
-    fovUnlocker.Enable(config.fovEnabled);
-    fovUnlocker.SetOverrideFov(config.fovOverride);
+    fpsUnlocker.Enable(config.unlockFps);
+    fpsUnlocker.SetTargetFps(config.targetFps);
+    fovUnlocker.Enable(config.unlockFov);
+    fovUnlocker.SetTargetFov(config.targetFov);
     fovUnlocker.SetSmoothing(config.fovSmoothing);
 }
 

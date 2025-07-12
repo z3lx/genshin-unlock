@@ -16,8 +16,8 @@ public:
     [[nodiscard]] bool IsEnabled() const noexcept;
     void Enable(bool enable) noexcept;
 
-    [[nodiscard]] int GetOverrideFov() const noexcept;
-    void SetOverrideFov(int overrideFov) noexcept;
+    [[nodiscard]] int GetTargetFov() const noexcept;
+    void SetTargetFov(int targetFov) noexcept;
 
     [[nodiscard]] float GetSmoothing() const noexcept;
     void SetSmoothing(float smoothing) noexcept;

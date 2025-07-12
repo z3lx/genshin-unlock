@@ -12,8 +12,8 @@ constexpr uintptr_t OFFSET_CN = 0x3E83644;
 namespace z3lx::plugin {
 FpsUnlocker::FpsUnlocker() noexcept
     : isEnabled { false }
-    , overrideFps { 60 }
-    , targetFps { nullptr } {}
+    , targetFps { 60 }
+    , targetFpsPtr { nullptr } {}
 
 FpsUnlocker::~FpsUnlocker() noexcept = default;
 
@@ -32,12 +32,12 @@ void FpsUnlocker::Start() {
     }
 
     const uintptr_t offset = global ? OFFSET_GL : OFFSET_CN;
-    targetFps = reinterpret_cast<int*>(module + offset);
+    targetFpsPtr = reinterpret_cast<int*>(module + offset);
 }
 
 void FpsUnlocker::Update() const {
-    if (isEnabled && targetFps) {
-        *targetFps = overrideFps;
+    if (isEnabled && targetFpsPtr) {
+        *targetFpsPtr = targetFps;
     }
 }
 
@@ -49,11 +49,11 @@ void FpsUnlocker::Enable(const bool enable) noexcept {
     isEnabled = enable;
 }
 
-int FpsUnlocker::GetOverrideFps() const noexcept {
-    return overrideFps;
+int FpsUnlocker::GetTargetFps() const noexcept {
+    return targetFps;
 }
 
-void FpsUnlocker::SetOverrideFps(const int overrideFps) noexcept {
-    this->overrideFps = overrideFps;
+void FpsUnlocker::SetTargetFps(const int targetFps) noexcept {
+    this->targetFps = targetFps;
 }
 } // namespace z3lx::plugin
