@@ -38,7 +38,7 @@ public:
 
 private:
     void ApplyConfig();
-    void UpdateHookState();
+    void UpdateFovUnlocker();
 
     std::filesystem::path configFilePath;
 };

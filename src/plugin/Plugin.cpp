@@ -28,14 +28,16 @@ void Plugin::Notify(const OnPersistentObjectChange<Config>& event) {
 }
 
 void Plugin::Notify(const OnVirtualKeyDown& event) {
-    auto& fovUnlocker = GetComponent<FovUnlocker>();
-    if (!fovUnlocker.IsHooked()) {
+    const auto& window = GetComponent<WindowState>();
+    const auto& cursor = GetComponent<CursorState>();
+    if (!window.IsFocused() || cursor.IsVisible()) {
         return;
     }
 
     auto& configFile = GetComponent<PersistentObject<Config>>();
-    Config& config = configFile.GetObject();
+    auto& fovUnlocker = GetComponent<FovUnlocker>();
 
+    Config& config = configFile.GetObject();
     if (event.key == config.unlockFovKey) {
         config.unlockFov = !config.unlockFov;
         fovUnlocker.Enable(config.unlockFov);
@@ -67,11 +69,11 @@ void Plugin::Notify(const OnVirtualKeyDown& event) {
 }
 
 void Plugin::Notify(const OnCursorVisibilityChange& event) {
-    UpdateHookState();
+    UpdateFovUnlocker();
 }
 
 void Plugin::Notify(const OnWindowFocusChange& event) {
-    UpdateHookState();
+    UpdateFovUnlocker();
 }
 
 void Plugin::ApplyConfig() {
@@ -87,14 +89,15 @@ void Plugin::ApplyConfig() {
     fovUnlocker.SetSmoothing(config.fovSmoothing);
 }
 
-void Plugin::UpdateHookState() {
-    auto& unlocker = GetComponent<FovUnlocker>();
+void Plugin::UpdateFovUnlocker() {
+    auto& configFile = GetComponent<PersistentObject<Config>>();
+    auto& fovUnlocker = GetComponent<FovUnlocker>();
     const auto& window = GetComponent<WindowState>();
     const auto& cursor = GetComponent<CursorState>();
 
-    if (const bool shouldHook = window.IsFocused() && !cursor.IsVisible();
-        unlocker.IsHooked() != shouldHook) {
-        unlocker.Hook(shouldHook);
-    }
+    const Config& config = configFile.GetObject();
+    fovUnlocker.Enable(
+        config.unlockFov && window.IsFocused() && !cursor.IsVisible()
+    );
 }
 } // namespace z3lx::plugin
