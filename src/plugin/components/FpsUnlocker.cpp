@@ -35,7 +35,7 @@ void FpsUnlocker::Start() {
     targetFpsPtr = reinterpret_cast<int*>(module + offset);
 }
 
-void FpsUnlocker::Update() const {
+void FpsUnlocker::Update() const noexcept {
     if (isEnabled && targetFpsPtr) {
         *targetFpsPtr = targetFps;
     }

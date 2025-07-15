@@ -6,20 +6,15 @@ namespace z3lx::plugin {
 CursorState::CursorState() noexcept = default;
 CursorState::~CursorState() noexcept = default;
 
-void CursorState::Update() {
+void CursorState::Update() noexcept {
     CURSORINFO cursorInfo { .cbSize = sizeof(cursorInfo) };
     if (!GetCursorInfo(&cursorInfo)) {
         return;
     }
-
-    if (const bool isVisible = (cursorInfo.flags & CURSOR_SHOWING);
-        wasVisible != isVisible) {
-        wasVisible = isVisible;
-        Notify(OnCursorVisibilityChange { isVisible });
-    }
+    isVisible = cursorInfo.flags & CURSOR_SHOWING;
 }
 
 bool CursorState::IsVisible() const noexcept {
-    return wasVisible.value_or(true);
+    return isVisible.value_or(true);
 }
 } // namespace z3lx::plugin

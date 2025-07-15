@@ -9,7 +9,7 @@ public:
     ~FpsUnlocker() noexcept;
 
     void Start();
-    void Update() const;
+    void Update() const noexcept;
 
     [[nodiscard]] bool IsEnabled() const noexcept;
     void Enable(bool enable) noexcept;

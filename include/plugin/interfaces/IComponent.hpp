@@ -1,35 +1,42 @@
 #pragma once
 
-#include "plugin/interfaces/Common.hpp"
+#include "plugin/interfaces/IRunnable.hpp"
+
+#include <cstdint>
 
 namespace z3lx::plugin {
 namespace detail {
-template <typename Event>
-struct EventCallbackStorage;
+template <typename Component>
+struct ComponentStorage;
 } // namespace detail
 
-ICOMPONENT_TEMPLATE
-class IComponent : detail::EventCallbackStorage<Events>... {
-    IMEDIATOR_TEMPLATE
-    friend class IMediator;
+template <typename Derived, typename... Components>
+class IComponent : detail::ComponentStorage<Components>... {
+    template <typename D, uint16_t F>
+    friend class IRunnable;
+
+    template <typename D, typename... Cs>
+    friend class IComponent;
 
 public:
-    IComponent() noexcept;
+    IComponent();
     ~IComponent() noexcept;
     IComponent(const IComponent&) = delete;
     IComponent(IComponent&&) = delete;
 
 protected:
-    template <typename Event>
-    void Notify(const Event& event);
+    constexpr static void Start();
+    constexpr static void Update();
+
+    template <typename Component>
+    [[nodiscard]] Component& GetComponent() noexcept;
+
+    template <typename Component>
+    [[nodiscard]] const Component& GetComponent() const noexcept;
 
 private:
-    template <typename Mediator>
-    void BindComponent(Mediator* mediator) noexcept;
     void StartComponent();
     void UpdateComponent();
-
-    void* instance;
 };
 } // namespace z3lx::plugin
 

@@ -21,6 +21,7 @@ std::mutex mutex {};
 std::optional<z3lx::util::MinHook<void, void*, float>> minhook {};
 z3lx::util::ExponentialFilter<float> filter {};
 
+bool isHooked = false;
 bool isEnabled = false;
 bool isEnabledOnce = false;
 int targetFov = 45;
@@ -61,22 +62,35 @@ void FovUnlocker::Start() {
     minhook = util::MinHook<void, void*, float> { target, detour };
 }
 
-bool FovUnlocker::IsEnabled() const noexcept {
-    return isEnabled;
+void FovUnlocker::Update() {
+    const auto& cursor = GetComponent<CursorState>();
+    const auto& window = GetComponent<WindowState>();
+    Hook(window.IsFocused() && !cursor.IsVisible());
 }
 
-void FovUnlocker::Enable(const bool enable) {
-    if (enable == isEnabled) {
+bool FovUnlocker::IsHooked() const noexcept {
+    return isHooked;
+}
+
+void FovUnlocker::Hook(const bool hook) {
+    if (hook == isHooked) {
         return;
     }
-
     std::lock_guard lock { mutex };
-    if (enable) {
+    if (hook) {
         minhook->Enable(true);
         isEnabledOnce = true;
     } else {
         // minhook->Enable(false);
     }
+    isHooked = hook;
+}
+
+bool FovUnlocker::IsEnabled() const noexcept {
+    return isEnabled;
+}
+
+void FovUnlocker::Enable(const bool enable) noexcept {
     isEnabled = enable;
 }
 
@@ -122,14 +136,14 @@ void HkSetFieldOfView(void* instance, float value) noexcept try {
             isEnabledOnce = false;
             filter.Update(value);
         }
-        const float target = isEnabled ?
+        const float target = (isHooked && isEnabled) ?
             static_cast<float>(targetFov) : previousFov;
         const float filtered = filter.Update(target);
 
-        if (isEnabled || !isPreviousFov) {
+        if ((isHooked && isEnabled) || !isPreviousFov) {
             isPreviousFov = std::abs(previousFov - filtered) < 0.1f;
             value = filtered;
-        } else {
+        } else if (!isHooked) {
             isPreviousFov = false;
             minhook->Enable(false);
         }

@@ -11,8 +11,6 @@
 #include <filesystem>
 #include <utility>
 
-#undef GetObject
-
 namespace z3lx::plugin {
 template <typename T>
 PersistentObject<T>::PersistentObject() noexcept = default;
@@ -40,17 +38,22 @@ void PersistentObject<T>::SetFilePath(std::filesystem::path filePath) {
             OnFolderChange(event, fileName);
         }
     );
-    changed.store(true, std::memory_order_relaxed);
+    diskChanged.store(true, std::memory_order_relaxed);
 }
 
 template <typename T>
-const T& PersistentObject<T>::GetObject() const noexcept {
-    return object;
+template <typename U>
+const U& PersistentObject<T>::Get(U T::*member) const noexcept {
+    return object.*member;
 }
 
 template <typename T>
-T& PersistentObject<T>::GetObject() noexcept {
-    return object;
+template <typename U>
+void PersistentObject<T>::Set(U T::*member, const U& value) {
+    if (object.*member != value) {
+        object.*member = value;
+        memoryChanged = true;
+    }
 }
 
 template <typename T>
@@ -82,19 +85,20 @@ void PersistentObject<T>::OnFolderChange(
     const wil::FolderChangeEvent event, const PCWSTR filename) noexcept try {
     if (event == wil::FolderChangeEvent::Modified &&
         filename == filePath.filename()) {
-        changed.store(true, std::memory_order_relaxed);
+        diskChanged.store(true, std::memory_order_relaxed);
     }
 } catch (...) {}
 
 template <typename T>
-void PersistentObject<T>::Update() {
-    if (changed.load(std::memory_order_relaxed)) {
-        changed.store(false, std::memory_order_relaxed);
+void PersistentObject<T>::Update() noexcept {
+    if (diskChanged.load(std::memory_order_relaxed)) {
+        diskChanged.store(false, std::memory_order_relaxed);
         if (FAILED(TryRead())) {
             TryWrite();
-            return;
         }
-        this->Notify(OnPersistentObjectChange<T> { object });
+    } else if (memoryChanged) {
+        memoryChanged = false;
+        TryWrite();
     }
 }
 } // namespace z3lx::plugin

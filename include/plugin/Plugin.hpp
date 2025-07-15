@@ -1,45 +1,27 @@
 #pragma once
 
 #include "plugin/Config.hpp"
-#include "plugin/components/CursorState.hpp"
 #include "plugin/components/FovUnlocker.hpp"
 #include "plugin/components/FpsUnlocker.hpp"
 #include "plugin/components/PersistentObject.hpp"
 #include "plugin/components/VirtualKeyState.hpp"
-#include "plugin/components/WindowState.hpp"
-#include "plugin/interfaces/IMediator.hpp"
-
-#include <filesystem>
+#include "plugin/interfaces/IComponent.hpp"
+#include "plugin/interfaces/IRunnable.hpp"
 
 namespace z3lx::plugin {
-namespace detail {
-template <typename Derived>
-using Mediator = IMediator<
-    Derived,
-    FpsUnlocker,
-    FovUnlocker,
-    PersistentObject<Config>,
-    WindowState,
-    CursorState,
-    VirtualKeyState
->;
-} // namespace detail
-
-class Plugin final : public detail::Mediator<Plugin> {
+class Plugin final
+    : public IComponent<
+        Plugin,
+        FpsUnlocker,
+        FovUnlocker,
+        PersistentObject<Config>,
+        VirtualKeyState>
+    , public IRunnable<Plugin> {
 public:
-    explicit Plugin(std::filesystem::path configFilePath);
+    explicit Plugin();
     ~Plugin() noexcept;
 
     void Start();
-    void Notify(const OnPersistentObjectChange<Config>& event);
-    void Notify(const OnVirtualKeyDown& event);
-    void Notify(const OnCursorVisibilityChange& event);
-    void Notify(const OnWindowFocusChange& event);
-
-private:
-    void ApplyConfig();
-    void UpdateFovUnlocker();
-
-    std::filesystem::path configFilePath;
+    void Update();
 };
 } // namespace z3lx::plugin

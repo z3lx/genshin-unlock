@@ -15,9 +15,7 @@ void Initialize() try {
     wil::SetResultLoggingCallback(z3lx::plugin::GetLoggingCallback(
         currentPath / "plugin_log.txt"
     ));
-    static z3lx::plugin::Plugin plugin {
-        currentPath / "plugin_config.json"
-    };
+    z3lx::plugin::Plugin {}.Run();
 } CATCH_LOG()
 } // namespace
 

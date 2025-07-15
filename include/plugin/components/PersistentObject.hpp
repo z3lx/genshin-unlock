@@ -10,28 +10,22 @@
 #include <filesystem>
 #include <vector>
 
-#undef GetObject
-
 namespace z3lx::plugin {
 template <typename T>
-struct OnPersistentObjectChange {
-    const T& object;
-};
-
-template <typename T>
-class PersistentObject final : public IComponent<
-    PersistentObject<T>, OnPersistentObjectChange<T>> {
+class PersistentObject final : public IComponent<PersistentObject<T>> {
 public:
     PersistentObject() noexcept;
     ~PersistentObject() noexcept;
 
-    void Update();
+    void Update() noexcept;
 
-    [[nodiscaord]] const std::filesystem::path& GetFilePath() const noexcept;
+    [[nodiscard]] const std::filesystem::path& GetFilePath() const noexcept;
     void SetFilePath(std::filesystem::path filePath);
 
-    [[nodiscard]] const T& GetObject() const noexcept;
-    [[nodiscard]] T& GetObject() noexcept;
+    template <typename U>
+    [[nodiscard]] const U& Get(U T::*member) const noexcept;
+    template <typename U>
+    void Set(U T::*member, const U& value);
 
     void Read();
     void Write();
@@ -47,7 +41,9 @@ private:
     std::filesystem::path filePath;
     wil::unique_hfile fileHandle;
     wil::unique_folder_change_reader changeReader;
-    std::atomic<bool> changed;
+
+    std::atomic<bool> diskChanged;
+    bool memoryChanged;
 };
 } // namespace z3lx::plugin
 

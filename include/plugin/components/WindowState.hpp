@@ -5,21 +5,16 @@
 #include <optional>
 
 namespace z3lx::plugin {
-struct OnWindowFocusChange {
-    const bool isFocused;
-};
-
-class WindowState final : public IComponent<
-    WindowState, OnWindowFocusChange> {
+class WindowState final : public IComponent<WindowState> {
 public:
     WindowState() noexcept;
     ~WindowState() noexcept;
 
-    void Update();
+    void Update() noexcept;
 
     [[nodiscard]] bool IsFocused() const noexcept;
 
 private:
-    std::optional<bool> wasFocused;
+    std::optional<bool> isFocused;
 };
 } // namespace z3lx::plugin

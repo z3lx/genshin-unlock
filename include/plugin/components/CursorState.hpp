@@ -5,21 +5,16 @@
 #include <optional>
 
 namespace z3lx::plugin {
-struct OnCursorVisibilityChange {
-    const bool isVisible;
-};
-
-class CursorState final : public IComponent<
-    CursorState, OnCursorVisibilityChange> {
+class CursorState final : public IComponent<CursorState> {
 public:
     CursorState() noexcept;
     ~CursorState() noexcept;
 
-    void Update();
+    void Update() noexcept;
 
     [[nodiscard]] bool IsVisible() const noexcept;
 
 private:
-    std::optional<bool> wasVisible;
+    std::optional<bool> isVisible;
 };
 } // namespace z3lx::plugin

@@ -6,7 +6,7 @@ namespace z3lx::plugin {
 WindowState::WindowState() noexcept = default;
 WindowState::~WindowState() noexcept = default;
 
-void WindowState::Update() {
+void WindowState::Update() noexcept {
     const HWND foregroundWindow = GetForegroundWindow();
     if (!foregroundWindow) {
         return;
@@ -19,15 +19,10 @@ void WindowState::Update() {
     }
 
     const DWORD currentProcessId = GetCurrentProcessId();
-
-    if (const bool isFocused = (foregroundProcessId == currentProcessId);
-        wasFocused != isFocused) {
-        wasFocused = isFocused;
-        Notify(OnWindowFocusChange { isFocused });
-    }
+    isFocused = foregroundProcessId == currentProcessId;
 }
 
 bool WindowState::IsFocused() const noexcept {
-    return wasFocused.value_or(false);
+    return isFocused.value_or(false);
 }
 } // namespace z3lx::plugin
