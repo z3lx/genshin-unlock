@@ -12,7 +12,7 @@ struct Config {
     bool autoThrottle = true;
 
     bool unlockFov = true;
-    int targetFov = 75;
+    int targetFov = 90;
     std::vector<int> fovPresets { 30, 45, 60, 75, 90, 110 };
     float fovSmoothing = 0.125;
     util::VirtualKey unlockFovKey = util::VirtualKey::DownArrow;
