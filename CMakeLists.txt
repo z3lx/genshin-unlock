@@ -50,10 +50,11 @@ add_link_options(
     "$<$<CONFIG:Release>:/LTCG>"
 )
 
-set(VERSION_RC ${CMAKE_CURRENT_BINARY_DIR}/version.rc)
+set(RESOURCES_DIR ${CMAKE_CURRENT_BINARY_DIR}/res)
+file(COPY res/ DESTINATION ${RESOURCES_DIR})
 configure_file(
-    res/version.rc.in
-    ${VERSION_RC}
+    ${RESOURCES_DIR}/version.rc.in
+    ${RESOURCES_DIR}/version.rc
     @ONLY
 )
 
@@ -68,7 +69,8 @@ target_link_libraries(util PUBLIC
 )
 
 file(GLOB_RECURSE LOADER_SOURCES src/loader/*)
-add_executable(loader ${LOADER_SOURCES} ${VERSION_RC})
+set(LOADER_RESOURCE ${RESOURCES_DIR}/loader.rc)
+add_executable(loader ${LOADER_SOURCES} ${LOADER_RESOURCE})
 target_include_directories(loader PRIVATE include)
 target_link_libraries(loader PRIVATE
     glaze::glaze
@@ -80,7 +82,8 @@ target_link_options(loader PRIVATE
 )
 
 file(GLOB_RECURSE PLUGIN_SOURCES src/plugin/*)
-add_library(plugin SHARED ${PLUGIN_SOURCES} ${VERSION_RC})
+set(PLUGIN_RESOURCE ${RESOURCES_DIR}/plugin.rc)
+add_library(plugin SHARED ${PLUGIN_SOURCES} ${PLUGIN_RESOURCE})
 target_include_directories(plugin PRIVATE include)
 target_link_libraries(plugin PRIVATE
     glaze::glaze
