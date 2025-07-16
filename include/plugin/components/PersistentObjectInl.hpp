@@ -42,16 +42,16 @@ void PersistentObject<T>::SetFilePath(std::filesystem::path filePath) {
 }
 
 template <typename T>
-template <typename U>
-const U& PersistentObject<T>::Get(U T::*member) const noexcept {
-    return object.*member;
+template <auto Member>
+const decltype(T{}.*Member)& PersistentObject<T>::Get() const noexcept {
+    return object.*Member;
 }
 
 template <typename T>
-template <typename U>
-void PersistentObject<T>::Set(U T::*member, const U& value) {
-    if (object.*member != value) {
-        object.*member = value;
+template <auto Member>
+void PersistentObject<T>::Set(const decltype(T{}.*Member)& value) {
+    if (object.*Member != value) {
+        object.*Member = value;
         memoryChanged = true;
     }
 }

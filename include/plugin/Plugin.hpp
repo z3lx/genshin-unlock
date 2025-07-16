@@ -8,6 +8,8 @@
 #include "plugin/interfaces/IComponent.hpp"
 #include "plugin/interfaces/IRunnable.hpp"
 
+#include <filesystem>
+
 namespace z3lx::plugin {
 class Plugin final
     : public IComponent<
@@ -18,10 +20,13 @@ class Plugin final
         VirtualKeyState>
     , public IRunnable<Plugin> {
 public:
-    explicit Plugin();
+    explicit Plugin(std::filesystem::path configFilePath);
     ~Plugin() noexcept;
 
     void Start();
     void Update();
+
+private:
+    std::filesystem::path configFilePath;
 };
 } // namespace z3lx::plugin

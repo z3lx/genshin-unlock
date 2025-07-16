@@ -22,10 +22,10 @@ public:
     [[nodiscard]] const std::filesystem::path& GetFilePath() const noexcept;
     void SetFilePath(std::filesystem::path filePath);
 
-    template <typename U>
-    [[nodiscard]] const U& Get(U T::*member) const noexcept;
-    template <typename U>
-    void Set(U T::*member, const U& value);
+    template <auto Member>
+    [[nodiscard]] const decltype(T{}.*Member)& Get() const noexcept;
+    template <auto Member>
+    void Set(const decltype(T{}.*Member)& value);
 
     void Read();
     void Write();
