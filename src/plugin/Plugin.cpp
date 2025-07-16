@@ -18,7 +18,7 @@ Plugin::~Plugin() noexcept = default;
 
 void Plugin::Start() {
     auto& configFile = GetComponent<PersistentObject<Config>>();
-    configFile.SetFilePath(configFilePath);
+    configFile.SetFilePath(std::move(configFilePath));
 }
 
 void Plugin::Update() {
@@ -32,6 +32,7 @@ void Plugin::Update() {
     // Update FPS Unlocker
     fpsUnlocker.Enable(configFile.Get<&C::unlockFps>());
     fpsUnlocker.SetTargetFps(configFile.Get<&C::targetFps>());
+    fpsUnlocker.AutoThrottle(configFile.Get<&C::autoThrottle>());
 
     // Update FOV unlocker
     if (!fovUnlocker.IsHooked()) {

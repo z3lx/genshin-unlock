@@ -9,6 +9,7 @@ namespace z3lx::plugin {
 struct Config {
     bool unlockFps = true;
     int targetFps = 120;
+    bool autoThrottle = true;
 
     bool unlockFov = true;
     int targetFov = 75;

@@ -86,6 +86,7 @@ struct glz::meta<z3lx::plugin::Config> {
     static constexpr auto value = object(
         "unlockFps", &T::unlockFps,
         "targetFps", fpsOverrideConstraint,
+        "autoThrottle", &T::autoThrottle,
         "unlockFov", &T::unlockFov,
         "targetFov", fovOverrideConstraint,
         "fovPresets", fovPresetsConstraint,

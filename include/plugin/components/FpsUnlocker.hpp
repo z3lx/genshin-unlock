@@ -1,9 +1,13 @@
 #pragma once
 
+#include "plugin/components/WindowState.hpp"
 #include "plugin/interfaces/IComponent.hpp"
 
 namespace z3lx::plugin {
-class FpsUnlocker final : public IComponent<FpsUnlocker> {
+class FpsUnlocker final : public IComponent<
+    FpsUnlocker,
+    WindowState
+> {
 public:
     FpsUnlocker() noexcept;
     ~FpsUnlocker() noexcept;
@@ -17,8 +21,12 @@ public:
     [[nodiscard]] int GetTargetFps() const noexcept;
     void SetTargetFps(int targetFps) noexcept;
 
+    [[nodiscard]] bool IsAutoThrottle() const noexcept;
+    void AutoThrottle(bool autoThrottle) noexcept;
+
 private:
     bool isEnabled;
+    bool isAutoThrottle;
     int targetFps;
     int* targetFpsPtr;
 };
