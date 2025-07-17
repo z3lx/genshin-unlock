@@ -25,27 +25,26 @@ std::wstring BuildArguments(const z3lx::loader::Config& config) {
         return {};
     }
 
-    const wchar_t* modeArgs = nullptr;
-    switch (config.displayMode) {
-    case z3lx::loader::DisplayMode::Windowed:
-        modeArgs = L"-screen-fullscreen 0";
-        break;
-    case z3lx::loader::DisplayMode::Fullscreen:
-        modeArgs = L"-screen-fullscreen 1 -window-mode exclusive";
-        break;
-    case z3lx::loader::DisplayMode::Borderless:
-        modeArgs = L"-popupwindow -screen-fullscreen 0";
-        break;
-    }
+    const wchar_t* modeArgs = [](const z3lx::loader::DisplayMode mode) {
+        switch (mode) {
+        case z3lx::loader::DisplayMode::Windowed:
+            return L"-screen-fullscreen 0";
+        case z3lx::loader::DisplayMode::Fullscreen:
+            return L"-screen-fullscreen 1 -window-mode exclusive";
+        case z3lx::loader::DisplayMode::Borderless:
+            return L"-popupwindow -screen-fullscreen 0";
+        default:
+            return L"";
+        }
+    }(config.displayMode);
 
     const wchar_t* mobileArgs = config.mobilePlatform
-        ? L"use_mobile_platform -is_cloud 1 -platform_type CLOUD_THIRD_PARTY_MOBILE"
+        ? L"use_mobile_platform -is_cloud 1 "
+            "-platform_type CLOUD_THIRD_PARTY_MOBILE"
         : L"";
 
     return std::format(
-        L"-monitor {} {} "
-        L"-screen-width {} -screen-height {} "
-        L"{} {} ",
+        L"-monitor {} {} -screen-width {} -screen-height {} {} {} ",
         config.monitorIndex,
         modeArgs,
         config.screenWidth,
