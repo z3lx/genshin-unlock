@@ -55,18 +55,18 @@ struct glz::meta<z3lx::loader::Config> {
         "Game path must be a valid file"
     >;
 
-    static constexpr auto readGameArgs = [](
+    static constexpr auto readAdditionalArgs = [](
         T& config, const std::string& input) -> void {
-        z3lx::util::U8ToU16(input, config.gameArgs);
+        z3lx::util::U8ToU16(input, config.additionalArgs);
     };
-    static constexpr auto writeGameArgs = [](
+    static constexpr auto writeAdditionalArgs = [](
         const T& config) -> std::string {
         std::string output {};
-        z3lx::util::U16ToU8(config.gameArgs, output);
+        z3lx::util::U16ToU8(config.additionalArgs, output);
         return output;
     };
-    static constexpr auto gameArgsHandler = custom<
-        readGameArgs, writeGameArgs
+    static constexpr auto additionalArgsHandler = custom<
+        readAdditionalArgs, writeAdditionalArgs
     >;
 
     static constexpr auto dllPathsConstraintCondition = [](
@@ -85,9 +85,25 @@ struct glz::meta<z3lx::loader::Config> {
 
     static constexpr auto value = object(
         "gamePath", gamePathConstraint,
-        "gameArgs", gameArgsHandler,
+        &T::overrideArgs,
+        &T::monitorIndex,
+        &T::displayMode,
+        &T::screenWidth,
+        &T::screenHeight,
+        &T::mobilePlatform,
+        "additionalArgs", additionalArgsHandler,
         "dllPaths", dllPathsConstraint,
-        "suspendLoad", &T::suspendLoad
+        &T::suspendLoad
+    );
+};
+
+template <>
+struct glz::meta<z3lx::loader::DisplayMode> {
+    using enum z3lx::loader::DisplayMode;
+    static constexpr auto value = enumerate(
+        Windowed,
+        Fullscreen,
+        Borderless
     );
 };
 

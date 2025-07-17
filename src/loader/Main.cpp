@@ -11,11 +11,50 @@
 #include <cstdint>
 #include <exception>
 #include <filesystem>
+#include <format>
 #include <iostream>
+#include <string>
 #include <thread>
 #include <vector>
 
 #include <Windows.h>
+
+namespace {
+std::wstring BuildArguments(const z3lx::loader::Config& config) {
+    if (!config.overrideArgs) {
+        return {};
+    }
+
+    const wchar_t* modeArgs = nullptr;
+    switch (config.displayMode) {
+    case z3lx::loader::DisplayMode::Windowed:
+        modeArgs = L"-screen-fullscreen 0";
+        break;
+    case z3lx::loader::DisplayMode::Fullscreen:
+        modeArgs = L"-screen-fullscreen 1 -window-mode exclusive";
+        break;
+    case z3lx::loader::DisplayMode::Borderless:
+        modeArgs = L"-popupwindow -screen-fullscreen 0";
+        break;
+    }
+
+    const wchar_t* mobileArgs = config.mobilePlatform
+        ? L"use_mobile_platform -is_cloud 1 -platform_type CLOUD_THIRD_PARTY_MOBILE"
+        : L"";
+
+    return std::format(
+        L"-monitor {} {} "
+        L"-screen-width {} -screen-height {} "
+        L"{} {} ",
+        config.monitorIndex,
+        modeArgs,
+        config.screenWidth,
+        config.screenHeight,
+        mobileArgs,
+        config.additionalArgs
+    );
+}
+} // namespace
 
 int main() try {
     // Read configuration
@@ -38,9 +77,10 @@ int main() try {
     // Start game process
     STARTUPINFOW si { .cb = sizeof(si) };
     PROCESS_INFORMATION pi {};
+    std::wstring args = BuildArguments(config);
     THROW_IF_WIN32_BOOL_FALSE(CreateProcessW(
         config.gamePath.c_str(),
-        config.gameArgs.data(),
+        args.data(),
         nullptr,
         nullptr,
         FALSE,

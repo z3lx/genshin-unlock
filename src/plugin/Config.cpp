@@ -84,16 +84,16 @@ struct glz::meta<z3lx::plugin::Config> {
     >;
 
     static constexpr auto value = object(
-        "unlockFps", &T::unlockFps,
+        &T::unlockFps,
         "targetFps", fpsOverrideConstraint,
-        "autoThrottle", &T::autoThrottle,
-        "unlockFov", &T::unlockFov,
+        &T::autoThrottle,
+        &T::unlockFov,
         "targetFov", fovOverrideConstraint,
         "fovPresets", fovPresetsConstraint,
         "fovSmoothing", fovSmoothingConstraint,
-        "unlockFovKey", &T::unlockFovKey,
-        "nextFovPresetKey", &T::nextFovPresetKey,
-        "prevFovPresetKey", &T::prevFovPresetKey
+        &T::unlockFovKey,
+        &T::nextFovPresetKey,
+        &T::prevFovPresetKey
     );
 };
 
