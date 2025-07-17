@@ -17,12 +17,6 @@
 
 namespace z3lx::plugin {
 IRUNNABLE_TEMPLATE
-IRUNNABLE::IRunnable() noexcept = default;
-
-IRUNNABLE_TEMPLATE
-IRUNNABLE::~IRunnable() noexcept = default;
-
-IRUNNABLE_TEMPLATE
 void IRUNNABLE::Run() try {
     auto derived = static_cast<Derived*>(this);
     derived->StartComponent();
