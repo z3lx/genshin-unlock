@@ -63,19 +63,20 @@ add_compile_definitions(WIN32_LEAN_AND_MEAN)
 file(GLOB_RECURSE UTIL_SOURCES src/util/*)
 add_library(util STATIC ${UTIL_SOURCES})
 target_include_directories(util PRIVATE include)
-target_link_libraries(util PUBLIC
-    minhook
-    WIL::WIL
+target_link_libraries(util
+    PUBLIC minhook
+    PRIVATE version.lib
+    PUBLIC WIL::WIL
 )
 
 file(GLOB_RECURSE LOADER_SOURCES src/loader/*)
 set(LOADER_RESOURCE ${RESOURCES_DIR}/loader.rc)
 add_executable(loader ${LOADER_SOURCES} ${LOADER_RESOURCE})
 target_include_directories(loader PRIVATE include)
-target_link_libraries(loader PRIVATE
-    glaze::glaze
-    WIL::WIL
-    util
+target_link_libraries(loader
+    PRIVATE glaze::glaze
+    PRIVATE WIL::WIL
+    PRIVATE util
 )
 target_link_options(loader PRIVATE
     /MANIFESTUAC:level='requireAdministrator'
@@ -85,8 +86,8 @@ file(GLOB_RECURSE PLUGIN_SOURCES src/plugin/*)
 set(PLUGIN_RESOURCE ${RESOURCES_DIR}/plugin.rc)
 add_library(plugin SHARED ${PLUGIN_SOURCES} ${PLUGIN_RESOURCE})
 target_include_directories(plugin PRIVATE include)
-target_link_libraries(plugin PRIVATE
-    glaze::glaze
-    WIL::WIL
-    util
+target_link_libraries(plugin
+    PRIVATE glaze::glaze
+    PRIVATE WIL::WIL
+    PRIVATE util
 )
