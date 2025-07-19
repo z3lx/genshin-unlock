@@ -21,7 +21,7 @@ constexpr glz::opts opts {
     .indentation_char = ' ',
     .indentation_width = 4,
     .new_lines_in_arrays = true,
-    .append_arrays = false,
+    .append_arrays = true,
     .error_on_missing_keys = true,
     .error_on_const_read = true,
     .bools_as_numbers = false,
