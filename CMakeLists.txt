@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.28)
 project(genshin-fov-unlock
-    VERSION 1.7.0.0
+    VERSION 25.7.0.0
 )
 
 set(CMAKE_CXX_STANDARD 23)
@@ -11,16 +11,15 @@ endif()
 
 include(FetchContent)
 
-# TsudaKageyu/minhook
+set(BUILD_SHARED_LIBS OFF)
 FetchContent_Declare(
-    minhook
-    GIT_REPOSITORY https://github.com/TsudaKageyu/minhook.git
-    GIT_COMMIT v1.3.4
+    cpr
+    GIT_REPOSITORY https://github.com/libcpr/cpr.git
+    GIT_TAG 1.11.3
     GIT_SHALLOW TRUE
 )
-FetchContent_MakeAvailable(minhook)
+FetchContent_MakeAvailable(cpr)
 
-# stephenberry/glaze
 FetchContent_Declare(
     glaze
     GIT_REPOSITORY https://github.com/stephenberry/glaze.git
@@ -29,7 +28,14 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(glaze)
 
-# microsoft/wil
+FetchContent_Declare(
+    minhook
+    GIT_REPOSITORY https://github.com/TsudaKageyu/minhook.git
+    GIT_COMMIT v1.3.4
+    GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(minhook)
+
 add_compile_definitions(WIL_EXCEPTION_MODE=1)
 set(WIL_BUILD_PACKAGING OFF)
 set(WIL_BUILD_TESTS OFF)
@@ -43,6 +49,7 @@ FetchContent_MakeAvailable(wil)
 
 add_compile_options(
     /permissive-
+    /utf-8
     "$<$<CONFIG:Release>:/GL>"
     "$<$<CONFIG:Release>:/Gw>"
 )
@@ -74,6 +81,7 @@ set(LOADER_RESOURCE ${RESOURCES_DIR}/loader.rc)
 add_executable(loader ${LOADER_SOURCES} ${LOADER_RESOURCE})
 target_include_directories(loader PRIVATE include)
 target_link_libraries(loader
+    PRIVATE cpr::cpr
     PRIVATE glaze::glaze
     PRIVATE WIL::WIL
     PRIVATE util
