@@ -13,6 +13,7 @@ enum class DisplayMode : uint8_t {
 };
 
 struct Config {
+    bool checkUpdates = true;
     std::filesystem::path gamePath {
         R"(C:\Program Files\HoYoPlay\games\Genshin Impact game\GenshinImpact.exe)"
     };

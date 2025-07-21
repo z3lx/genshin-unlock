@@ -84,6 +84,7 @@ struct glz::meta<z3lx::loader::Config> {
     >;
 
     static constexpr auto value = object(
+        &T::checkUpdates,
         "gamePath", gamePathConstraint,
         &T::overrideArgs,
         &T::monitorIndex,
