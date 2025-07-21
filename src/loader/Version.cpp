@@ -47,11 +47,11 @@ struct glz::meta<LatestRelease> {
 };
 
 namespace z3lx::loader {
-util::Version GetLocalVersion() {
+util::Version GetCurrentVersion() {
     return util::GetFileVersion(util::GetCurrentModuleFilePath());
 }
 
-util::Version GetRemoteVersion() {
+util::Version GetLatestVersion() {
     constexpr auto endpoint =
         "https://api.github.com/repos/z3lx/genshin-fov-unlock/releases/latest";
     const cpr::Response response = cpr::Get(
