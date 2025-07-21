@@ -1,5 +1,8 @@
 #pragma once
 
+#include <filesystem>
+#include <optional>
+#include <span>
 #include <string_view>
 
 #include <Windows.h>
@@ -56,5 +59,16 @@ MessageBoxResult ShowMessageBox(
     MessageBoxIcon icon = MessageBoxIcon::Information,
     MessageBoxButton button = MessageBoxButton::Ok,
     MessageBoxDefaultButton defaultButton = MessageBoxDefaultButton::Button1
+);
+
+struct Filter {
+    std::wstring_view name;
+    std::wstring_view spec;
+};
+
+std::filesystem::path OpenFileDialogue(
+    std::optional<std::span<const Filter>> filters = std::nullopt,
+    std::optional<std::wstring_view> initialPath = std::nullopt,
+    std::optional<std::wstring_view> dialogueTitle = std::nullopt
 );
 } // namespace z3lx::util

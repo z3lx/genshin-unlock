@@ -1,11 +1,17 @@
-#include "util/win/User.hpp"
+#include "util/win/Dialogue.hpp"
 
 #include <wil/result.h>
 
+#include <array>
+#include <filesystem>
+#include <optional>
+#include <span>
+#include <string>
 #include <string_view>
 #include <type_traits>
 
 #include <Windows.h>
+#include <commdlg.h>
 
 namespace {
 template <typename StringView>
@@ -65,5 +71,37 @@ MessageBoxResult ShowMessageBox(
         button,
         defaultButton
     );
+}
+
+std::filesystem::path OpenFileDialogue(
+    const std::optional<std::span<const Filter>> filters,
+    const std::optional<std::wstring_view> initialPath,
+    const std::optional<std::wstring_view> dialogueTitle) {
+    std::wstring stringFilter {};
+    if (filters) {
+        size_t size = 0;
+        for (const auto& [name, spec] : *filters) {
+            size += name.size() + spec.size() + 2;
+        }
+        stringFilter.reserve(size);
+        for (const auto& [name, spec] : *filters) {
+            stringFilter.append(name).push_back('\0');
+            stringFilter.append(spec).push_back('\0');
+        }
+    }
+
+    std::array<wchar_t, MAX_PATH> buffer {};
+    OPENFILENAMEW ofn {
+        .lStructSize = sizeof(ofn),
+        .lpstrFilter = filters ? stringFilter.data() : nullptr,
+        .nFilterIndex = filters ? 1UL : 0UL,
+        .lpstrFile = buffer.data(),
+        .nMaxFile = static_cast<DWORD>(buffer.size()),
+        .lpstrInitialDir = initialPath ? initialPath->data() : nullptr,
+        .lpstrTitle = dialogueTitle ? dialogueTitle->data() : nullptr,
+        .Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_EXPLORER
+    };
+    THROW_IF_WIN32_BOOL_FALSE(GetOpenFileNameW(&ofn));
+    return std::filesystem::path { buffer.data() };
 }
 } // namespace z3lx::util
