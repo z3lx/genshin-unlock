@@ -15,7 +15,7 @@ enum class DisplayMode : uint8_t {
 struct Config {
     bool checkUpdates = true;
     std::filesystem::path gamePath {
-        R"(C:\Program Files\HoYoPlay\games\Genshin Impact game\GenshinImpact.exe)"
+        LR"(C:\Program Files\HoYoPlay\games\Genshin Impact game\GenshinImpact.exe)"
     };
     bool overrideArgs = false;
     uint8_t monitorIndex = 1;
@@ -23,7 +23,7 @@ struct Config {
     uint16_t screenWidth = 1920;
     uint16_t screenHeight = 1080;
     bool mobilePlatform = false;
-    std::wstring additionalArgs {};
+    std::string additionalArgs {};
 
     std::vector<std::filesystem::path> dllPaths {
         "plugin.dll"

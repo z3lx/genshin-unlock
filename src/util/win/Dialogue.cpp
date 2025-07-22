@@ -99,7 +99,11 @@ std::filesystem::path OpenFileDialogue(
         .nMaxFile = static_cast<DWORD>(buffer.size()),
         .lpstrInitialDir = initialPath ? initialPath->data() : nullptr,
         .lpstrTitle = dialogueTitle ? dialogueTitle->data() : nullptr,
-        .Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_EXPLORER
+        .Flags =
+            OFN_PATHMUSTEXIST |
+            OFN_FILEMUSTEXIST |
+            OFN_EXPLORER |
+            OFN_NOCHANGEDIR
     };
     THROW_IF_WIN32_BOOL_FALSE(GetOpenFileNameW(&ofn));
     return std::filesystem::path { buffer.data() };

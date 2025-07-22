@@ -4,6 +4,7 @@
 #include "util/win/File.hpp"
 #include "util/win/Loader.hpp"
 #include "util/win/Shell.hpp"
+#include "util/win/String.hpp"
 #include "util/win/Version.hpp"
 
 #include <wil/filesystem.h>
@@ -18,6 +19,7 @@
 #include <format>
 #include <iostream>
 #include <print>
+#include <span>
 #include <string>
 #include <thread>
 #include <vector>
@@ -30,23 +32,105 @@ using namespace z3lx::util;
 } // namespace z
 
 namespace {
-z::Config ReadConfig() {
+z::Config ReadConfig(z::Config& config) {
+    namespace fs = std::filesystem;
     std::println(std::cout, "Reading configuration...");
 
-    z::Config config {};
     std::vector<uint8_t> buffer {};
-    constexpr auto configFileName = L"loader_config.json";
-    const bool configFileExists = std::filesystem::exists(configFileName);
+    const fs::path configFilePath { L"loader_config.json" };
     const wil::unique_hfile configFile =
-        wil::open_or_create_file(configFileName);
+        wil::open_or_create_file(configFilePath.c_str());
 
-    if (configFileExists) {
-        z::ReadFile(configFile.get(), buffer);
-    } else {
+    const auto serializeConfig = [&] {
         config.Serialize(buffer);
         z::WriteFile(configFile.get(), buffer);
+    };
+
+    try {
+        z::ReadFile(configFile.get(), buffer);
+        config.Deserialize(buffer);
+    } catch (const std::exception& e) {
+        const z::MessageBoxResult result = z::ShowMessageBox(
+            "Loader",
+            std::format(
+                "Failed to read configuration file '{}'.\n"
+                "{}\n"
+                "Proceeding with default configuration.",
+                configFilePath.string(),
+                e.what()
+            ),
+            z::MessageBoxIcon::Warning,
+            z::MessageBoxButton::OkCancel
+        );
+        if (result == z::MessageBoxResult::Cancel) {
+            std::exit(0);
+        }
+        serializeConfig();
     }
-    config.Deserialize(buffer);
+
+    const auto isValidFilePath = [](const fs::path& path) {
+        return fs::exists(path) && fs::is_regular_file(path);
+    };
+
+    constexpr auto glGameFileName = L"GenshinImpact.exe";
+    constexpr auto cnGameFileName = L"YuanShen.exe";
+    const auto isValidGamePath = [isValidFilePath](const fs::path& path) {
+        const fs::path fileName = path.filename();
+        return isValidFilePath(path) && (
+            fileName == glGameFileName ||
+            fileName == cnGameFileName
+        );
+    };
+
+    const auto isValidDllPath = [isValidFilePath](const fs::path& path) {
+        return isValidFilePath(path) && path.extension() == L".dll";
+    };
+
+    const auto locatePath = [](
+        fs::path& path,
+        std::span<const z::Filter> filters) {
+        const z::MessageBoxResult result = z::ShowMessageBox(
+            "Loader",
+            std::format(
+                "The path '{}' is invalid or does not exist.\n"
+                "Locate it using File Explorer?",
+                path.string()
+            ),
+            z::MessageBoxIcon::Warning,
+            z::MessageBoxButton::YesNo
+        );
+        if (result == z::MessageBoxResult::No) {
+            std::exit(0);
+        }
+        path = z::OpenFileDialogue(filters);
+    };
+
+    const auto normalizePath = [](fs::path& path) {
+        path = fs::absolute(path.make_preferred());
+    };
+
+    if (!isValidGamePath(config.gamePath)) {
+        constexpr z::Filter filters[] {
+            { glGameFileName, glGameFileName },
+            { cnGameFileName, cnGameFileName }
+        };
+        locatePath(config.gamePath, filters);
+        serializeConfig();
+    } else {
+        normalizePath(config.gamePath);
+    }
+
+    for (auto& dllPath : config.dllPaths) {
+        if (!isValidDllPath(dllPath)) {
+            constexpr z::Filter filters[] {
+                { L"Dynamic Link Library (*.dll)", L"*.dll" }
+            };
+            locatePath(dllPath, filters);
+            serializeConfig();
+        } else {
+            normalizePath(dllPath);
+        }
+    }
 
     return config;
 }
@@ -106,6 +190,9 @@ void StartGame(const z::Config& config) {
                 "-platform_type CLOUD_THIRD_PARTY_MOBILE"
             : L"";
 
+        std::wstring additionalArgs {};
+        z::U8ToU16(config.additionalArgs, additionalArgs);
+
         return std::format(
             L"-monitor {} {} -screen-width {} -screen-height {} {} {} ",
             config.monitorIndex,
@@ -113,7 +200,7 @@ void StartGame(const z::Config& config) {
             config.screenWidth,
             config.screenHeight,
             mobileArgs,
-            config.additionalArgs
+            additionalArgs
         );
     }();
 
@@ -143,7 +230,8 @@ void StartGame(const z::Config& config) {
 } // namespace
 
 int main() try {
-    const z::Config config = ReadConfig();
+    z::Config config {};
+    ReadConfig(config);
     CheckUpdates(config);
     StartGame(config);
     std::this_thread::sleep_for(std::chrono::seconds { 1 });
