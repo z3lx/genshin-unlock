@@ -11,6 +11,7 @@
 #include <wil/resource.h>
 #include <wil/result.h>
 
+#include <array>
 #include <chrono>
 #include <cstdint>
 #include <cstdlib>
@@ -135,7 +136,7 @@ z::Config ReadConfig(z::Config& config) {
     return config;
 }
 
-void CheckUpdates(const z::Config& config) {
+void CheckUpdates(const z::Config& config) try {
     if (!config.checkUpdates) {
         return;
     }
@@ -143,25 +144,32 @@ void CheckUpdates(const z::Config& config) {
     std::println(std::cout, "Checking for updates...");
     const z::Version currentVersion = z::GetCurrentVersion();
     const z::Version latestVersion = z::GetLatestVersion();
-    if (latestVersion > currentVersion) {
-        const z::MessageBoxResult result = z::ShowMessageBox(
-            "Loader",
-            std::format(
-                "An updated version of the mod is available.\n"
-                "Installed version: {}\n"
-                "Available version: {}\n"
-                "Open the download page?",
-                currentVersion.ToString(),
-                latestVersion.ToString()
-            ),
-            z::MessageBoxIcon::Information,
-            z::MessageBoxButton::YesNo
-        );
-        if (result == z::MessageBoxResult::Yes) {
-            z::OpenUrl("https://github.com/z3lx/genshin-fov-unlock/releases/latest");
-            std::exit(0);
-        }
+    if (currentVersion >= latestVersion) {
+        return;
     }
+
+    const z::MessageBoxResult result = z::ShowMessageBox(
+        "Loader",
+        std::format(
+            "An updated version of the mod is available.\n"
+            "Installed version: {}\n"
+            "Available version: {}\n"
+            "Open the download page?",
+            currentVersion.ToString(),
+            latestVersion.ToString()
+        ),
+        z::MessageBoxIcon::Information,
+        z::MessageBoxButton::YesNo
+    );
+    if (result == z::MessageBoxResult::Yes) {
+        constexpr auto url =
+            "https://github.com/z3lx/genshin-fov-unlock/releases/latest";
+        z::OpenUrl(url);
+    }
+    std::exit(0);
+} catch (...) {
+    LOG_CAUGHT_EXCEPTION();
+    std::println(std::cerr, "Update check failed, skipping");
 }
 
 void StartGame(const z::Config& config) {
@@ -225,11 +233,23 @@ void StartGame(const z::Config& config) {
     if (config.suspendLoad) {
         ResumeThread(thread.get());
     }
-    std::println(std::cout, "Game process started with PID: {}", pi.dwProcessId);
+    std::println(std::cout, "Game process started with PID {}", pi.dwProcessId);
 }
 } // namespace
 
 int main() try {
+    wil::SetResultLoggingCallback([] (const wil::FailureInfo& info) noexcept {
+        std::array<wchar_t, 2048> buffer {};
+        const HRESULT result = wil::GetFailureLogString(
+            buffer.data(),
+            buffer.size(),
+            info
+        );
+        if (SUCCEEDED(result)) {
+            std::wcerr << buffer.data() << std::endl;
+        }
+    });
+
     z::Config config {};
     ReadConfig(config);
     CheckUpdates(config);
@@ -237,13 +257,13 @@ int main() try {
     std::this_thread::sleep_for(std::chrono::seconds { 1 });
     return 0;
 } catch (const std::exception& e) {
+    LOG_CAUGHT_EXCEPTION();
     try {
         z::ShowMessageBox(
             "Loader Error",
             std::format("An error occurred:\n{}", e.what()),
             z::MessageBoxIcon::Error,
-            z::MessageBoxButton::Ok,
-            z::MessageBoxDefaultButton::Button1
+            z::MessageBoxButton::Ok
         );
     } catch (...) {}
     return 1;
