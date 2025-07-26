@@ -14,9 +14,7 @@ enum class DisplayMode : uint8_t {
 
 struct Config {
     bool checkUpdates = true;
-    std::filesystem::path gamePath {
-        LR"(C:\Program Files\HoYoPlay\games\Genshin Impact game\GenshinImpact.exe)"
-    };
+    std::filesystem::path gamePath {};
     bool overrideArgs = false;
     uint8_t monitorIndex = 1;
     DisplayMode displayMode = DisplayMode::Fullscreen;

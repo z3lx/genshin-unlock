@@ -8,6 +8,7 @@
 #include "util/win/Version.hpp"
 
 #include <wil/filesystem.h>
+#include <wil/registry.h>
 #include <wil/resource.h>
 #include <wil/result.h>
 
@@ -23,6 +24,7 @@
 #include <span>
 #include <string>
 #include <thread>
+#include <utility>
 #include <vector>
 
 #include <Windows.h>
@@ -33,6 +35,35 @@ using namespace z3lx::util;
 } // namespace z
 
 namespace {
+std::filesystem::path GetGamePath() {
+    wil::unique_hkey key {};
+    const wchar_t* executableName = nullptr;
+
+    if (wil::unique_hkey glKey {};
+        SUCCEEDED(wil::reg::open_unique_key_nothrow(
+            HKEY_CURRENT_USER,
+            LR"(SOFTWARE\Cognosphere\HYP\1_0\hk4e_global)",
+            glKey
+        ))) {
+        key = std::move(glKey);
+        executableName = L"GenshinImpact.exe";
+    } else if (wil::unique_hkey cnKey {};
+        SUCCEEDED(wil::reg::open_unique_key_nothrow(
+            HKEY_CURRENT_USER,
+            LR"(SOFTWARE\miHoYo\HYP\1_1\hk4e_cn)",
+            cnKey
+        ))) {
+        key = std::move(cnKey);
+        executableName = L"YuanShen.exe";
+    } else {
+        THROW_WIN32(ERROR_FILE_NOT_FOUND);
+    }
+
+    return std::filesystem::path {
+        wil::reg::get_value_string(key.get(), L"GameInstallPath")
+    } / executableName;
+}
+
 z::Config ReadConfig(z::Config& config) {
     namespace fs = std::filesystem;
     std::println(std::cout, "Reading configuration...");
@@ -111,11 +142,15 @@ z::Config ReadConfig(z::Config& config) {
     };
 
     if (!isValidGamePath(config.gamePath)) {
-        constexpr z::Filter filters[] {
-            { glGameFileName, glGameFileName },
-            { cnGameFileName, cnGameFileName }
-        };
-        locatePath(config.gamePath, filters);
+        try {
+            config.gamePath = GetGamePath();
+        } catch (...) {
+            constexpr z::Filter filters[] {
+                { glGameFileName, glGameFileName },
+                { cnGameFileName, cnGameFileName }
+            };
+            locatePath(config.gamePath, filters);
+        }
         serializeConfig();
     } else {
         normalizePath(config.gamePath);
