@@ -1,4 +1,5 @@
 #include "plugin/components/FovUnlocker.hpp"
+#include "plugin/Helper.hpp"
 #include "util/ExponentialFilter.hpp"
 #include "util/MinHook.hpp"
 
@@ -41,22 +42,20 @@ FovUnlocker::~FovUnlocker() noexcept {
 }
 
 void FovUnlocker::Start() {
-    bool global = true;
-    auto module = reinterpret_cast<uintptr_t>(
-        GetModuleHandleA("GenshinImpact.exe")
+    const auto [module, region] = GetGameModuleContext();
+    const uintptr_t offset = [region] {
+        switch (region) {
+        case GameRegion::GL: return OFFSET_GL;
+        case GameRegion::CN: return OFFSET_CN;
+        default: THROW_WIN32(ERROR_NOT_SUPPORTED);
+        }
+    }();
+    const auto target = reinterpret_cast<void*>(
+        reinterpret_cast<uintptr_t>(module) + offset
     );
-
-    if (!module) {
-        global = false;
-        module = reinterpret_cast<uintptr_t>(
-            GetModuleHandleA("YuanShen.exe")
-        );
-        THROW_LAST_ERROR_IF(!module);
-    }
-
-    const uintptr_t offset = global ? OFFSET_GL : OFFSET_CN;
-    const auto target = reinterpret_cast<void*>(module + offset);
-    const auto detour = reinterpret_cast<void*>(HkSetFieldOfView);
+    const auto detour = reinterpret_cast<void*>(
+        HkSetFieldOfView
+    );
 
     std::lock_guard lock { mutex };
     minhook = util::MinHook<void, void*, float> { target, detour };

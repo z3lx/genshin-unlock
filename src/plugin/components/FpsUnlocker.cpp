@@ -1,4 +1,5 @@
 #include "plugin/components/FpsUnlocker.hpp"
+#include "plugin/Helper.hpp"
 
 #include <wil/result.h>
 
@@ -22,21 +23,18 @@ FpsUnlocker::FpsUnlocker() noexcept
 FpsUnlocker::~FpsUnlocker() noexcept = default;
 
 void FpsUnlocker::Start() {
-    bool global = true;
-    auto module = reinterpret_cast<uintptr_t>(
-        GetModuleHandleA("GenshinImpact.exe")
+    const auto [module, region] = GetGameModuleContext();
+    const uintptr_t offset = [region] {
+        switch (region) {
+        case GameRegion::GL: return OFFSET_GL;
+        case GameRegion::CN: return OFFSET_CN;
+        default: THROW_WIN32(ERROR_NOT_SUPPORTED);
+        }
+    }();
+
+    targetFpsPtr = reinterpret_cast<int*>(
+        reinterpret_cast<uintptr_t>(module) + offset
     );
-
-    if (!module) {
-        global = false;
-        module = reinterpret_cast<uintptr_t>(
-            GetModuleHandleA("YuanShen.exe")
-        );
-        THROW_LAST_ERROR_IF(!module);
-    }
-
-    const uintptr_t offset = global ? OFFSET_GL : OFFSET_CN;
-    targetFpsPtr = reinterpret_cast<int*>(module + offset);
 }
 
 void FpsUnlocker::Update() const noexcept {
