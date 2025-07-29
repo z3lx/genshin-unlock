@@ -1,5 +1,7 @@
+#include "common/Constants.hpp"
 #include "loader/Config.hpp"
 #include "loader/Version.hpp"
+#include "util/Type.hpp"
 #include "util/win/Dialogue.hpp"
 #include "util/win/File.hpp"
 #include "util/win/Loader.hpp"
@@ -23,13 +25,16 @@
 #include <print>
 #include <span>
 #include <string>
+#include <string_view>
 #include <thread>
 #include <utility>
 #include <vector>
 
 #include <Windows.h>
 
+namespace fs = std::filesystem;
 namespace z {
+using namespace z3lx::common;
 using namespace z3lx::loader;
 using namespace z3lx::util;
 } // namespace z
@@ -46,7 +51,7 @@ std::filesystem::path GetGamePath() {
             glKey
         ))) {
         key = std::move(glKey);
-        executableName = L"GenshinImpact.exe";
+        executableName = z::glGameFileName;
     } else if (wil::unique_hkey cnKey {};
         SUCCEEDED(wil::reg::open_unique_key_nothrow(
             HKEY_CURRENT_USER,
@@ -54,7 +59,7 @@ std::filesystem::path GetGamePath() {
             cnKey
         ))) {
         key = std::move(cnKey);
-        executableName = L"YuanShen.exe";
+        executableName = z::cnGameFileName;
     } else {
         THROW_WIN32(ERROR_FILE_NOT_FOUND);
     }
@@ -64,152 +69,77 @@ std::filesystem::path GetGamePath() {
     } / executableName;
 }
 
-z::Config ReadConfig(z::Config& config) {
-    namespace fs = std::filesystem;
-    std::println(std::cout, "Reading configuration...");
-
+template <typename InvalidConfigCallback, typename InvalidFilePathCallback>
+z::Config ReadConfig(
+    const std::wstring_view configFilePath,
+    InvalidConfigCallback invalidConfigCallback,
+    InvalidFilePathCallback invalidFilePathCallback) {
+    z::Config config {};
     std::vector<uint8_t> buffer {};
-    const fs::path configFilePath { L"loader_config.json" };
-    const wil::unique_hfile configFile =
-        wil::open_or_create_file(configFilePath.c_str());
+    const wil::unique_hfile configFile = wil::open_or_create_file(
+        configFilePath.data()
+    );
 
-    const auto serializeConfig = [&] {
-        config.Serialize(buffer);
-        z::WriteFile(configFile.get(), buffer);
-    };
+    bool changed = false;
 
     try {
         z::ReadFile(configFile.get(), buffer);
         config.Deserialize(buffer);
-    } catch (const std::exception& e) {
-        const z::MessageBoxResult result = z::ShowMessageBox(
-            "Loader",
-            std::format(
-                "Failed to read configuration file '{}'.\n"
-                "{}\n"
-                "Proceeding with default configuration.",
-                configFilePath.string(),
-                e.what()
-            ),
-            z::MessageBoxIcon::Warning,
-            z::MessageBoxButton::OkCancel
-        );
-        if (result == z::MessageBoxResult::Cancel) {
-            std::exit(0);
-        }
-        serializeConfig();
+    } catch (...) {
+        changed = true;
+        invalidConfigCallback(config);
     }
 
     const auto isValidFilePath = [](const fs::path& path) {
         return fs::exists(path) && fs::is_regular_file(path);
     };
 
-    constexpr auto glGameFileName = L"GenshinImpact.exe";
-    constexpr auto cnGameFileName = L"YuanShen.exe";
-    const auto isValidGamePath = [isValidFilePath](const fs::path& path) {
-        const fs::path fileName = path.filename();
-        return isValidFilePath(path) && (
-            fileName == glGameFileName ||
-            fileName == cnGameFileName
-        );
-    };
-
-    const auto isValidDllPath = [isValidFilePath](const fs::path& path) {
-        return isValidFilePath(path) && path.extension() == L".dll";
-    };
-
-    const auto locatePath = [](
-        fs::path& path,
-        std::span<const z::Filter> filters) {
-        const z::MessageBoxResult result = z::ShowMessageBox(
-            "Loader",
-            std::format(
-                "The path '{}' is invalid or does not exist.\n"
-                "Locate it using File Explorer?",
-                path.string()
-            ),
-            z::MessageBoxIcon::Warning,
-            z::MessageBoxButton::YesNo
-        );
-        if (result == z::MessageBoxResult::No) {
-            std::exit(0);
-        }
-        path = z::OpenFileDialogue(filters);
-    };
-
-    const auto normalizePath = [](fs::path& path) {
-        path = fs::absolute(path.make_preferred());
-    };
-
-    if (!isValidGamePath(config.gamePath)) {
-        try {
-            config.gamePath = GetGamePath();
-        } catch (...) {
-            constexpr z::Filter filters[] {
-                { glGameFileName, glGameFileName },
-                { cnGameFileName, cnGameFileName }
-            };
-            locatePath(config.gamePath, filters);
-        }
-        serializeConfig();
-    } else {
-        normalizePath(config.gamePath);
+    if (const fs::path fileName = config.gamePath.filename();
+        !isValidFilePath(config.gamePath) || (
+        fileName != z::glGameFileName &&
+        fileName != z::cnGameFileName)) try {
+        changed = true;
+        config.gamePath = GetGamePath();
+    } catch (...) {
+        invalidFilePathCallback(&z::Config::gamePath, config.gamePath);
     }
 
-    for (auto& dllPath : config.dllPaths) {
-        if (!isValidDllPath(dllPath)) {
-            constexpr z::Filter filters[] {
-                { L"Dynamic Link Library (*.dll)", L"*.dll" }
-            };
-            locatePath(dllPath, filters);
-            serializeConfig();
-        } else {
-            normalizePath(dllPath);
+    for (fs::path& dllPath : config.dllPaths) {
+        if (!isValidFilePath(dllPath) ||
+            dllPath.extension() != L".dll") {
+            changed = true;
+            invalidFilePathCallback(&z::Config::dllPaths, dllPath);
         }
+    }
+
+    if (changed) {
+        config.Serialize(buffer);
+        z::WriteFile(configFile.get(), buffer);
+    }
+
+    for (fs::path& dllPath : config.dllPaths) {
+        dllPath = fs::absolute(dllPath.make_preferred());
     }
 
     return config;
 }
 
-void CheckUpdates(const z::Config& config) try {
+template <typename UpdateCheckCallback>
+void CheckUpdates(
+    const z::Config& config,
+    UpdateCheckCallback updateCheckCallback) {
     if (!config.checkUpdates) {
         return;
     }
 
-    std::println(std::cout, "Checking for updates...");
     const z::Version currentVersion = z::GetCurrentVersion();
     const z::Version latestVersion = z::GetLatestVersion();
-    if (currentVersion >= latestVersion) {
-        return;
+    if (currentVersion < latestVersion) {
+        updateCheckCallback(currentVersion, latestVersion);
     }
-
-    const z::MessageBoxResult result = z::ShowMessageBox(
-        "Loader",
-        std::format(
-            "An updated version of the mod is available.\n"
-            "Installed version: {}\n"
-            "Available version: {}\n"
-            "Open the download page?",
-            currentVersion.ToString(),
-            latestVersion.ToString()
-        ),
-        z::MessageBoxIcon::Information,
-        z::MessageBoxButton::YesNo
-    );
-    if (result == z::MessageBoxResult::Yes) {
-        constexpr auto url =
-            "https://github.com/z3lx/genshin-fov-unlock/releases/latest";
-        z::OpenUrl(url);
-    }
-    std::exit(0);
-} catch (...) {
-    LOG_CAUGHT_EXCEPTION();
-    std::println(std::cerr, "Update check failed, skipping");
 }
 
 void StartGame(const z::Config& config) {
-    std::println(std::cout, "Starting game process...");
-
     std::wstring args = [&config] {
         if (!config.overrideArgs) {
             return std::wstring {};
@@ -268,12 +198,11 @@ void StartGame(const z::Config& config) {
     if (config.suspendLoad) {
         ResumeThread(thread.get());
     }
-    std::println(std::cout, "Game process started with PID {}", pi.dwProcessId);
 }
 } // namespace
 
 int main() try {
-    wil::SetResultLoggingCallback([] (const wil::FailureInfo& info) noexcept {
+    const auto loggingCallback = [](const wil::FailureInfo& info) noexcept {
         std::array<wchar_t, 2048> buffer {};
         const HRESULT result = wil::GetFailureLogString(
             buffer.data(),
@@ -281,21 +210,101 @@ int main() try {
             info
         );
         if (SUCCEEDED(result)) {
-            std::wcerr << buffer.data() << std::endl;
+            std::wcerr << buffer.data();
         }
-    });
+    };
+    wil::SetResultLoggingCallback(loggingCallback);
 
-    z::Config config {};
-    ReadConfig(config);
-    CheckUpdates(config);
+    std::println(std::cout, "Reading configuration...");
+    constexpr auto configFilePath = L"loader_config.json";
+    const auto invalidConfigCallback = [](z::Config& config) {
+        const z::MessageBoxResult result = z::ShowMessageBox(
+            "Loader",
+            "Failed to read configuration file.\n"
+            "Proceeding with default configuration.",
+            z::MessageBoxIcon::Warning,
+            z::MessageBoxButton::OkCancel
+        );
+        if (result == z::MessageBoxResult::Cancel) {
+            std::exit(0);
+        }
+        config = {};
+    };
+    const auto invalidFilePathCallback = [](auto member, fs::path& path) {
+        const z::MessageBoxResult result = z::ShowMessageBox(
+            "Loader",
+            std::format(
+                "The path '{}' is invalid or does not exist.\n"
+                "Locate it using File Explorer?",
+                path.string()
+            ),
+            z::MessageBoxIcon::Warning,
+            z::MessageBoxButton::YesNo
+        );
+        if (result == z::MessageBoxResult::No) {
+            std::exit(0);
+        }
+        if (z::OffsetOf(member) == z::OffsetOf(&z::Config::gamePath)) {
+            constexpr z::Filter filters[] {
+                { z::glGameFileName, z::glGameFileName },
+                { z::cnGameFileName, z::cnGameFileName }
+            };
+            path = z::OpenFileDialogue(filters);
+        } else if (z::OffsetOf(member) == z::OffsetOf(&z::Config::dllPaths)) {
+            constexpr z::Filter filters[] {
+                { L"Dynamic Link Library (*.dll)", L"*.dll" }
+            };
+            path = z::OpenFileDialogue(filters);
+        }
+    };
+    const z::Config config = ReadConfig(
+        configFilePath,
+        invalidConfigCallback,
+        invalidFilePathCallback
+    );
+
+    std::println(std::cout, "Checking for updates...");
+    const auto updateCheckCallback = [](
+        const z::Version& currentVersion,
+        const z::Version& latestVersion) {
+        const z::MessageBoxResult result = z::ShowMessageBox(
+            "Loader",
+            std::format(
+                "An updated version of the mod is available.\n"
+                "Installed version: {}\n"
+                "Available version: {}\n"
+                "Open the download page?",
+                currentVersion.ToString(),
+                latestVersion.ToString()
+            ),
+            z::MessageBoxIcon::Information,
+            z::MessageBoxButton::YesNo
+        );
+        if (result == z::MessageBoxResult::Yes) {
+            z::OpenUrl(
+                "https://github.com/z3lx/genshin-fov-unlock/releases/latest"
+            );
+        }
+        std::exit(0);
+    };
+    try {
+        CheckUpdates(config, updateCheckCallback);
+    } catch (...) {
+        LOG_CAUGHT_EXCEPTION();
+        std::println(std::cerr, "Update check failed, skipping");
+    }
+
+    std::println(std::cout, "Starting game process...");
     StartGame(config);
+    std::println(std::cout, "Game process started successfully");
     std::this_thread::sleep_for(std::chrono::seconds { 1 });
+
     return 0;
 } catch (const std::exception& e) {
     LOG_CAUGHT_EXCEPTION();
     try {
         z::ShowMessageBox(
-            "Loader Error",
+            "Loader",
             std::format("An error occurred:\n{}", e.what()),
             z::MessageBoxIcon::Error,
             z::MessageBoxButton::Ok
