@@ -282,7 +282,7 @@ int main() try {
         );
         if (result == z::MessageBoxResult::Yes) {
             z::OpenUrl(
-                "https://github.com/z3lx/genshin-fov-unlock/releases/latest"
+                "https://github.com/z3lx/genshin-unlock/releases/latest"
             );
         }
         std::exit(0);

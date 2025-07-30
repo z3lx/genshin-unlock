@@ -53,7 +53,7 @@ util::Version GetCurrentVersion() {
 
 util::Version GetLatestVersion() {
     constexpr auto endpoint =
-        "https://api.github.com/repos/z3lx/genshin-fov-unlock/releases/latest";
+        "https://api.github.com/repos/z3lx/genshin-unlock/releases/latest";
     const cpr::Response response = cpr::Get(
         cpr::Url { endpoint },
         cpr::Header { { "X-GitHub-Api-Version", "2022-11-28" } }

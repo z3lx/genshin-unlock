@@ -1,5 +1,5 @@
-![Project Version](https://img.shields.io/github/release/z3lx/genshin-fov-unlock?label=release)
-![Download Count](https://img.shields.io/github/downloads/z3lx/genshin-fov-unlock/total?label=downloads)
+![Project Version](https://img.shields.io/github/release/z3lx/genshin-unlock?label=release)
+![Download Count](https://img.shields.io/github/downloads/z3lx/genshin-unlock/total?label=downloads)
 
 # Genshin Impact Unlocker
 
@@ -28,7 +28,7 @@ While I have used this mod since its conception without issues, it is important 
 
 Due to the nature of the mod's implementation, it may be flagged by antivirus software as a false positive. If you encounter such issues during the installation process, consider adding the mod to your antivirus's exclusion list.
 
-1. Download `mod.zip` from the [latest release](https://github.com/z3lx/genshin-fov-unlock/releases/latest) and extract it
+1. Download `mod.zip` from the [latest release](https://github.com/z3lx/genshin-unlock/releases/latest) and extract it
 2. Run `loader.exe` from the extracted folder
 3. Wait for the game to launch
 4. (Optional) Configure the mod's behavior by editing the configuration files
@@ -277,12 +277,12 @@ Default plugin configuration:
 
 ## Building
 
-If you're looking to use the mod directly, a pre-built binary is available in the [latest release](https://github.com/z3lx/genshin-fov-unlock/releases/latest). To build the project from source, you must be on Windows and have MSVC v143 (Visual Studio 2022), Windows 11 SDK, CMake, and Git installed. Then, follow these steps:
+If you're looking to use the mod directly, a pre-built binary is available in the [latest release](https://github.com/z3lx/genshin-unlock/releases/latest). To build the project from source, you must be on Windows and have MSVC v143 (Visual Studio 2022), Windows 11 SDK, CMake, and Git installed. Then, follow these steps:
 
 1. Clone the repository
 ```bash
-git clone https://github.com/z3lx/genshin-fov-unlock.git
-cd genshin-fov-unlock
+git clone https://github.com/z3lx/genshin-unlock.git
+cd genshin-unlock
 ```
 2. Configure the project and its dependencies
 ```bash

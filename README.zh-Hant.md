@@ -1,5 +1,5 @@
-![專案版本](https://img.shields.io/github/release/z3lx/genshin-fov-unlock?label=release)
-![下載次數](https://img.shields.io/github/downloads/z3lx/genshin-fov-unlock/total?label=downloads)
+![專案版本](https://img.shields.io/github/release/z3lx/genshin-unlock?label=release)
+![下載次數](https://img.shields.io/github/downloads/z3lx/genshin-unlock/total?label=downloads)
 
 # 原神解鎖器
 
@@ -30,7 +30,7 @@ https://github.com/user-attachments/assets/56a11762-ebd2-4093-8c1d-768f913bd063
 
 由於該模組的實現方式，可能被殺毒軟體誤報為病毒。若在安裝過程中遇到此類問題，請考慮將模組新增至防毒軟體的例外清單。
 
-1. 從 [最新版本](https://github.com/z3lx/genshin-fov-unlock/releases/latest) 下載 `mod.zip` 並解壓
+1. 從 [最新版本](https://github.com/z3lx/genshin-unlock/releases/latest) 下載 `mod.zip` 並解壓
 2. 執行解壓縮後的資料夾中的 `loader.exe`
 3. 等待遊戲啟動
 4. （可選）透過編輯設定檔調整模組行為
@@ -279,12 +279,12 @@ https://github.com/user-attachments/assets/56a11762-ebd2-4093-8c1d-768f913bd063
 
 ## 建構
 
-如果您希望直接使用該模組，可在 [最新版本](https://github.com/z3lx/genshin-fov-unlock/releases/latest) 中取得預編譯二進位檔。若需要從原始碼建置專案，您必須使用 Windows 系統並已安裝 MSVC v143（Visual Studio 2022）、Windows 11 SDK、CMake 和 Git。然後，請按照以下步驟操作：
+如果您希望直接使用該模組，可在 [最新版本](https://github.com/z3lx/genshin-unlock/releases/latest) 中取得預編譯二進位檔。若需要從原始碼建置專案，您必須使用 Windows 系統並已安裝 MSVC v143（Visual Studio 2022）、Windows 11 SDK、CMake 和 Git。然後，請按照以下步驟操作：
 
 1. 克隆倉庫
 ```bash
-git clone https://github.com/z3lx/genshin-fov-unlock.git
-cd genshin-fov-unlock
+git clone https://github.com/z3lx/genshin-unlock.git
+cd genshin-unlock
 ```
 2. 配置項目及其相依性
 ```bash
