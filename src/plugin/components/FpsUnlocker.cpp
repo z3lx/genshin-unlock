@@ -9,8 +9,8 @@
 #include <Windows.h>
 
 namespace {
-constexpr uintptr_t OFFSET_GL = 0x3E81644;
-constexpr uintptr_t OFFSET_CN = 0x3E83644;
+constexpr uintptr_t OFFSET_GL = 0x3F4E67C;
+constexpr uintptr_t OFFSET_CN = 0x3F4F67C;
 } // namespace
 
 namespace z3lx::plugin {
