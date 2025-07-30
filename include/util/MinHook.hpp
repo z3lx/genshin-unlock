@@ -13,13 +13,12 @@ public:
     MinHook& operator=(MinHook&& other) noexcept;
 
     [[nodiscard]] bool IsEnabled() const noexcept;
-    void Enable();
-    void Disable();
+    void Enable(bool enable);
 
     Ret CallOriginal(Args... args) const;
 
 private:
-    bool enabled;
+    bool isEnabled;
     void* target;
     void* original;
 };

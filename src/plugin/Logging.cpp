@@ -1,19 +1,19 @@
 #include "plugin/Logging.hpp"
 #include "util/win/File.hpp"
-#include "util/win/Loader.hpp"
 #include "util/win/String.hpp"
 
 #include <wil/filesystem.h>
 #include <wil/resource.h>
 #include <wil/result.h>
 
-#include <cstdint>
+#include <array>
 #include <filesystem>
 #include <mutex>
 #include <string>
+#include <string_view>
 
 namespace {
-wil::unique_hfile fileHandle {};
+std::filesystem::path logFilePath {};
 
 void LoggingCallback(const wil::FailureInfo& info) noexcept {
     // Prevent recursive logging
@@ -25,35 +25,39 @@ void LoggingCallback(const wil::FailureInfo& info) noexcept {
     }
     isAcquired = true;
 
-    // Log message to file
-    constexpr size_t messageBufferSize = 2048;
-    wchar_t messageBuffer[messageBufferSize] {};
-    const HRESULT hr = wil::GetFailureLogString(
-        messageBuffer,
-        messageBufferSize,
-        info
-    );
+    try {
+        // Open or create file
+        static wil::unique_hfile fileHandle {};
+        if (!fileHandle.is_valid()) {
+            fileHandle = wil::open_or_truncate_existing_file(
+                logFilePath.native().c_str()
+            );
+        }
 
-    if (SUCCEEDED(hr)) try {
-        // std::fputws(messageBuffer, stderr);
-        const std::u8string message = z3lx::util::U16ToU8(messageBuffer);
-        z3lx::util::AppendFileU8(fileHandle.get(), message);
+        // Log message to file
+        static std::array<wchar_t, 2048> messageBuffer {};
+        const HRESULT hr = wil::GetFailureLogString(
+            messageBuffer.data(),
+            messageBuffer.size(),
+            info
+        );
+
+        if (SUCCEEDED(hr)) {
+            // std::fputws(messageBuffer, stderr);
+            const std::wstring_view message { messageBuffer.data() };
+            static std::u8string converted {};
+            z3lx::util::U16ToU8(message, converted);
+            z3lx::util::AppendFile(fileHandle.get(), converted);
+        }
     } catch (...) {}
 
     isAcquired = false;
 }
 } // namespace
 
-namespace z3lx::gfu {
-LoggingCallbackFunc GetLoggingCallback() {
-    static std::once_flag flag {};
-    std::call_once(flag, []() {
-        const std::filesystem::path currentPath =
-            util::GetCurrentModuleFilePath().parent_path();
-        fileHandle = wil::open_or_truncate_existing_file(
-            (currentPath / "log.txt").native().c_str()
-        );
-    });
+namespace z3lx::plugin {
+LoggingCallbackFunc GetLoggingCallback(std::filesystem::path logFilePath) {
+    ::logFilePath = std::move(logFilePath);
     return LoggingCallback;
 }
-} // namespace z3lx::gfu
+} // namespace z3lx::plugin

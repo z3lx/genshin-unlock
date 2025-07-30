@@ -1,46 +1,32 @@
 #pragma once
 
-#include "plugin/Events.hpp"
-#include "plugin/components/ConfigManager.hpp"
-#include "plugin/components/CursorObserver.hpp"
-#include "plugin/components/KeyboardObserver.hpp"
-#include "plugin/components/Unlocker.hpp"
-#include "plugin/components/WindowObserver.hpp"
-#include "plugin/interfaces/IMediator.hpp"
+#include "plugin/Config.hpp"
+#include "plugin/components/FovUnlocker.hpp"
+#include "plugin/components/FpsUnlocker.hpp"
+#include "plugin/components/PersistentObject.hpp"
+#include "plugin/components/VirtualKeyState.hpp"
+#include "plugin/interfaces/IComponent.hpp"
+#include "plugin/interfaces/IRunnable.hpp"
 
-#include <vector>
+#include <filesystem>
 
-#include <Windows.h>
-
-namespace z3lx::gfu {
-namespace detail {
-using Mediator = IMediator<
-    Event,
-    Unlocker,
-    ConfigManager,
-    WindowObserver,
-    CursorObserver,
-    KeyboardObserver
->;
-} // namespace detail
-
-class Plugin final : public detail::Mediator {
+namespace z3lx::plugin {
+class Plugin final
+    : public IComponent<
+        Plugin,
+        FpsUnlocker,
+        FovUnlocker,
+        PersistentObject<Config>,
+        VirtualKeyState>
+    , public IRunnable<Plugin> {
 public:
-    Plugin();
-    ~Plugin() noexcept override;
+    explicit Plugin(std::filesystem::path configFilePath);
+    ~Plugin() noexcept;
+
+    void Start();
+    void Update();
 
 private:
-    void Start() override;
-    void Notify(const Event& event) override;
-
-    template <typename Event>
-    void Handle(const Event& event);
-    void ConsumeState();
-
-    // State
-    bool isWindowFocused;
-    bool isCursorVisible;
-    std::vector<HWND> targetWindows;
-    Config config;
+    std::filesystem::path configFilePath;
 };
-} // namespace z3lx::gfu
+} // namespace z3lx::plugin

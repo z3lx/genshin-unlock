@@ -1,35 +1,66 @@
 #pragma once
 
 #include "plugin/interfaces/IComponent.hpp"
+#include "util/Type.hpp"
 
 #include <wil/result.h>
 
-namespace z3lx::gfu {
-template <typename Event>
-IComponent<Event>::IComponent() noexcept
-    : events { nullptr } {}
+#define ICOMPONENT_TEMPLATE                                                     \
+    template <typename Derived, typename... Components>
 
-template <typename Event>
-IComponent<Event>::~IComponent() noexcept = default;
+#define ICOMPONENT                                                              \
+    z3lx::plugin::IComponent<Derived, Components...>
 
-template <typename Event>
-void IComponent<Event>::Start() {}
+namespace z3lx::plugin {
+namespace detail {
+template <typename Component>
+struct ComponentStorage {
+    Component value {};
+};
+} // namespace detail
 
-template <typename Event>
-void IComponent<Event>::Update() {}
+ICOMPONENT_TEMPLATE
+ICOMPONENT::IComponent() = default;
 
-template <typename Event>
-void IComponent<Event>::Notify(const Event& event) {
-    events->push_back(event);
+ICOMPONENT_TEMPLATE
+ICOMPONENT::~IComponent() noexcept = default;
+
+ICOMPONENT_TEMPLATE
+constexpr void ICOMPONENT::Start() {}
+
+ICOMPONENT_TEMPLATE
+constexpr void ICOMPONENT::Update() {}
+
+ICOMPONENT_TEMPLATE
+template <typename Component>
+Component& ICOMPONENT::GetComponent() noexcept {
+    return detail::ComponentStorage<Component>::value;
 }
 
-template <typename Event>
-void IComponent<Event>::StartComponent() try {
-    Start();
-} CATCH_THROW_NORMALIZED_MSG("%hs", typeid(*this).name())
+ICOMPONENT_TEMPLATE
+template <typename Component>
+const Component& ICOMPONENT::GetComponent() const noexcept {
+    return detail::ComponentStorage<Component>::value;
+}
 
-template <typename Event>
-void IComponent<Event>::UpdateComponent() try {
-    Update();
-} CATCH_THROW_NORMALIZED_MSG("%hs", typeid(*this).name())
-} // namespace z3lx::gfu
+ICOMPONENT_TEMPLATE
+void ICOMPONENT::StartComponent() try {
+    (GetComponent<Components>().StartComponent(), ...);
+    static_cast<Derived*>(this)->Start();
+} CATCH_THROW_NORMALIZED_MSG(
+    "From Start method in component %hs",
+    util::GetTypeName<Derived>()
+)
+
+ICOMPONENT_TEMPLATE
+void ICOMPONENT::UpdateComponent() try {
+    (GetComponent<Components>().UpdateComponent(), ...);
+    static_cast<Derived*>(this)->Update();
+} CATCH_THROW_NORMALIZED_MSG(
+    "From Update method in component %hs",
+    util::GetTypeName<Derived>()
+)
+} // namespace z3lx::plugin
+
+#undef ICOMPONENT_TEMPLATE
+#undef ICOMPONENT

@@ -1,13 +1,35 @@
 #pragma once
 
 #include <string>
-#include <string_view>
 
 namespace z3lx::util {
-std::u8string AToU8(std::string_view view);
-std::u16string AToU16(std::string_view view);
-std::u16string U8ToU16(std::string_view view);
-std::u16string U8ToU16(std::u8string_view view);
-std::u8string U16ToU8(std::wstring_view view);
-std::u8string U16ToU8(std::u16string_view view);
+template <typename InputContiguousContainer, typename OutputContiguousContainer>
+void U16ToU8(
+    const InputContiguousContainer& inputBuffer,
+    OutputContiguousContainer& outputBuffer
+);
+
+template <
+    typename InputContiguousContainer,
+    typename OutputContiguousContainer = std::u8string
+>
+[[nodiscard]] OutputContiguousContainer U16ToU8(
+    const InputContiguousContainer& inputBuffer
+);
+
+template <typename InputContiguousContainer, typename OutputContiguousContainer>
+void U8ToU16(
+    const InputContiguousContainer& inputBuffer,
+    OutputContiguousContainer& outputBuffer
+);
+
+template <
+    typename InputContiguousContainer,
+    typename OutputContiguousContainer = std::u16string
+>
+[[nodiscard]] OutputContiguousContainer U8ToU16(
+    const InputContiguousContainer& inputBuffer
+);
 } // namespace z3lx::util
+
+#include "util/win/StringInl.hpp"

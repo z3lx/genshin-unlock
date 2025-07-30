@@ -1,31 +1,43 @@
 #pragma once
 
-#include "plugin/interfaces/IMediator.hpp"
+#include "plugin/interfaces/IRunnable.hpp"
 
-#include <type_traits>
-#include <vector>
+#include <cstdint>
 
-namespace z3lx::gfu {
-template <typename Event>
-class IComponent {
-    IMEDIATOR_TEMPLATE
-    friend class IMediator;
+namespace z3lx::plugin {
+namespace detail {
+template <typename Component>
+struct ComponentStorage;
+} // namespace detail
+
+template <typename Derived, typename... Components>
+class IComponent : detail::ComponentStorage<Components>... {
+    template <typename D, uint16_t F>
+    friend class IRunnable;
+
+    template <typename D, typename... Cs>
+    friend class IComponent;
+
 public:
-    IComponent() noexcept;
-    virtual ~IComponent() noexcept;
+    IComponent();
+    ~IComponent() noexcept;
+    IComponent(const IComponent&) = delete;
+    IComponent(IComponent&&) = delete;
 
 protected:
-    virtual void Start();
-    virtual void Update();
+    constexpr static void Start();
+    constexpr static void Update();
 
-    void Notify(const Event& event);
+    template <typename Component>
+    [[nodiscard]] Component& GetComponent() noexcept;
+
+    template <typename Component>
+    [[nodiscard]] const Component& GetComponent() const noexcept;
 
 private:
     void StartComponent();
     void UpdateComponent();
-
-    std::vector<Event>* events;
 };
-} // namespace z3lx::gfu
+} // namespace z3lx::plugin
 
 #include "plugin/interfaces/IComponentInl.hpp"

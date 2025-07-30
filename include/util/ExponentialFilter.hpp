@@ -21,10 +21,10 @@ public:
     ExponentialFilter(ExponentialFilter&& other) noexcept;
     ExponentialFilter& operator=(ExponentialFilter&& other) noexcept;
 
-    Real TimeConstant() const noexcept;
-    void TimeConstant(Real value) noexcept;
-    Real InitialValue() const noexcept;
-    void InitialValue(Real value) noexcept;
+    [[nodiscard]] Real GetTimeConstant() const noexcept;
+    void SetTimeConstant(Real value) noexcept;
+    [[nodiscard]] Real GetInitialValue() const noexcept;
+    void SetInitialValue(Real value) noexcept;
     Real Update(Real value) noexcept;
 
 private:
