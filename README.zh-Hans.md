@@ -1,70 +1,268 @@
-![版本](https://img.shields.io/badge/版本-5.7-brightgreen)
-![下载量](https://img.shields.io/github/downloads/z3lx/genshin-fov-unlock/total?label=下载量)
+![项目版本](https://img.shields.io/github/release/z3lx/genshin-fov-unlock?label=release)
+![下载次数](https://img.shields.io/github/downloads/z3lx/genshin-fov-unlock/total?label=downloads)
 
-# 原神视野（FOV）解锁插件
+# 原神解锁器
 
 [English](README.md) | **简体中文** | [繁體中文](README.zh-Hant.md)
 
 > ⚠️ 此文为自动翻译，仅供参考，请以英文原文为准。
 
-这是一个用于原神（Genshin Impact）的插件，可将相机默认45°的视野（FOV）解锁到更高数值。插件包含一个 DLL 文件，需配合 [**genshin-fps-unlock**](https://github.com/34736384/genshin-fps-unlock) 一起使用。如果你觉得这个插件好用，别忘了给项目点个 ⭐！
-
-本插件支持国际服（GL）和国服（CN），但暂不完全兼容手柄控制。
+一个提升游戏体验的模组，解锁游戏的帧率（FPS）和视野（FOV），并包含其他多种优化。如果您觉得这个项目有用，请考虑给仓库点个星 🌟！
 
 https://github.com/user-attachments/assets/56a11762-ebd2-4093-8c1d-768f913bd063
 
+## 功能
+
+- 定期更新以支持《原神》PC客户端的全球及中国版本
+- 解锁帧率（FPS）和视野（FOV）
+- 当游戏未处于焦点时，限制帧率并降低游戏进程优先级
+- 与游戏内序列化视野变化集成（例如爆发、过场动画）
+- 通过键位绑定快速切换视角解锁状态及预设模式
+- 自定义游戏启动参数和显示设置
+- 兼容[GIMI](https://github.com/SilentNightSound/GI-Model-Importer)及相关模组
+- 不完全兼容PC手柄布局
+
 ## 免责声明
 
-我个人使用该插件未遇到任何问题，也未被封号。但请注意，此类第三方插件违反游戏服务条款。建议你自行审查源代码并编译，以确保透明可控并了解相关风险。
-
-虽然插件本身很轻量，但提升视野会让游戏渲染更多物体，从而明显影响性能。在极端数值下，还可能出现图像瑕疵。
+尽管我自该模组发布以来一直使用且未遇到问题，但需注意第三方软件修改游戏行为可能违反游戏服务条款，并存在账号封禁风险。建议您查看源代码并自行构建项目以确保透明度并评估潜在风险。
 
 ## 安装
 
-1. 下载最新版 **genshin-fps-unlock** 工具：
-   1. 前往项目的 [**最新发布**](https://github.com/34736384/genshin-fps-unlock/releases/latest)。
-   2. 从 **Assets** 区域下载 **unlockfps_nc.exe** 可执行文件。
-   3. 将其放置在任意文件夹中（后续步骤均以此文件所在目录为例）。
-2. 下载最新版 **genshin-fov-unlock** 插件：
-   1. 前往项目的 [**最新发布**](https://github.com/z3lx/genshin-fov-unlock/releases/latest)。
-   2. 从 **Assets** 区域下载 **plugin.zip** 压缩包。
-   3. 解压到任意文件夹（**不要放在 genshin-fps-unlock 根目录**）。压缩包包含 **genshin_fov_unlock.dll** 和 **fov_config.json**。
-3. 配置 **genshin-fps-unlock** 加载插件：
-   1. 运行 **unlockfps_nc.exe**。
-   2. 依次点击 **Options** → **Settings** → **DLLs** → **Add**。
-   3. 添加 **genshin_fov_unlock.dll** 的完整路径。
-4. （可选）修改插件配置：
-   1. 使用文本编辑器打开 **fov_config.json**。
-   2. 按需修改参数，详情见下方【配置】章节。
+由于该模组的实现方式，可能被杀毒软件误报为病毒。若在安装过程中遇到此类问题，请考虑将模组添加至杀毒软件的例外列表。
 
-完成上述步骤后，通过 **unlockfps_nc.exe** 启动游戏时，插件将自动加载。如需了解更多工具使用方式，请参阅该工具的 [**README**](https://github.com/34736384/genshin-fps-unlock/blob/netcore/README.md)。
+1. 从 [最新版本](https://github.com/z3lx/genshin-fov-unlock/releases/latest) 下载 `mod.zip` 并解压
+2. 运行解压后的文件夹中的 `loader.exe`
+3. 等待游戏启动
+4. （可选）通过编辑配置文件调整模组行为
 
-## 使用
+模组在游戏中激活后：
+- 使用 <kbd>←</kbd> 和 <kbd>→</kbd> 键循环切换 FOV 预设
+- 使用 <kbd>↓</kbd> 键切换 FOV 解锁状态
 
-- <kbd>←</kbd> / <kbd>→</kbd>：切换预设视野（FOV）。
-- <kbd>↓</kbd>：启用/禁用插件。
+与 [GIMI](https://github.com/SilentNightSound/GI-Model-Importer) 配合使用：
+1. 使用文本编辑器打开 `loader_config.json` 文件
+2. 将 GIMI 的 `d3d11.dll` 路径添加到 `dllPaths` 数组中
+```json
+"dllPaths": [
+    "plugin.dll",
+    "C:\\path\\to\\GIMI\\d3d11.dll"
+],
+```
 
 ## 配置
 
-插件的行为可通过与 **genshin_fov_unlock.dll** 同目录的 **fov_config.json** 自定义。以下为可配置项：
+模组的行为可通过 `loader_config.json` 和 `plugin_config.json` 文件进行自定义，具体如下。
 
-- `enabled`（布尔值）：游戏启动时是否默认启用。
-- `fov`（整数）：默认视野值。
-- `fov_presets`（整数数组）：可切换的 FOV 预设列表。
-- `smoothing`（浮点数）：指数滤波时间常数（秒），数值越小响应越快，设定过高可能触发完整性验证。
-- `enable_key`（整数）：启用/禁用插件的按键代码。
-- `next_key`（整数）：切换到下一个预设的按键代码。
-- `prev_key`（整数）：切换到上一个预设的按键代码。
+### 加载器
 
-> **注意**：所有按键代码需使用十进制格式。参考 [虚拟按键码文档](https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes) 获取合法值。
+| 键                | 类型         | 描述                      |
+|------------------|------------|-------------------------|
+| `checkUpdates`   | `bool`     | 检查模组的新版本                |
+| `gamePath`       | `string`   | Genshin Impact 可执行文件的路径 |
+| `overrideArgs`   | `bool`     | 覆盖游戏的默认启动参数             |
+| `monitorIndex`   | `int`      | 用于游戏窗口的监视器索引（从 1 开始）    |
+| `displayMode`    | `string`   | 游戏窗口的显示模式               |
+| `screenWidth`    | `int`      | 游戏窗口的宽度（以像素为单位）         |
+| `screenHeight`   | `int`      | 游戏窗口的高度（以像素为单位）         |
+| `mobilePlatform` | `bool`     | 启用移动端 UI                |
+| `additionalArgs` | `string`   | 传递给游戏可执行文件的额外参数         |
+| `dllPaths`       | `string[]` | 要注入到游戏中的 DLL 文件列表       |
+| `suspendLoad`    | `bool`     | 暂停游戏进程直至模组完全加载          |
 
-**默认配置**：
+<details>
+
+<summary>有效显示模式</summary>
+
+| 值            | 描述       |
+|--------------|----------|
+| `Windowed`   | 窗口化模式    |
+| `Fullscreen` | 全屏独占模式   |
+| `Borderless` | 无边框窗口化模式 |
+
+</details>
+
+默认加载器配置：
 
 ```json
 {
-    "enabled": true,
-    "fov": 75,
-    "fov_presets": [
+    "checkUpdates": true,
+    "gamePath": "",
+    "overrideArgs": false,
+    "monitorIndex": 1,
+    "displayMode": "Fullscreen",
+    "screenWidth": 1920,
+    "screenHeight": 1080,
+    "mobilePlatform": false,
+    "additionalArgs": "",
+    "dllPaths": [
+        "plugin.dll"
+    ],
+    "suspendLoad": false
+}
+```
+
+### 插件
+
+| 键                  | 类型       | 描述                   |
+|--------------------|----------|----------------------|
+| `unlockFps`        | `bool`   | 启用帧率（FPS）解锁          |
+| `targetFps`        | `int`    | 解锁帧率时的目标帧率           |
+| `autoThrottle`     | `bool`   | 当插件未被聚焦时限制帧率并降低进程优先级 |
+| `unlockFov`        | `bool`   | 启用视场角（FOV）解锁         |
+| `targetFov`        | `int`    | 启动时应用的默认FOV          |
+| `fovPresets`       | `int[]`  | 要循环的FOV值列表           |
+| `fovSmoothing`     | `float`  | FOV过渡时的平滑因子（以秒为单位）   |
+| `unlockFovKey`     | `string` | 用于切换视场解锁的键绑定         |
+| `nextFovPresetKey` | `string` | 用于循环到下一个视场预设的键绑定     |
+| `prevFovPresetKey` | `string` | 用于循环到上一个视场预设的键绑定     |
+
+<details>
+
+<summary>有效键绑定</summary>
+
+| 常量                | 描述                     |
+|-------------------|------------------------|
+| `LeftMouse`       | 左键                     |
+| `RightMouse`      | 右键                     |
+| `MiddleMouse`     | 中键                     |
+| `X1Mouse`         | X1键                    |
+| `X2Mouse`         | X2键                    |
+| `Backspace`       | 退格键                    |
+| `Tab`             | 制表键                    |
+| `Clear`           | 清除键                    |
+| `Enter`           | 回车键                    |
+| `Shift`           | 换页键                    |
+| `Ctrl`            | Ctrl 键                 |
+| `Alt`             | Alt 键                  |
+| `Pause`           | 暂停键                    |
+| `CapsLock`        | 大写锁定键                  |
+| `Esc`             | 逃逸键                    |
+| `Space`           | 空格键                    |
+| `PageUp`          | 页面向上键                  |
+| `PageDown`        | 页面向下键                  |
+| `End`             | 末尾键                    |
+| `Home`            | 首页键                    |
+| `LeftArrow`       | 左箭头键                   |
+| `UpArrow`         | 上箭头键                   |
+| `RightArrow`      | 右箭头键                   |
+| `DownArrow`       | 下箭头键                   |
+| `PrintScreen`     | 打印屏幕键                  |
+| `Insert`          | 插入键                    |
+| `Delete`          | 删除键                    |
+| `0`               | 0 键                    |
+| `1`               | 1 键                    |
+| `2`               | 2 键                    |
+| `3`               | 3 键                    |
+| `4`               | 4 键                    |
+| `5`               | 5 键                    |
+| `6`               | 6 键                    |
+| `7`               | 7 键                    |
+| `8`               | 8 键                    |
+| `9`               | 9 键                    |
+| `A`               | A 键                    |
+| `B`               | B 键                    |
+| `C`               | C 键                    |
+| `D`               | D 键                    |
+| `E`               | E 键                    |
+| `F`               | F 键                    |
+| `G`               | G 键                    |
+| `H`               | H 键                    |
+| `I`               | I 键                    |
+| `J`               | J 键                    |
+| `K`               | K 键                    |
+| `L`               | L 键                    |
+| `M`               | M 键                    |
+| `N`               | N 键                    |
+| `O`               | O 键                    |
+| `P`               | P 键                    |
+| `Q`               | Q 键                    |
+| `R`               | R 键                    |
+| `S`               | S 键                    |
+| `T`               | T 键                    |
+| `U`               | U 键                    |
+| `V`               | V 键                    |
+| `W`               | W 键                    |
+| `X`               | X 键                    |
+| `Y`               | Y 键                    |
+| `Z`               | Z 键                    |
+| `LeftWindows`     | 左 Windows 徽标键          |
+| `RightWindows`    | 右 Windows 徽标键          |
+| `Apps`            | 应用程序键                  |
+| `Numpad0`         | 数字小键盘 0 键              |
+| `Numpad1`         | 数字小键盘 1 键              |
+| `Numpad2`         | 数字小键盘 2 键              |
+| `Numpad3`         | 数字小键盘 3 键              |
+| `Numpad4`         | 数字小键盘 4 键              |
+| `Numpad5`         | 数字小键盘 5 键              |
+| `Numpad6`         | 数字小键盘 6 键              |
+| `Numpad7`         | 数字小键盘 7 键              |
+| `Numpad8`         | 数字小键盘 8 键              |
+| `Numpad9`         | 数字小键盘 9 键              |
+| `NumpadMultiply`  | 乘法键                    |
+| `NumpadAdd`       | 加法键                    |
+| `NumpadSeparator` | 分隔符键                   |
+| `NumpadSubtract`  | 减法键                    |
+| `NumpadDecimal`   | 小数键                    |
+| `NumpadDivide`    | 除号键                    |
+| `F1`              | F1 键                   |
+| `F2`              | F2 键                   |
+| `F3`              | F3 键                   |
+| `F4`              | F4 键                   |
+| `F5`              | F5 键                   |
+| `F6`              | F6 键                   |
+| `F7`              | F7 键                   |
+| `F8`              | F8 键                   |
+| `F9`              | F9 键                   |
+| `F10`             | F10 键                  |
+| `F11`             | F11 键                  |
+| `F12`             | F12 键                  |
+| `F13`             | F13 键                  |
+| `F14`             | F14 键                  |
+| `F15`             | F15 键                  |
+| `F16`             | F16 键                  |
+| `F17`             | F17 键                  |
+| `F18`             | F18 键                  |
+| `F19`             | F19 键                  |
+| `F20`             | F20 键                  |
+| `F21`             | F21 键                  |
+| `F22`             | F22 键                  |
+| `F23`             | F23 键                  |
+| `F24`             | F24 键                  |
+| `NumLock`         | Num Lock 键             |
+| `ScrollLock`      | 滚动锁定键                  |
+| `LeftShift`       | 左 Shift 键              |
+| `RightShift`      | 右 Shift 键              |
+| `LeftCtrl`        | 左 Ctrl 键               |
+| `RightCtrl`       | 右 Ctrl 键               |
+| `LeftAlt`         | 左Alt键                  |
+| `RightAlt`        | 右Alt键                  |
+| `Oem1`            | 对于美国ANSI键盘，分号和冒号键      |
+| `Plus`            | 对于任何国家和地区，等号和加号键       |
+| `Comma`           | 对于任何国家和地区，逗号和小于号键      |
+| `Minus`           | 适用于任何国家和地区，破折号和下划线键    |
+| `Period`          | 适用于任何国家和地区，句点和大于号键     |
+| `Oem2`            | 适用于美国 ANSI 键盘，正斜杠和问号键  |
+| `Oem3`            | 适用于美国 ANSI 键盘，重音符和波浪号键 |
+| `Oem4`            | 适用于美国 ANSI 键盘，左大括号键    |
+| `Oem5`            | 适用于美国 ANSI 键盘，反斜杠和竖线键  |
+| `Oem6`            | 适用于美国 ANSI 键盘，右大括号键    |
+| `Oem7`            | 适用于美国 ANSI 键盘，撇号和双引号键  |
+| `Oem8`            | 加拿大 CSA 键盘的右 Ctrl 键    |
+| `Oem102`          | 欧洲 ISO 键盘的反斜杠和竖线键      |
+| `OemClear`        | 清除键                    |
+
+</details>
+
+默认插件配置：
+
+```json
+{
+    "unlockFps": true,
+    "targetFps": 120,
+    "autoThrottle": true,
+    "unlockFov": true,
+    "targetFov": 90,
+    "fovPresets": [
         30,
         45,
         60,
@@ -72,40 +270,42 @@ https://github.com/user-attachments/assets/56a11762-ebd2-4093-8c1d-768f913bd063
         90,
         110
     ],
-    "smoothing": 0.125,
-    "enable_key": 40,
-    "next_key": 39,
-    "prev_key": 37
+    "fovSmoothing": 0.125,
+    "unlockFovKey": "DownArrow",
+    "nextFovPresetKey": "RightArrow",
+    "prevFovPresetKey": "LeftArrow"
 }
 ```
 
-## 源代码构建
+## 构建
 
-如果只想使用插件，建议参阅【安装】章节。若要从源码自行构建：
+如果您希望直接使用该模组，可在 [最新版本](https://github.com/z3lx/genshin-fov-unlock/releases/latest) 中获取预编译二进制文件。若需从源代码构建项目，您必须使用 Windows 系统并已安装 MSVC v143（Visual Studio 2022）、Windows 11 SDK、CMake 和 Git。然后，按照以下步骤操作：
 
-1. 在 Windows 环境下，确保已安装 git、CMake 和 MSVC。
-2. 克隆项目并进入目录：
-   ```bash
-   git clone https://github.com/z3lx/genshin-fov-unlock.git
-   cd genshin-fov-unlock
-   ```
-3. 配置项目（需联网获取依赖）：
-   ```bash
-   cmake . -G "Visual Studio 17 2022"
-   ```
-4. 构建项目：
-   ```bash
-   cmake --build . --config Release
-   ```
-
-构建完成后，**Release** 目录下会生成 **genshin_fov_unlock.dll**。
+1. 克隆仓库
+```bash
+git clone https://github.com/z3lx/genshin-fov-unlock.git
+cd genshin-fov-unlock
+```
+2. 配置项目及其依赖项
+```bash
+cmake . -G "Visual Studio 17 2022"
+```
+3. 构建项目
+```bash
+cmake --build . --config Release
+```
 
 ## 致谢
 
-* 使用了 [**minhook**](https://github.com/TsudaKageyu/minhook)（BSD-2-Clause）；
-* 使用了 [**nlohmann/json**](https://github.com/nlohmann/json)（MIT）；
-* 灵感来源于 [**genshin-utility**](https://github.com/lanylow/genshin-utility)。
+本项目使用了以下库和资源：
+- [`cpr`](https://github.com/libcpr/cpr)，采用 MIT 许可证授权
+- [`glaze`](https://github.com/stephenberry/glaze)，采用 MIT 许可证
+- [`minhook`](https://github.com/TsudaKageyu/minhook)，采用 BSD-2-Clause 许可证
+- [`wil`](https://github.com/microsoft/wil)，采用 MIT 许可证
+- [`genshin-fps-unlock`](https://github.com/34736384/genshin-fps-unlock)，用于实现细节的参考
+- [`genshin-utility`](https://github.com/lanylow/genshin-utility)，用于模组初始构思的参考
+- [`gurh32`](https://x.com/gurh32/status/1944266962496106662)，加载器图标所用艺术作品的来源
 
 ## 许可证
 
-本项目采用 MIT 许可证。详情请参见仓库中的 [LICENSE](LICENSE) 文件。
+本项目采用 MIT 许可证。请参阅 [LICENSE](LICENSE) 文件以获取更多信息。
