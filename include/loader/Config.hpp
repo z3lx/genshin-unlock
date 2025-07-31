@@ -13,7 +13,6 @@ enum class DisplayMode : uint8_t {
 };
 
 struct Config {
-    bool checkUpdates = true;
     std::filesystem::path gamePath {};
     bool overrideArgs = false;
     uint8_t monitorIndex = 1;

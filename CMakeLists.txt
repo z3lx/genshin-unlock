@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.28)
 project(genshin-fov-unlock
-    VERSION 5.8.0.0
+    VERSION 5.8.1.0
 )
 
 set(CMAKE_CXX_STANDARD 23)
@@ -10,15 +10,6 @@ if (NOT MSVC)
 endif()
 
 include(FetchContent)
-
-set(BUILD_SHARED_LIBS OFF)
-FetchContent_Declare(
-    cpr
-    GIT_REPOSITORY https://github.com/libcpr/cpr.git
-    GIT_TAG 1.11.3
-    GIT_SHALLOW TRUE
-)
-FetchContent_MakeAvailable(cpr)
 
 FetchContent_Declare(
     glaze
@@ -81,7 +72,6 @@ set(LOADER_RESOURCE ${RESOURCES_DIR}/loader.rc)
 add_executable(loader ${LOADER_SOURCES} ${LOADER_RESOURCE})
 target_include_directories(loader PRIVATE include)
 target_link_libraries(loader
-    PRIVATE cpr::cpr
     PRIVATE glaze::glaze
     PRIVATE WIL::WIL
     PRIVATE util
