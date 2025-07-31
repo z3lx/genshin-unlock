@@ -57,7 +57,6 @@ https://github.com/user-attachments/assets/56a11762-ebd2-4093-8c1d-768f913bd063
 
 | 键                | 类型         | 描述                      |
 |------------------|------------|-------------------------|
-| `checkUpdates`   | `bool`     | 检查模组的新版本                |
 | `gamePath`       | `string`   | Genshin Impact 可执行文件的路径 |
 | `overrideArgs`   | `bool`     | 覆盖游戏的默认启动参数             |
 | `monitorIndex`   | `int`      | 用于游戏窗口的监视器索引（从 1 开始）    |
@@ -85,7 +84,6 @@ https://github.com/user-attachments/assets/56a11762-ebd2-4093-8c1d-768f913bd063
 
 ```json
 {
-    "checkUpdates": true,
     "gamePath": "",
     "overrideArgs": false,
     "monitorIndex": 1,
@@ -298,7 +296,6 @@ cmake --build . --config Release
 ## 致谢
 
 本项目使用了以下库和资源：
-- [`cpr`](https://github.com/libcpr/cpr)，采用 MIT 许可证授权
 - [`glaze`](https://github.com/stephenberry/glaze)，采用 MIT 许可证
 - [`minhook`](https://github.com/TsudaKageyu/minhook)，采用 BSD-2-Clause 许可证
 - [`wil`](https://github.com/microsoft/wil)，采用 MIT 许可证
