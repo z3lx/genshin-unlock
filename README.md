@@ -295,7 +295,7 @@ cmake --build . --config Release
 
 This project makes use of the following libraries and resources:
 - [`glaze`](https://github.com/stephenberry/glaze), licensed under the MIT License
-- [`minhook`](https://github.com/TsudaKageyu/minhook), licensed under the BSD-2-Clause License
+- [`mminhook`](https://github.com/z3lx/mminhook), licensed under the MIT License
 - [`wil`](https://github.com/microsoft/wil), licensed under the MIT License
 - [`genshin-fps-unlock`](https://github.com/34736384/genshin-fps-unlock), referenced for implementation details
 - [`genshin-utility`](https://github.com/lanylow/genshin-utility), referenced for the initial conception of the mod
