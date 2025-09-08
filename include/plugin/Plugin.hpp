@@ -6,7 +6,6 @@
 #include "plugin/components/PersistentObject.hpp"
 #include "plugin/components/VirtualKeyState.hpp"
 #include "plugin/interfaces/IComponent.hpp"
-#include "plugin/interfaces/IRunnable.hpp"
 
 #include <filesystem>
 
@@ -17,8 +16,8 @@ class Plugin final
         FpsUnlocker,
         FovUnlocker,
         PersistentObject<Config>,
-        VirtualKeyState>
-    , public IRunnable<Plugin> {
+        VirtualKeyState
+    > {
 public:
     explicit Plugin(std::filesystem::path configFilePath);
     ~Plugin() noexcept;

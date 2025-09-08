@@ -5,6 +5,10 @@
 
 #include <wil/result.h>
 
+#include <chrono>
+#include <cstdint>
+#include <thread>
+
 #define ICOMPONENT_TEMPLATE                                                     \
     template <typename Derived, typename... Components>
 
@@ -24,6 +28,23 @@ ICOMPONENT::IComponent() = default;
 
 ICOMPONENT_TEMPLATE
 ICOMPONENT::~IComponent() noexcept = default;
+
+ICOMPONENT_TEMPLATE
+void ICOMPONENT::Run(const uint16_t frequency) try {
+    auto derived = static_cast<Derived*>(this);
+    derived->StartComponent();
+    while (true) {
+        derived->UpdateComponent();
+        if (frequency != 0) {
+            using Milliseconds = std::chrono::duration<double, std::milli>;
+            const Milliseconds duration { 1000.0 / frequency };
+            std::this_thread::sleep_for(duration);
+        }
+    }
+} CATCH_THROW_NORMALIZED_MSG(
+    "From Run method in component %hs",
+    util::GetTypeName<Derived>()
+)
 
 ICOMPONENT_TEMPLATE
 constexpr void ICOMPONENT::Start() {}
