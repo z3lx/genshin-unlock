@@ -1,11 +1,11 @@
 #pragma once
 
-#include "plugin/interfaces/IComponent.hpp"
+#include "plugin/interfaces/ComponentBase.hpp"
 
 #include <optional>
 
 namespace z3lx::plugin {
-class WindowState final : public IComponent<WindowState> {
+class WindowState final : public ComponentBase<WindowState> {
 public:
     WindowState() noexcept;
     ~WindowState() noexcept;

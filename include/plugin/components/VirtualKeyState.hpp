@@ -1,12 +1,12 @@
 #pragma once
 
-#include "plugin/interfaces/IComponent.hpp"
+#include "plugin/interfaces/ComponentBase.hpp"
 #include "util/win/VirtualKey.hpp"
 
 #include <bitset>
 
 namespace z3lx::plugin {
-class VirtualKeyState final : public IComponent<VirtualKeyState> {
+class VirtualKeyState final : public ComponentBase<VirtualKeyState> {
 public:
     VirtualKeyState() noexcept;
     ~VirtualKeyState() noexcept;

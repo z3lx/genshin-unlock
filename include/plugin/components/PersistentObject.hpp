@@ -1,6 +1,6 @@
 #pragma once
 
-#include "plugin/interfaces/IComponent.hpp"
+#include "plugin/interfaces/ComponentBase.hpp"
 
 #include <wil/filesystem.h>
 #include <wil/resource.h>
@@ -12,7 +12,7 @@
 
 namespace z3lx::plugin {
 template <typename T>
-class PersistentObject final : public IComponent<PersistentObject<T>> {
+class PersistentObject final : public ComponentBase<PersistentObject<T>> {
 public:
     PersistentObject() noexcept;
     ~PersistentObject() noexcept;

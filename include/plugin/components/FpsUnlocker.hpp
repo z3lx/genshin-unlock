@@ -1,10 +1,10 @@
 #pragma once
 
 #include "plugin/components/WindowState.hpp"
-#include "plugin/interfaces/IComponent.hpp"
+#include "plugin/interfaces/ComponentBase.hpp"
 
 namespace z3lx::plugin {
-class FpsUnlocker final : public IComponent<
+class FpsUnlocker final : public ComponentBase<
     FpsUnlocker,
     WindowState
 > {

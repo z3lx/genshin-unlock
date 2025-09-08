@@ -1,6 +1,6 @@
 #pragma once
 
-#include "plugin/interfaces/IComponent.hpp"
+#include "plugin/interfaces/ComponentBase.hpp"
 #include "util/Type.hpp"
 
 #include <wil/result.h>
@@ -9,11 +9,11 @@
 #include <cstdint>
 #include <thread>
 
-#define ICOMPONENT_TEMPLATE                                                     \
+#define COMPONENTBASE_TEMPLATE                                                     \
     template <typename Derived, typename... Components>
 
-#define ICOMPONENT                                                              \
-    z3lx::plugin::IComponent<Derived, Components...>
+#define COMPONENTBASE                                                              \
+    z3lx::plugin::ComponentBase<Derived, Components...>
 
 namespace z3lx::plugin {
 namespace detail {
@@ -23,14 +23,14 @@ struct ComponentStorage {
 };
 } // namespace detail
 
-ICOMPONENT_TEMPLATE
-ICOMPONENT::IComponent() = default;
+COMPONENTBASE_TEMPLATE
+COMPONENTBASE::ComponentBase() = default;
 
-ICOMPONENT_TEMPLATE
-ICOMPONENT::~IComponent() noexcept = default;
+COMPONENTBASE_TEMPLATE
+COMPONENTBASE::~ComponentBase() noexcept = default;
 
-ICOMPONENT_TEMPLATE
-void ICOMPONENT::Run(const uint16_t frequency) try {
+COMPONENTBASE_TEMPLATE
+void COMPONENTBASE::Run(const uint16_t frequency) try {
     auto derived = static_cast<Derived*>(this);
     derived->StartComponent();
     while (true) {
@@ -46,26 +46,26 @@ void ICOMPONENT::Run(const uint16_t frequency) try {
     util::GetTypeName<Derived>()
 )
 
-ICOMPONENT_TEMPLATE
-constexpr void ICOMPONENT::Start() {}
+COMPONENTBASE_TEMPLATE
+constexpr void COMPONENTBASE::Start() {}
 
-ICOMPONENT_TEMPLATE
-constexpr void ICOMPONENT::Update() {}
+COMPONENTBASE_TEMPLATE
+constexpr void COMPONENTBASE::Update() {}
 
-ICOMPONENT_TEMPLATE
+COMPONENTBASE_TEMPLATE
 template <typename Component>
-Component& ICOMPONENT::GetComponent() noexcept {
+Component& COMPONENTBASE::GetComponent() noexcept {
     return detail::ComponentStorage<Component>::value;
 }
 
-ICOMPONENT_TEMPLATE
+COMPONENTBASE_TEMPLATE
 template <typename Component>
-const Component& ICOMPONENT::GetComponent() const noexcept {
+const Component& COMPONENTBASE::GetComponent() const noexcept {
     return detail::ComponentStorage<Component>::value;
 }
 
-ICOMPONENT_TEMPLATE
-void ICOMPONENT::StartComponent() try {
+COMPONENTBASE_TEMPLATE
+void COMPONENTBASE::StartComponent() try {
     (GetComponent<Components>().StartComponent(), ...);
     static_cast<Derived*>(this)->Start();
 } CATCH_THROW_NORMALIZED_MSG(
@@ -73,8 +73,8 @@ void ICOMPONENT::StartComponent() try {
     util::GetTypeName<Derived>()
 )
 
-ICOMPONENT_TEMPLATE
-void ICOMPONENT::UpdateComponent() try {
+COMPONENTBASE_TEMPLATE
+void COMPONENTBASE::UpdateComponent() try {
     (GetComponent<Components>().UpdateComponent(), ...);
     static_cast<Derived*>(this)->Update();
 } CATCH_THROW_NORMALIZED_MSG(
@@ -83,5 +83,5 @@ void ICOMPONENT::UpdateComponent() try {
 )
 } // namespace z3lx::plugin
 
-#undef ICOMPONENT_TEMPLATE
-#undef ICOMPONENT
+#undef COMPONENTBASE_TEMPLATE
+#undef COMPONENTBASE

@@ -1,11 +1,11 @@
 #pragma once
 
-#include "plugin/interfaces/IComponent.hpp"
+#include "plugin/interfaces/ComponentBase.hpp"
 
 #include <optional>
 
 namespace z3lx::plugin {
-class CursorState final : public IComponent<CursorState> {
+class CursorState final : public ComponentBase<CursorState> {
 public:
     CursorState() noexcept;
     ~CursorState() noexcept;
