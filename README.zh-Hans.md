@@ -297,7 +297,7 @@ cmake --build . --config Release
 
 本项目使用了以下库和资源：
 - [`glaze`](https://github.com/stephenberry/glaze)，采用 MIT 许可证
-- [`minhook`](https://github.com/TsudaKageyu/minhook)，采用 BSD-2-Clause 许可证
+- [`mminhook`](https://github.com/z3lx/mminhook)，采用 MIT 许可证
 - [`wil`](https://github.com/microsoft/wil)，采用 MIT 许可证
 - [`genshin-fps-unlock`](https://github.com/34736384/genshin-fps-unlock)，用于实现细节的参考
 - [`genshin-utility`](https://github.com/lanylow/genshin-utility)，用于模组初始构思的参考
