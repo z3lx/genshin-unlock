@@ -14,7 +14,7 @@
 import mmh;
 
 namespace {
-constexpr uintptr_t OFFSET_GL = 0xFE0DA0;
+constexpr uintptr_t OFFSET_OS = 0xFE0DA0;
 constexpr uintptr_t OFFSET_CN = 0xFE0DA0;
 
 void HkSetFieldOfView(void* instance, float value) noexcept;
@@ -46,7 +46,7 @@ void FovUnlocker::Start() {
     const auto [module, region] = GetGameModuleContext();
     const uintptr_t offset = [region] {
         switch (region) {
-        case GameRegion::GL: return OFFSET_GL;
+        case GameRegion::OS: return OFFSET_OS;
         case GameRegion::CN: return OFFSET_CN;
         default: THROW_WIN32(ERROR_NOT_SUPPORTED);
         }

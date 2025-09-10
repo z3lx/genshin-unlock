@@ -53,7 +53,7 @@ std::filesystem::path GetGamePath() {
             glKey
         ))) {
         key = std::move(glKey);
-        executableName = z::glGameFileName;
+        executableName = z::osGameFileName;
     } else if (wil::unique_hkey cnKey {};
         SUCCEEDED(wil::reg::open_unique_key_nothrow(
             HKEY_CURRENT_USER,
@@ -155,7 +155,7 @@ z::Config ReadConfig(
 
     if (const fs::path fileName = config.gamePath.filename();
         !isValidFilePath(config.gamePath) || (
-        fileName != z::glGameFileName &&
+        fileName != z::osGameFileName &&
         fileName != z::cnGameFileName)) try {
         changed = true;
         config.gamePath = GetGamePath();
@@ -302,7 +302,7 @@ int main() try {
         }
         if (z::OffsetOf(member) == z::OffsetOf(&z::Config::gamePath)) {
             constexpr z::Filter filters[] {
-                { z::glGameFileName, z::glGameFileName },
+                { z::osGameFileName, z::osGameFileName },
                 { z::cnGameFileName, z::cnGameFileName }
             };
             path = z::OpenFileDialogue(filters);

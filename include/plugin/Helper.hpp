@@ -6,7 +6,7 @@
 
 namespace z3lx::plugin {
 enum class GameRegion : uint8_t {
-    GL,
+    OS,
     CN
 };
 
