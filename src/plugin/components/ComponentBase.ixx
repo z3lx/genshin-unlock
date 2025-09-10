@@ -1,13 +1,4 @@
-#pragma once
-
-#include "plugin/interfaces/ComponentBase.hpp"
-#include "util/Type.hpp"
-
-#include <wil/result.h>
-
-#include <chrono>
-#include <cstdint>
-#include <thread>
+module;
 
 #define COMPONENTBASE_TEMPLATE                                                     \
     template <typename Derived, typename... Components>
@@ -15,13 +6,49 @@
 #define COMPONENTBASE                                                              \
     z3lx::plugin::ComponentBase<Derived, Components...>
 
+export module plugin:ComponentBase;
+
+import pwu;
+import std;
+
 namespace z3lx::plugin {
-namespace detail {
+template <typename Component>
+struct ComponentStorage;
+
+COMPONENTBASE_TEMPLATE
+class ComponentBase : ComponentStorage<Components>... {
+    template <typename D, typename... Cs>
+    friend class ComponentBase;
+
+public:
+    ComponentBase();
+    ~ComponentBase() noexcept;
+    ComponentBase(const ComponentBase&) = delete;
+    ComponentBase(ComponentBase&&) = delete;
+
+    [[noreturn]] void Run(std::uint16_t frequency = 60);
+
+protected:
+    constexpr static void Start();
+    constexpr static void Update();
+
+    template <typename Component>
+    [[nodiscard]] Component& GetComponent() noexcept;
+
+    template <typename Component>
+    [[nodiscard]] const Component& GetComponent() const noexcept;
+
+private:
+    void StartComponent();
+    void UpdateComponent();
+};
+} // namespace z3lx::plugin
+
+namespace z3lx::plugin {
 template <typename Component>
 struct ComponentStorage {
     Component value {};
 };
-} // namespace detail
 
 COMPONENTBASE_TEMPLATE
 COMPONENTBASE::ComponentBase() = default;
@@ -30,7 +57,7 @@ COMPONENTBASE_TEMPLATE
 COMPONENTBASE::~ComponentBase() noexcept = default;
 
 COMPONENTBASE_TEMPLATE
-void COMPONENTBASE::Run(const uint16_t frequency) try {
+void COMPONENTBASE::Run(const std::uint16_t frequency) try {
     auto derived = static_cast<Derived*>(this);
     derived->StartComponent();
     while (true) {
@@ -41,10 +68,9 @@ void COMPONENTBASE::Run(const uint16_t frequency) try {
             std::this_thread::sleep_for(duration);
         }
     }
-} CATCH_THROW_NORMALIZED_MSG(
-    "From Run method in component %hs",
-    util::GetTypeName<Derived>()
-)
+} catch (...) {
+    pwu::ThrowCaughtTraced();
+}
 
 COMPONENTBASE_TEMPLATE
 constexpr void COMPONENTBASE::Start() {}
@@ -55,33 +81,28 @@ constexpr void COMPONENTBASE::Update() {}
 COMPONENTBASE_TEMPLATE
 template <typename Component>
 Component& COMPONENTBASE::GetComponent() noexcept {
-    return detail::ComponentStorage<Component>::value;
+    return ComponentStorage<Component>::value;
 }
 
 COMPONENTBASE_TEMPLATE
 template <typename Component>
 const Component& COMPONENTBASE::GetComponent() const noexcept {
-    return detail::ComponentStorage<Component>::value;
+    return ComponentStorage<Component>::value;
 }
 
 COMPONENTBASE_TEMPLATE
 void COMPONENTBASE::StartComponent() try {
     (GetComponent<Components>().StartComponent(), ...);
     static_cast<Derived*>(this)->Start();
-} CATCH_THROW_NORMALIZED_MSG(
-    "From Start method in component %hs",
-    util::GetTypeName<Derived>()
-)
+} catch (...) {
+    pwu::ThrowCaughtTraced();
+}
 
 COMPONENTBASE_TEMPLATE
 void COMPONENTBASE::UpdateComponent() try {
     (GetComponent<Components>().UpdateComponent(), ...);
     static_cast<Derived*>(this)->Update();
-} CATCH_THROW_NORMALIZED_MSG(
-    "From Update method in component %hs",
-    util::GetTypeName<Derived>()
-)
+} catch (...) {
+    pwu::ThrowCaughtTraced();
+}
 } // namespace z3lx::plugin
-
-#undef COMPONENTBASE_TEMPLATE
-#undef COMPONENTBASE

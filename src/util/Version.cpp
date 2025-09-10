@@ -1,19 +1,12 @@
-#include "util/Version.hpp"
+module util;
 
-#include <array>
-#include <charconv>
-#include <compare>
-#include <cstdint>
-#include <format>
-#include <ranges>
-#include <stdexcept>
-#include <string>
-#include <string_view>
-#include <system_error>
+import :Version;
+
+import std;
 
 namespace {
 template <typename CharT>
-bool ToU16(const std::basic_string_view<CharT> str, uint16_t& value) {
+bool ToU16(const std::basic_string_view<CharT> str, std::uint16_t& value) {
     if constexpr (std::is_same_v<CharT, char>) {
         const char* begin = str.data();
         const char* end = str.data() + str.size();
@@ -41,10 +34,10 @@ bool ToU16(const std::basic_string_view<CharT> str, uint16_t& value) {
 template <typename CharT>
 void Parse(
     std::basic_string_view<CharT> version,
-    uint16_t& major,
-    uint16_t& minor,
-    uint16_t& patch,
-    uint16_t& tweak) {
+    std::uint16_t& major,
+    std::uint16_t& minor,
+    std::uint16_t& patch,
+    std::uint16_t& tweak) {
     if (version.empty()) {
         throw std::invalid_argument { "Empty version string" };
     }
@@ -80,10 +73,10 @@ void Parse(
 
 namespace z3lx::util {
 Version::Version(
-    const uint16_t major,
-    const uint16_t minor,
-    const uint16_t patch,
-    const uint16_t tweak) noexcept
+    const std::uint16_t major,
+    const std::uint16_t minor,
+    const std::uint16_t patch,
+    const std::uint16_t tweak) noexcept
     : major { major }, minor { minor }, patch { patch }, tweak { tweak } {}
 
 Version::Version(const std::string_view version)
@@ -98,19 +91,19 @@ Version::Version(const std::wstring_view version)
 
 Version::~Version() noexcept = default;
 
-uint16_t Version::GetMajor() const noexcept {
+std::uint16_t Version::GetMajor() const noexcept {
     return major;
 }
 
-uint16_t Version::GetMinor() const noexcept {
+std::uint16_t Version::GetMinor() const noexcept {
     return minor;
 }
 
-uint16_t Version::GetPatch() const noexcept {
+std::uint16_t Version::GetPatch() const noexcept {
     return patch;
 }
 
-uint16_t Version::GetTweak() const noexcept {
+std::uint16_t Version::GetTweak() const noexcept {
     return tweak;
 }
 

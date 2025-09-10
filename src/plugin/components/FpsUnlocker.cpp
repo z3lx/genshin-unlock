@@ -1,12 +1,15 @@
-#include "plugin/components/FpsUnlocker.hpp"
-#include "plugin/Helper.hpp"
+module;
 
-#include <wil/result.h>
-
-#include <algorithm>
-#include <cstdint>
-
+#define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+
+module plugin;
+
+import :FpsUnlocker;
+import :Helper;
+
+import std;
+import pwu;
 
 namespace {
 constexpr uintptr_t OFFSET_OS = 0x3F3480C;
@@ -28,7 +31,7 @@ void FpsUnlocker::Start() {
         switch (region) {
         case GameRegion::OS: return OFFSET_OS;
         case GameRegion::CN: return OFFSET_CN;
-        default: THROW_WIN32(ERROR_NOT_SUPPORTED);
+        default: pwu::ThrowWin32Error(ERROR_NOT_SUPPORTED);
         }
     }();
 

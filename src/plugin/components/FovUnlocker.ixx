@@ -1,8 +1,8 @@
-#pragma once
+export module plugin:FovUnlocker;
 
-#include "plugin/components/CursorState.hpp"
-#include "plugin/components/WindowState.hpp"
-#include "plugin/interfaces/ComponentBase.hpp"
+import :ComponentBase;
+import :CursorState;
+import :WindowState;
 
 namespace z3lx::plugin {
 class FovUnlocker final : public ComponentBase<

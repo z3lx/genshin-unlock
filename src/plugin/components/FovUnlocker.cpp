@@ -1,21 +1,21 @@
-#include "plugin/components/FovUnlocker.hpp"
-#include "plugin/Helper.hpp"
-#include "util/ExponentialFilter.hpp"
+module;
 
-#include <wil/result.h>
-
-#include <bit>
-#include <cmath>
-#include <cstdint>
-#include <mutex>
-
+#define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
+module plugin;
+
+import :FovUnlocker;
+import :Helper;
+
+import pwu;
 import mmh;
+import std;
+import util;
 
 namespace {
-constexpr uintptr_t OFFSET_OS = 0xFE0DA0;
-constexpr uintptr_t OFFSET_CN = 0xFE0DA0;
+constexpr std::uintptr_t OFFSET_OS = 0xFE0DA0;
+constexpr std::uintptr_t OFFSET_CN = 0xFE0DA0;
 
 void HkSetFieldOfView(void* instance, float value) noexcept;
 
@@ -44,15 +44,15 @@ FovUnlocker::~FovUnlocker() noexcept {
 
 void FovUnlocker::Start() {
     const auto [module, region] = GetGameModuleContext();
-    const uintptr_t offset = [region] {
+    const std::uintptr_t offset = [region] {
         switch (region) {
         case GameRegion::OS: return OFFSET_OS;
         case GameRegion::CN: return OFFSET_CN;
-        default: THROW_WIN32(ERROR_NOT_SUPPORTED);
+        default: pwu::ThrowWin32Error(ERROR_NOT_SUPPORTED);
         }
     }();
     const auto target = reinterpret_cast<void*>(
-        reinterpret_cast<uintptr_t>(module) + offset
+        reinterpret_cast<std::uintptr_t>(module) + offset
     );
     const auto detour = reinterpret_cast<void*>(
         HkSetFieldOfView
@@ -81,7 +81,7 @@ void FovUnlocker::Hook(const bool hook) {
         ::hook.Enable(true);
         isEnabledOnce = true;
     } else {
-        // ::hook.Enable(false);
+        ::hook.Enable(false);
     }
     isHooked = hook;
 }

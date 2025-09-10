@@ -1,38 +1,14 @@
-#include "common/Constants.hpp"
-#include "loader/Config.hpp"
-#include "util/Type.hpp"
-#include "util/Version.hpp"
-#include "util/win/Dialogue.hpp"
-#include "util/win/File.hpp"
-#include "util/win/Loader.hpp"
-#include "util/win/Shell.hpp"
-#include "util/win/String.hpp"
-#include "util/win/Version.hpp"
-
 #include <wil/filesystem.h>
 #include <wil/registry.h>
 #include <wil/resource.h>
-#include <wil/result.h>
-
-#include <algorithm>
-#include <array>
-#include <chrono>
-#include <cstdint>
-#include <cstdlib>
-#include <cwchar>
-#include <exception>
-#include <filesystem>
-#include <format>
-#include <iostream>
-#include <print>
-#include <span>
-#include <string>
-#include <string_view>
-#include <thread>
-#include <utility>
-#include <vector>
 
 #include <Windows.h>
+
+import common;
+import loader;
+import pwu;
+import std;
+import util;
 
 namespace fs = std::filesystem;
 namespace z {
@@ -134,7 +110,7 @@ z::Config ReadConfig(
     OnInvalidConfig onInvalidConfig,
     OnInvalidFilePath onInvalidFilePath) {
     z::Config config {};
-    std::vector<uint8_t> buffer {};
+    std::vector<std::uint8_t> buffer {};
     const wil::unique_hfile configFile = wil::open_or_create_file(
         configFilePath.data()
     );
@@ -142,7 +118,7 @@ z::Config ReadConfig(
     bool changed = false;
 
     try {
-        z::ReadFile(configFile.get(), buffer);
+        pwu::ReadFile(configFile.get(), buffer);
         config.Deserialize(buffer);
     } catch (...) {
         changed = true;
@@ -173,7 +149,7 @@ z::Config ReadConfig(
 
     if (changed) {
         config.Serialize(buffer);
-        z::WriteFile(configFile.get(), buffer);
+        pwu::WriteFile(configFile.get(), buffer);
     }
 
     for (fs::path& dllPath : config.dllPaths) {
@@ -185,9 +161,14 @@ z::Config ReadConfig(
 
 template <typename OnIncompatibility>
 void CheckCompatibility(OnIncompatibility onIncompatibility) {
-    const z::Version modVersion = z::GetFileVersion(
-        z::GetCurrentModuleFilePath()
+    const pwu::Version rawVersion = pwu::GetFileVersion(
+        pwu::GetCurrentModuleFilePath()
     );
+    const z::Version modVersion {
+        rawVersion.major,
+        rawVersion.minor,
+        rawVersion.build
+    };
     const z::Version gameVersion = GetGameVersion();
     if (modVersion.GetMajor() != gameVersion.GetMajor() ||
         modVersion.GetMinor() != gameVersion.GetMinor()) {
@@ -220,7 +201,7 @@ void StartGame(const z::Config& config) {
             : L"";
 
         std::wstring additionalArgs {};
-        z::U8ToU16(config.additionalArgs, additionalArgs);
+        pwu::U8ToU16(config.additionalArgs, additionalArgs);
 
         return std::format(
             L"-monitor {} {} -screen-width {} -screen-height {} {} {} ",
@@ -250,7 +231,7 @@ void StartGame(const z::Config& config) {
     const wil::unique_handle process { pi.hProcess };
     const wil::unique_handle thread { pi.hThread };
 
-    z::LoadRemoteLibrary(process.get(), config.dllPaths);
+    pwu::LoadRemoteLibrary(process.get(), config.dllPaths);
     if (config.suspendLoad) {
         ResumeThread(thread.get());
     }
@@ -274,43 +255,51 @@ int main() try {
     std::println(std::cout, "Reading configuration...");
     constexpr auto configFilePath = L"loader_config.json";
     const auto onInvalidConfig = [](z::Config& config) {
-        const z::MessageBoxResult result = z::ShowMessageBox(
+        const pwu::MessageBoxResult result = pwu::ShowMessageBox(
             "Loader",
             "Failed to read configuration file.\n"
             "Proceeding with default configuration.",
-            z::MessageBoxIcon::Warning,
-            z::MessageBoxButton::OkCancel
+            pwu::MessageBoxIcon::Warning,
+            pwu::MessageBoxButton::OkCancel
         );
-        if (result == z::MessageBoxResult::Cancel) {
+        if (result == pwu::MessageBoxResult::Cancel) {
             std::exit(0);
         }
         config = {};
     };
     const auto onInvalidFilePath = [](auto member, fs::path& path) {
-        const z::MessageBoxResult result = z::ShowMessageBox(
+        const pwu::MessageBoxResult result = pwu::ShowMessageBox(
             "Loader",
             std::format(
                 "The path '{}' is invalid or does not exist.\n"
                 "Locate it using File Explorer?",
                 path.string()
             ),
-            z::MessageBoxIcon::Warning,
-            z::MessageBoxButton::YesNo
+            pwu::MessageBoxIcon::Warning,
+            pwu::MessageBoxButton::YesNo
         );
-        if (result == z::MessageBoxResult::No) {
+        if (result == pwu::MessageBoxResult::No) {
             std::exit(0);
         }
-        if (z::OffsetOf(member) == z::OffsetOf(&z::Config::gamePath)) {
-            constexpr z::Filter filters[] {
+
+        const auto offsetOf = []<typename T, typename U>(
+            U T::* member) {
+            return reinterpret_cast<size_t>(
+                &(reinterpret_cast<const volatile T*>(0)->*member)
+            );
+        };
+
+        if (offsetOf(member) == offsetOf(&z::Config::gamePath)) {
+            constexpr pwu::Filter filters[] {
                 { z::osGameFileName, z::osGameFileName },
                 { z::cnGameFileName, z::cnGameFileName }
             };
-            path = z::OpenFileDialogue(filters);
-        } else if (z::OffsetOf(member) == z::OffsetOf(&z::Config::dllPaths)) {
-            constexpr z::Filter filters[] {
+            path = pwu::OpenFileDialogue(filters);
+        } else if (offsetOf(member) == offsetOf(&z::Config::dllPaths)) {
+            constexpr pwu::Filter filters[] {
                 { L"Dynamic Link Library (*.dll)", L"*.dll" }
             };
-            path = z::OpenFileDialogue(filters);
+            path = pwu::OpenFileDialogue(filters);
         }
     };
     const z::Config config = ReadConfig(
@@ -323,7 +312,7 @@ int main() try {
     const auto onIncompatibility = [](
         const z::Version& modVersion,
         const z::Version& gameVersion) {
-        const z::MessageBoxResult result = z::ShowMessageBox(
+        const pwu::MessageBoxResult result = pwu::ShowMessageBox(
             "Loader",
             std::format(
                 "The installed mod version is not compatible "
@@ -334,11 +323,11 @@ int main() try {
                 modVersion.ToString(),
                 gameVersion.ToString()
             ),
-            z::MessageBoxIcon::Information,
-            z::MessageBoxButton::YesNo
+            pwu::MessageBoxIcon::Information,
+            pwu::MessageBoxButton::YesNo
         );
-        if (result == z::MessageBoxResult::Yes) {
-            z::OpenUrl(
+        if (result == pwu::MessageBoxResult::Yes) {
+            pwu::OpenUrl(
                 "https://github.com/z3lx/genshin-unlock/releases/latest"
             );
         }
@@ -355,11 +344,11 @@ int main() try {
 } catch (const std::exception& e) {
     LOG_CAUGHT_EXCEPTION();
     try {
-        z::ShowMessageBox(
+        pwu::ShowMessageBox(
             "Loader",
             std::format("An error occurred:\n{}", e.what()),
-            z::MessageBoxIcon::Error,
-            z::MessageBoxButton::Ok
+            pwu::MessageBoxIcon::Error,
+            pwu::MessageBoxButton::Ok
         );
     } catch (...) {}
     return 1;

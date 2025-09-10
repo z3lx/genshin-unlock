@@ -1,8 +1,8 @@
-#pragma once
+export module plugin:WindowState;
 
-#include "plugin/interfaces/ComponentBase.hpp"
+import std;
 
-#include <optional>
+import :ComponentBase;
 
 namespace z3lx::plugin {
 class WindowState final : public ComponentBase<WindowState> {

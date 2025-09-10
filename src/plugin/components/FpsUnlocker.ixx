@@ -1,7 +1,7 @@
-#pragma once
+export module plugin:FpsUnlocker;
 
-#include "plugin/components/WindowState.hpp"
-#include "plugin/interfaces/ComponentBase.hpp"
+import :ComponentBase;
+import :WindowState;
 
 namespace z3lx::plugin {
 class FpsUnlocker final : public ComponentBase<

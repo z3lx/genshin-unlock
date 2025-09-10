@@ -1,15 +1,16 @@
-#pragma once
+export module plugin:Plugin;
 
-#include "plugin/Config.hpp"
-#include "plugin/components/FovUnlocker.hpp"
-#include "plugin/components/FpsUnlocker.hpp"
-#include "plugin/components/PersistentObject.hpp"
-#include "plugin/components/VirtualKeyState.hpp"
-#include "plugin/interfaces/ComponentBase.hpp"
+import :ComponentBase;
+import :Config;
+import :FovUnlocker;
+import :FpsUnlocker;
+import :PersistentObject;
+import :VirtualKeyState;
+import :ComponentBase;
 
-#include <filesystem>
+import std;
 
-namespace z3lx::plugin {
+export namespace z3lx::plugin {
 class Plugin final : public ComponentBase<
     Plugin,
     FpsUnlocker,

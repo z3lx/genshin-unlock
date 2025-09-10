@@ -1,8 +1,8 @@
-#pragma once
+export module plugin:CursorState;
 
-#include "plugin/interfaces/ComponentBase.hpp"
+import :ComponentBase;
 
-#include <optional>
+import std;
 
 namespace z3lx::plugin {
 class CursorState final : public ComponentBase<CursorState> {

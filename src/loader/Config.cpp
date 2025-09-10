@@ -1,11 +1,13 @@
-#include "loader/Config.hpp"
+module;
 
 #include <glaze/glaze.hpp>
 #include <glaze/glaze_exceptions.hpp>
 
-#include <cstdint>
-#include <filesystem>
-#include <vector>
+module loader;
+
+import :Config;
+
+import std;
 
 namespace fs = std::filesystem;
 

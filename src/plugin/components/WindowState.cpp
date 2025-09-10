@@ -1,6 +1,11 @@
-#include "plugin/components/WindowState.hpp"
+module;
 
+#define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+
+module plugin;
+
+import :WindowState;
 
 namespace z3lx::plugin {
 WindowState::WindowState() noexcept = default;

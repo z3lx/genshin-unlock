@@ -1,12 +1,14 @@
-#include "plugin/Config.hpp"
-#include "util/win/VirtualKey.hpp"
+module;
 
 #include <glaze/glaze.hpp>
 #include <glaze/glaze_exceptions.hpp>
 
-#include <algorithm>
-#include <cstdint>
-#include <vector>
+module plugin;
+
+import :Config;
+
+import pwu;
+import std;
 
 namespace {
 constexpr glz::opts opts {
@@ -45,7 +47,7 @@ struct glz::meta<z3lx::plugin::Config> {
         "Target FPS must be -1 or greater"
     >;
 
-    static constexpr auto isValidFov = [](const uint8_t fov) -> bool {
+    static constexpr auto isValidFov = [](const std::uint8_t fov) -> bool {
         return fov > 0 && fov < 180;
     };
 
@@ -98,8 +100,8 @@ struct glz::meta<z3lx::plugin::Config> {
 };
 
 template <>
-struct glz::meta<z3lx::util::VirtualKey> {
-    using enum z3lx::util::VirtualKey;
+struct glz::meta<pwu::VirtualKey> {
+    using enum pwu::VirtualKey;
     static constexpr auto value = enumerate(
         LeftMouse,
         RightMouse,
@@ -279,11 +281,11 @@ struct glz::meta<z3lx::util::VirtualKey> {
 };
 
 namespace z3lx::plugin {
-void Config::Serialize(std::vector<uint8_t>& buffer) {
+void Config::Serialize(std::vector<std::uint8_t>& buffer) {
     glz::ex::write<opts>(*this, buffer);
 }
 
-void Config::Deserialize(const std::vector<uint8_t>& buffer) {
+void Config::Deserialize(const std::vector<std::uint8_t>& buffer) {
     glz::ex::read<opts>(*this, buffer);
 }
 } // namespace z3lx::plugin

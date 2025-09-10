@@ -1,27 +1,31 @@
-#include "plugin/Logging.hpp"
-#include "plugin/Plugin.hpp"
-#include "util/win/Loader.hpp"
-
-#include <wil/result.h>
-
-#include <thread>
+#define WIN32_LEAN_AND_MEAN
+#include <wil/filesystem.h>
+#include <wil/resource.h>
 
 #include <Windows.h>
 
+import plugin;
+import pwu;
+import std;
+
 namespace {
 void Initialize() try {
-    const std::filesystem::path currentPath =
-        z3lx::util::GetCurrentModuleFilePath().parent_path();
-    wil::SetResultLoggingCallback(z3lx::plugin::GetLoggingCallback(
-        currentPath / "plugin_log.txt"
-    ));
-    z3lx::plugin::Plugin {
-        currentPath / "plugin_config.json"
-    }.Run();
-} CATCH_LOG()
+    namespace fs = std::filesystem;
+    const fs::path currentPath = pwu::GetCurrentModuleFilePath().parent_path();
+    try {
+        const fs::path filePath = currentPath / "plugin";
+        z3lx::plugin::Plugin { filePath }.Run();
+    } catch (const pwu::TracedException& e) {
+        const fs::path filePath = currentPath / "plugin_log.txt";
+        const wil::unique_hfile fileHandle =
+            wil::open_or_truncate_existing_file(filePath.native().c_str());
+        const std::string_view trace { e.what() };
+        pwu::AppendFile(fileHandle.get(), trace);
+    }
+} catch (...) {}
 } // namespace
 
-BOOL WINAPI DllMain (
+BOOL WINAPI DllMain(
     const HINSTANCE hinstDLL,
     const DWORD fdwReason,
     const LPVOID lpReserved) try {
@@ -31,7 +35,5 @@ BOOL WINAPI DllMain (
     }
     return TRUE;
 } catch (...) {
-    LOG_CAUGHT_EXCEPTION();
-    SetLastError(wil::ResultFromCaughtException());
     return FALSE;
 }

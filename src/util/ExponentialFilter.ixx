@@ -1,9 +1,39 @@
-#pragma once
+module;
 
-#include "util/ExponentialFilter.hpp"
+#define EXPONENTIALFILTER_TEMPLATE                                              \
+    template <typename Real, typename Clock = std::chrono::steady_clock>        \
+    requires std::is_floating_point_v<Real>
 
-#include <chrono>
-#include <cmath>
+export module util:ExponentialFilter;
+
+import std;
+
+export namespace z3lx::util {
+EXPONENTIALFILTER_TEMPLATE
+class ExponentialFilter {
+public:
+    explicit ExponentialFilter(
+        Real timeConstant = 0,
+        Real initialValue = 0) noexcept;
+    ~ExponentialFilter() noexcept;
+
+    ExponentialFilter(const ExponentialFilter& other) noexcept;
+    ExponentialFilter& operator=(const ExponentialFilter& other) noexcept;
+    ExponentialFilter(ExponentialFilter&& other) noexcept;
+    ExponentialFilter& operator=(ExponentialFilter&& other) noexcept;
+
+    [[nodiscard]] Real GetTimeConstant() const noexcept;
+    void SetTimeConstant(Real value) noexcept;
+    [[nodiscard]] Real GetInitialValue() const noexcept;
+    void SetInitialValue(Real value) noexcept;
+    Real Update(Real value) noexcept;
+
+private:
+    Real timeConstant;
+    Real previousFilteredValue;
+    std::chrono::time_point<Clock> previousTime;
+};
+} // namespace z3lx::util
 
 namespace z3lx::util {
 EXPONENTIALFILTER_TEMPLATE
@@ -82,5 +112,3 @@ Real ExponentialFilter<Real, Clock>::Update(const Real value) noexcept {
     return previousFilteredValue;
 }
 } // namespace z3lx::util
-
-#undef EXPONENTIALFILTER_TEMPLATE

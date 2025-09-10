@@ -1,9 +1,9 @@
-#pragma once
+export module plugin:VirtualKeyState;
 
-#include "plugin/interfaces/ComponentBase.hpp"
-#include "util/win/VirtualKey.hpp"
+import :ComponentBase;
 
-#include <bitset>
+import pwu;
+import std;
 
 namespace z3lx::plugin {
 class VirtualKeyState final : public ComponentBase<VirtualKeyState> {
@@ -13,9 +13,9 @@ public:
 
     void Update() noexcept;
 
-    [[nodiscard]] bool IsKeyDown(util::VirtualKey key) const noexcept;
-    [[nodiscard]] bool IsKeyHeld(util::VirtualKey key) const noexcept;
-    [[nodiscard]] bool IsKeyUp(util::VirtualKey key) const noexcept;
+    [[nodiscard]] bool IsKeyDown(pwu::VirtualKey key) const noexcept;
+    [[nodiscard]] bool IsKeyHeld(pwu::VirtualKey key) const noexcept;
+    [[nodiscard]] bool IsKeyUp(pwu::VirtualKey key) const noexcept;
 
 private:
     static constexpr auto keyCount = 256;

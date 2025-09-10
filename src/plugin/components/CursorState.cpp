@@ -1,6 +1,11 @@
-#include "plugin/components/CursorState.hpp"
+module;
 
+#define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+
+module plugin;
+
+import :CursorState;
 
 namespace z3lx::plugin {
 CursorState::CursorState() noexcept = default;

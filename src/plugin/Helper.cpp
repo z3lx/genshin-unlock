@@ -1,9 +1,15 @@
-#include "plugin/Helper.hpp"
-#include "common/Constants.hpp"
+module;
 
-#include <wil/result.h>
-
+#define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+
+module plugin;
+
+import :Helper;
+
+import common;
+import pwu;
+import std;
 
 namespace z3lx::plugin {
 GameModuleContext GetGameModuleContext() {
@@ -21,6 +27,6 @@ GameModuleContext GetGameModuleContext() {
             .region = GameRegion::CN
         };
     }
-    THROW_WIN32(ERROR_MOD_NOT_FOUND);
+    pwu::ThrowWin32Error(ERROR_MOD_NOT_FOUND);
 }
 } // namespace z3lx::plugin

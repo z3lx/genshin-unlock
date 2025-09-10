@@ -1,12 +1,9 @@
-#pragma once
+export module loader:Config;
 
-#include <cstdint>
-#include <filesystem>
-#include <string>
-#include <vector>
+import std;
 
-namespace z3lx::loader {
-enum class DisplayMode : uint8_t {
+export namespace z3lx::loader {
+enum class DisplayMode : std::uint8_t {
     Windowed = 0,
     Fullscreen = 1,
     Borderless = 2
@@ -15,10 +12,10 @@ enum class DisplayMode : uint8_t {
 struct Config {
     std::filesystem::path gamePath {};
     bool overrideArgs = false;
-    uint8_t monitorIndex = 1;
+    std::uint8_t monitorIndex = 1;
     DisplayMode displayMode = DisplayMode::Fullscreen;
-    uint16_t screenWidth = 1920;
-    uint16_t screenHeight = 1080;
+    std::uint16_t screenWidth = 1920;
+    std::uint16_t screenHeight = 1080;
     bool mobilePlatform = false;
     std::string additionalArgs {};
 
@@ -27,7 +24,7 @@ struct Config {
     };
     bool suspendLoad = false;
 
-    void Serialize(std::vector<uint8_t>& buffer);
-    void Deserialize(const std::vector<uint8_t>& buffer);
+    void Serialize(std::vector<std::uint8_t>& buffer);
+    void Deserialize(const std::vector<std::uint8_t>& buffer);
 };
 } // namespace z3lx::loader

@@ -1,14 +1,18 @@
-#include "plugin/Plugin.hpp"
-#include "plugin/Config.hpp"
-#include "plugin/components/FovUnlocker.hpp"
-#include "plugin/components/FpsUnlocker.hpp"
-#include "plugin/components/PersistentObject.hpp"
-#include "plugin/components/VirtualKeyState.hpp"
+module;
 
-#include <algorithm>
-#include <filesystem>
-#include <ranges>
-#include <utility>
+// workaround to compile error
+#include <strsafe.h>
+
+module plugin;
+
+import :Plugin;
+import :Config;
+import :FovUnlocker;
+import :FpsUnlocker;
+import :PersistentObject;
+import :VirtualKeyState;
+
+import std;
 
 namespace z3lx::plugin {
 Plugin::Plugin(std::filesystem::path configFilePath)
