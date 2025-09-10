@@ -57,7 +57,6 @@ https://github.com/user-attachments/assets/56a11762-ebd2-4093-8c1d-768f913bd063
 
 | 鍵                | 類型         | 描述                     |
 |------------------|------------|------------------------|
-| `checkUpdates`   | `bool`     | 檢查模組的新版本               |
 | `gamePath`       | `string`   | Genshin Impact 可執行檔的路徑 |
 | `overrideArgs`   | `bool`     | 覆蓋遊戲的預設啟動參數            |
 | `monitorIndex`   | `int`      | 用於遊戲視窗的監視器索引（從 1 開始）   |
@@ -85,7 +84,6 @@ https://github.com/user-attachments/assets/56a11762-ebd2-4093-8c1d-768f913bd063
 
 ```json
 {
-    "checkUpdates": true,
     "gamePath": "",
     "overrideArgs": false,
     "monitorIndex": 1,
@@ -298,9 +296,8 @@ cmake --build . --config Release
 ## 致謝
 
 本專案使用了以下程式庫和資源：
-- [`cpr`](https://github.com/libcpr/cpr)，以 MIT 授權授權
 - [`glaze`](https://github.com/stephenberry/glaze)，採用 MIT 許可證
-- [`minhook`](https://github.com/TsudaKageyu/minhook)，採用 BSD-2-Clause 許可證
+- [`mminhook`](https://github.com/z3lx/mminhook)，採用 MIT 許可證
 - [`wil`](https://github.com/microsoft/wil)，採用 MIT 許可證
 - [`genshin-fps-unlock`](https://github.com/34736384/genshin-fps-unlock)，用於實現細節的參考
 - [`genshin-utility`](https://github.com/lanylow/genshin-utility)，用於模組初始構思的參考

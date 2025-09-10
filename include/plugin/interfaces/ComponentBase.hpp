@@ -1,7 +1,5 @@
 #pragma once
 
-#include "plugin/interfaces/IRunnable.hpp"
-
 #include <cstdint>
 
 namespace z3lx::plugin {
@@ -11,18 +9,17 @@ struct ComponentStorage;
 } // namespace detail
 
 template <typename Derived, typename... Components>
-class IComponent : detail::ComponentStorage<Components>... {
-    template <typename D, uint16_t F>
-    friend class IRunnable;
-
+class ComponentBase : detail::ComponentStorage<Components>... {
     template <typename D, typename... Cs>
-    friend class IComponent;
+    friend class ComponentBase;
 
 public:
-    IComponent();
-    ~IComponent() noexcept;
-    IComponent(const IComponent&) = delete;
-    IComponent(IComponent&&) = delete;
+    ComponentBase();
+    ~ComponentBase() noexcept;
+    ComponentBase(const ComponentBase&) = delete;
+    ComponentBase(ComponentBase&&) = delete;
+
+    [[noreturn]] void Run(uint16_t frequency = 60);
 
 protected:
     constexpr static void Start();
@@ -40,4 +37,4 @@ private:
 };
 } // namespace z3lx::plugin
 
-#include "plugin/interfaces/IComponentInl.hpp"
+#include "plugin/interfaces/ComponentBaseInl.hpp"

@@ -9,8 +9,8 @@
 #include <Windows.h>
 
 namespace {
-constexpr uintptr_t OFFSET_GL = 0x3F4E67C;
-constexpr uintptr_t OFFSET_CN = 0x3F4F67C;
+constexpr uintptr_t OFFSET_OS = 0x3F3480C;
+constexpr uintptr_t OFFSET_CN = 0x3F3580C;
 } // namespace
 
 namespace z3lx::plugin {
@@ -26,7 +26,7 @@ void FpsUnlocker::Start() {
     const auto [module, region] = GetGameModuleContext();
     const uintptr_t offset = [region] {
         switch (region) {
-        case GameRegion::GL: return OFFSET_GL;
+        case GameRegion::OS: return OFFSET_OS;
         case GameRegion::CN: return OFFSET_CN;
         default: THROW_WIN32(ERROR_NOT_SUPPORTED);
         }

@@ -7,11 +7,11 @@
 
 namespace z3lx::plugin {
 GameModuleContext GetGameModuleContext() {
-    if (const HMODULE glModule = GetModuleHandleW(common::glGameFileName);
-        glModule != nullptr) {
+    if (const HMODULE osModule = GetModuleHandleW(common::osGameFileName);
+        osModule != nullptr) {
         return GameModuleContext {
-            .module = glModule,
-            .region = GameRegion::GL
+            .module = osModule,
+            .region = GameRegion::OS
         };
     }
     if (const HMODULE cnModule = GetModuleHandleW(common::cnGameFileName);

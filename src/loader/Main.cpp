@@ -1,7 +1,7 @@
 #include "common/Constants.hpp"
 #include "loader/Config.hpp"
-#include "loader/Version.hpp"
 #include "util/Type.hpp"
+#include "util/Version.hpp"
 #include "util/win/Dialogue.hpp"
 #include "util/win/File.hpp"
 #include "util/win/Loader.hpp"
@@ -14,10 +14,12 @@
 #include <wil/resource.h>
 #include <wil/result.h>
 
+#include <algorithm>
 #include <array>
 #include <chrono>
 #include <cstdint>
 #include <cstdlib>
+#include <cwchar>
 #include <exception>
 #include <filesystem>
 #include <format>
@@ -51,7 +53,7 @@ std::filesystem::path GetGamePath() {
             glKey
         ))) {
         key = std::move(glKey);
-        executableName = z::glGameFileName;
+        executableName = z::osGameFileName;
     } else if (wil::unique_hkey cnKey {};
         SUCCEEDED(wil::reg::open_unique_key_nothrow(
             HKEY_CURRENT_USER,
@@ -69,11 +71,68 @@ std::filesystem::path GetGamePath() {
     } / executableName;
 }
 
-template <typename InvalidConfigCallback, typename InvalidFilePathCallback>
+z::Version GetGameVersion() {
+    constexpr std::wstring_view targets[] = {
+        L"原神",
+        L"Genshin Impact"
+    };
+
+    const wil::unique_hkey uninstallRegKeys[] {
+        wil::reg::open_unique_key(
+            HKEY_LOCAL_MACHINE,
+            LR"(SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall)"
+        ),
+        wil::reg::open_unique_key(
+            HKEY_LOCAL_MACHINE,
+            LR"(SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall)"
+        ),
+        wil::reg::open_unique_key(
+            HKEY_CURRENT_USER,
+            LR"(SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall)"
+        ),
+    };
+
+    for (const auto& uninstallRegKey : uninstallRegKeys) {
+        const auto subRegKeyNames = wil::make_range(
+            wil::reg::key_iterator { uninstallRegKey.get() },
+            wil::reg::key_iterator {}
+        );
+        for (const auto& subRegKeyName : subRegKeyNames) {
+            const wil::unique_hkey subRegKey = wil::reg::open_unique_key(
+                uninstallRegKey.get(),
+                subRegKeyName.name.c_str()
+            );
+
+            wchar_t buffer[1024] {};
+            const HRESULT hr = wil::reg::get_value_string_nothrow(
+                subRegKey.get(),
+                L"DisplayName",
+                buffer
+            );
+
+            const auto comp = [&buffer](const std::wstring_view t) {
+                return std::wcscmp(buffer, t.data()) == 0;
+            };
+            if (FAILED(hr) || std::ranges::none_of(targets, comp)) {
+                continue;
+            }
+
+            THROW_IF_FAILED(wil::reg::get_value_string_nothrow(
+                subRegKey.get(),
+                L"DisplayVersion",
+                buffer
+            ));
+            return z::Version { buffer };
+        }
+    }
+    THROW_WIN32(ERROR_FILE_NOT_FOUND);
+}
+
+template <typename OnInvalidConfig, typename OnInvalidFilePath>
 z::Config ReadConfig(
     const std::wstring_view configFilePath,
-    InvalidConfigCallback invalidConfigCallback,
-    InvalidFilePathCallback invalidFilePathCallback) {
+    OnInvalidConfig onInvalidConfig,
+    OnInvalidFilePath onInvalidFilePath) {
     z::Config config {};
     std::vector<uint8_t> buffer {};
     const wil::unique_hfile configFile = wil::open_or_create_file(
@@ -87,7 +146,7 @@ z::Config ReadConfig(
         config.Deserialize(buffer);
     } catch (...) {
         changed = true;
-        invalidConfigCallback(config);
+        onInvalidConfig(config);
     }
 
     const auto isValidFilePath = [](const fs::path& path) {
@@ -96,19 +155,19 @@ z::Config ReadConfig(
 
     if (const fs::path fileName = config.gamePath.filename();
         !isValidFilePath(config.gamePath) || (
-        fileName != z::glGameFileName &&
+        fileName != z::osGameFileName &&
         fileName != z::cnGameFileName)) try {
         changed = true;
         config.gamePath = GetGamePath();
     } catch (...) {
-        invalidFilePathCallback(&z::Config::gamePath, config.gamePath);
+        onInvalidFilePath(&z::Config::gamePath, config.gamePath);
     }
 
     for (fs::path& dllPath : config.dllPaths) {
         if (!isValidFilePath(dllPath) ||
             dllPath.extension() != L".dll") {
             changed = true;
-            invalidFilePathCallback(&z::Config::dllPaths, dllPath);
+            onInvalidFilePath(&z::Config::dllPaths, dllPath);
         }
     }
 
@@ -124,18 +183,15 @@ z::Config ReadConfig(
     return config;
 }
 
-template <typename UpdateCheckCallback>
-void CheckUpdates(
-    const z::Config& config,
-    UpdateCheckCallback updateCheckCallback) {
-    if (!config.checkUpdates) {
-        return;
-    }
-
-    const z::Version currentVersion = z::GetCurrentVersion();
-    const z::Version latestVersion = z::GetLatestVersion();
-    if (currentVersion < latestVersion) {
-        updateCheckCallback(currentVersion, latestVersion);
+template <typename OnIncompatibility>
+void CheckCompatibility(OnIncompatibility onIncompatibility) {
+    const z::Version modVersion = z::GetFileVersion(
+        z::GetCurrentModuleFilePath()
+    );
+    const z::Version gameVersion = GetGameVersion();
+    if (modVersion.GetMajor() != gameVersion.GetMajor() ||
+        modVersion.GetMinor() != gameVersion.GetMinor()) {
+        onIncompatibility(modVersion, gameVersion);
     }
 }
 
@@ -217,7 +273,7 @@ int main() try {
 
     std::println(std::cout, "Reading configuration...");
     constexpr auto configFilePath = L"loader_config.json";
-    const auto invalidConfigCallback = [](z::Config& config) {
+    const auto onInvalidConfig = [](z::Config& config) {
         const z::MessageBoxResult result = z::ShowMessageBox(
             "Loader",
             "Failed to read configuration file.\n"
@@ -230,7 +286,7 @@ int main() try {
         }
         config = {};
     };
-    const auto invalidFilePathCallback = [](auto member, fs::path& path) {
+    const auto onInvalidFilePath = [](auto member, fs::path& path) {
         const z::MessageBoxResult result = z::ShowMessageBox(
             "Loader",
             std::format(
@@ -246,7 +302,7 @@ int main() try {
         }
         if (z::OffsetOf(member) == z::OffsetOf(&z::Config::gamePath)) {
             constexpr z::Filter filters[] {
-                { z::glGameFileName, z::glGameFileName },
+                { z::osGameFileName, z::osGameFileName },
                 { z::cnGameFileName, z::cnGameFileName }
             };
             path = z::OpenFileDialogue(filters);
@@ -259,23 +315,24 @@ int main() try {
     };
     const z::Config config = ReadConfig(
         configFilePath,
-        invalidConfigCallback,
-        invalidFilePathCallback
+        onInvalidConfig,
+        onInvalidFilePath
     );
 
-    std::println(std::cout, "Checking for updates...");
-    const auto updateCheckCallback = [](
-        const z::Version& currentVersion,
-        const z::Version& latestVersion) {
+    std::println(std::cout, "Checking compatibility...");
+    const auto onIncompatibility = [](
+        const z::Version& modVersion,
+        const z::Version& gameVersion) {
         const z::MessageBoxResult result = z::ShowMessageBox(
             "Loader",
             std::format(
-                "An updated version of the mod is available.\n"
-                "Installed version: {}\n"
-                "Available version: {}\n"
-                "Open the download page?",
-                currentVersion.ToString(),
-                latestVersion.ToString()
+                "The installed mod version is not compatible "
+                "with the current game version.\n"
+                "Mod version: {}\n"
+                "Game version: {}\n\n"
+                "Open the download page to check for updates?",
+                modVersion.ToString(),
+                gameVersion.ToString()
             ),
             z::MessageBoxIcon::Information,
             z::MessageBoxButton::YesNo
@@ -287,12 +344,7 @@ int main() try {
         }
         std::exit(0);
     };
-    try {
-        CheckUpdates(config, updateCheckCallback);
-    } catch (...) {
-        LOG_CAUGHT_EXCEPTION();
-        std::println(std::cerr, "Update check failed, skipping");
-    }
+    CheckCompatibility(onIncompatibility);
 
     std::println(std::cout, "Starting game process...");
     StartGame(config);

@@ -2,10 +2,10 @@
 
 #include "plugin/components/CursorState.hpp"
 #include "plugin/components/WindowState.hpp"
-#include "plugin/interfaces/IComponent.hpp"
+#include "plugin/interfaces/ComponentBase.hpp"
 
 namespace z3lx::plugin {
-class FovUnlocker final : public IComponent<
+class FovUnlocker final : public ComponentBase<
     FovUnlocker,
     CursorState,
     WindowState

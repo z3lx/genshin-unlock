@@ -11,16 +11,40 @@
 #include <string_view>
 #include <system_error>
 
-namespace z3lx::util {
-Version::Version(
-    const uint16_t major,
-    const uint16_t minor,
-    const uint16_t patch,
-    const uint16_t tweak) noexcept
-    : major { major }, minor { minor }, patch { patch }, tweak { tweak } {}
+namespace {
+template <typename CharT>
+bool ToU16(const std::basic_string_view<CharT> str, uint16_t& value) {
+    if constexpr (std::is_same_v<CharT, char>) {
+        const char* begin = str.data();
+        const char* end = str.data() + str.size();
+        auto [ptr, ec] = std::from_chars(begin, end, value);
+        return ec == std::errc {} && ptr == end;
+    } else if constexpr (std::is_same_v<CharT, wchar_t>) {
+        if (str.size() > 5) {
+            return false;
+        }
+        std::array<char, 6> buffer {};
+        for (size_t i = 0; i < str.size(); ++i) {
+            if (str[i] < L'0' || str[i] > L'9') {
+                return false;
+            }
+            buffer[i] = static_cast<char>(str[i]);
+        }
+        const char* begin = buffer.data();
+        const char* end = buffer.data() + str.size();
+        auto [ptr, ec] = std::from_chars(begin, end, value);
+        return ec == std::errc {} && ptr == end;
+    }
+    return false;
+}
 
-Version::Version(const std::string_view version)
-    : major { 0 }, minor { 0 }, patch { 0 }, tweak { 0 } {
+template <typename CharT>
+void Parse(
+    std::basic_string_view<CharT> version,
+    uint16_t& major,
+    uint16_t& minor,
+    uint16_t& patch,
+    uint16_t& tweak) {
     if (version.empty()) {
         throw std::invalid_argument { "Empty version string" };
     }
@@ -36,17 +60,14 @@ Version::Version(const std::string_view version)
             };
         }
 
-        const std::string_view segment { split.begin(), split.end() };
+        const std::basic_string_view segment { split.begin(), split.end() };
         if (segment.empty()) {
             throw std::invalid_argument {
                 "Empty segment in version string"
             };
         }
 
-        const char* begin = segment.data();
-        const char* end = segment.data() + segment.size();
-        if (const auto [ptr, ec] = std::from_chars(begin, end, *segments[idx]);
-            ec != std::errc() || ptr != end) {
+        if (!ToU16(segment, *segments[idx])) {
             throw std::invalid_argument {
                 "Invalid segment in version string"
             };
@@ -54,6 +75,25 @@ Version::Version(const std::string_view version)
 
         ++idx;
     }
+}
+} // namespace
+
+namespace z3lx::util {
+Version::Version(
+    const uint16_t major,
+    const uint16_t minor,
+    const uint16_t patch,
+    const uint16_t tweak) noexcept
+    : major { major }, minor { minor }, patch { patch }, tweak { tweak } {}
+
+Version::Version(const std::string_view version)
+    : major { 0 }, minor { 0 }, patch { 0 }, tweak { 0 } {
+    Parse(version, major, minor, patch, tweak);
+}
+
+Version::Version(const std::wstring_view version)
+    : major { 0 }, minor { 0 }, patch { 0 }, tweak { 0 } {
+    Parse(version, major, minor, patch, tweak);
 }
 
 Version::~Version() noexcept = default;

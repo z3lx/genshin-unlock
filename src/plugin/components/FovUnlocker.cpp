@@ -1,7 +1,6 @@
 #include "plugin/components/FovUnlocker.hpp"
 #include "plugin/Helper.hpp"
 #include "util/ExponentialFilter.hpp"
-#include "util/MinHook.hpp"
 
 #include <wil/result.h>
 
@@ -12,14 +11,16 @@
 
 #include <Windows.h>
 
+import mmh;
+
 namespace {
-constexpr uintptr_t OFFSET_GL = 0x10A7C30;
-constexpr uintptr_t OFFSET_CN = 0x10A8C30;
+constexpr uintptr_t OFFSET_OS = 0xFE0DA0;
+constexpr uintptr_t OFFSET_CN = 0xFE0DA0;
 
 void HkSetFieldOfView(void* instance, float value) noexcept;
 
 std::mutex mutex {};
-std::optional<z3lx::util::MinHook<void, void*, float>> minhook {};
+mmh::Hook<void, void*, float> hook {};
 z3lx::util::ExponentialFilter<float> filter {};
 
 bool isHooked = false;
@@ -38,14 +39,14 @@ FovUnlocker::FovUnlocker() noexcept = default;
 
 FovUnlocker::~FovUnlocker() noexcept {
     std::lock_guard lock { mutex };
-    minhook.reset();
+    hook = {};
 }
 
 void FovUnlocker::Start() {
     const auto [module, region] = GetGameModuleContext();
     const uintptr_t offset = [region] {
         switch (region) {
-        case GameRegion::GL: return OFFSET_GL;
+        case GameRegion::OS: return OFFSET_OS;
         case GameRegion::CN: return OFFSET_CN;
         default: THROW_WIN32(ERROR_NOT_SUPPORTED);
         }
@@ -58,7 +59,7 @@ void FovUnlocker::Start() {
     );
 
     std::lock_guard lock { mutex };
-    minhook = util::MinHook<void, void*, float> { target, detour };
+    hook = mmh::Hook<void, void*, float>::Create(target, detour);
 }
 
 void FovUnlocker::Update() {
@@ -77,10 +78,10 @@ void FovUnlocker::Hook(const bool hook) {
     }
     std::lock_guard lock { mutex };
     if (hook) {
-        minhook->Enable(true);
+        ::hook.Enable(true);
         isEnabledOnce = true;
     } else {
-        // minhook->Enable(false);
+        // ::hook.Enable(false);
     }
     isHooked = hook;
 }
@@ -113,7 +114,7 @@ void FovUnlocker::SetSmoothing(const float smoothing) noexcept {
 namespace {
 void HkSetFieldOfView(void* instance, float value) noexcept try {
     std::lock_guard lock { mutex };
-    if (!minhook.has_value()) {
+    if (!hook.IsCreated()) {
         return;
     }
 
@@ -144,7 +145,7 @@ void HkSetFieldOfView(void* instance, float value) noexcept try {
             value = filtered;
         } else if (!isHooked) {
             isPreviousFov = false;
-            minhook->Enable(false);
+            hook.Enable(false);
         }
     } else {
         const auto rep = std::bit_cast<std::uint32_t>(value);
@@ -153,9 +154,9 @@ void HkSetFieldOfView(void* instance, float value) noexcept try {
         previousFov = value;
     }
 
-    minhook->CallOriginal(instance, value);
+    hook.CallOriginal(instance, value);
 } catch (...) {
     // Should never happen
-    minhook->CallOriginal(instance, value);
+    hook.CallOriginal(instance, value);
 }
 } // namespace

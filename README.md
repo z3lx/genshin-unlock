@@ -55,7 +55,6 @@ The mod's behavior can optionally be customized through the `loader_config.json`
 
 | Key              | Type       | Description                                             |
 |------------------|------------|---------------------------------------------------------|
-| `checkUpdates`   | `bool`     | Checks for new versions of the mod                      |
 | `gamePath`       | `string`   | Path to the Genshin Impact executable                   |
 | `overrideArgs`   | `bool`     | Overrides the game's default launch arguments           |
 | `monitorIndex`   | `int`      | 1-based index of the monitor used for the game window   |
@@ -83,7 +82,6 @@ Default loader configuration:
 
 ```json
 {
-    "checkUpdates": true,
     "gamePath": "",
     "overrideArgs": false,
     "monitorIndex": 1,
@@ -296,9 +294,8 @@ cmake --build . --config Release
 ## Attributions
 
 This project makes use of the following libraries and resources:
-- [`cpr`](https://github.com/libcpr/cpr), licensed under the MIT License
 - [`glaze`](https://github.com/stephenberry/glaze), licensed under the MIT License
-- [`minhook`](https://github.com/TsudaKageyu/minhook), licensed under the BSD-2-Clause License
+- [`mminhook`](https://github.com/z3lx/mminhook), licensed under the MIT License
 - [`wil`](https://github.com/microsoft/wil), licensed under the MIT License
 - [`genshin-fps-unlock`](https://github.com/34736384/genshin-fps-unlock), referenced for implementation details
 - [`genshin-utility`](https://github.com/lanylow/genshin-utility), referenced for the initial conception of the mod

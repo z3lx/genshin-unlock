@@ -5,20 +5,18 @@
 #include "plugin/components/FpsUnlocker.hpp"
 #include "plugin/components/PersistentObject.hpp"
 #include "plugin/components/VirtualKeyState.hpp"
-#include "plugin/interfaces/IComponent.hpp"
-#include "plugin/interfaces/IRunnable.hpp"
+#include "plugin/interfaces/ComponentBase.hpp"
 
 #include <filesystem>
 
 namespace z3lx::plugin {
-class Plugin final
-    : public IComponent<
-        Plugin,
-        FpsUnlocker,
-        FovUnlocker,
-        PersistentObject<Config>,
-        VirtualKeyState>
-    , public IRunnable<Plugin> {
+class Plugin final : public ComponentBase<
+    Plugin,
+    FpsUnlocker,
+    FovUnlocker,
+    PersistentObject<Config>,
+    VirtualKeyState
+> {
 public:
     explicit Plugin(std::filesystem::path configFilePath);
     ~Plugin() noexcept;
