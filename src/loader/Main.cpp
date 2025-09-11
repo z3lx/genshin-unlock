@@ -72,58 +72,25 @@ std::filesystem::path GetGamePath() {
 }
 
 z::Version GetGameVersion() {
-    constexpr std::wstring_view targets[] = {
-        L"原神",
-        L"Genshin Impact"
+    constexpr std::wstring_view regKeyPaths[] = {
+        { LR"(SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\hk4e_global_1_0_VYTpXlbWo8_production)" },
+        { LR"(SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\hk4e_cn_1_1_jGHBHlcOq1_production)" }
     };
-
-    const wil::unique_hkey uninstallRegKeys[] {
-        wil::reg::open_unique_key(
+    for (const std::wstring_view regKeyPath : regKeyPaths) {
+        wil::unique_hkey uninstallRegKey {};
+        const HRESULT hr = wil::reg::open_unique_key_nothrow(
             HKEY_LOCAL_MACHINE,
-            LR"(SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall)"
-        ),
-        wil::reg::open_unique_key(
-            HKEY_LOCAL_MACHINE,
-            LR"(SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall)"
-        ),
-        wil::reg::open_unique_key(
-            HKEY_CURRENT_USER,
-            LR"(SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall)"
-        ),
-    };
-
-    for (const auto& uninstallRegKey : uninstallRegKeys) {
-        const auto subRegKeyNames = wil::make_range(
-            wil::reg::key_iterator { uninstallRegKey.get() },
-            wil::reg::key_iterator {}
+            regKeyPath.data(),
+            uninstallRegKey
         );
-        for (const auto& subRegKeyName : subRegKeyNames) {
-            const wil::unique_hkey subRegKey = wil::reg::open_unique_key(
-                uninstallRegKey.get(),
-                subRegKeyName.name.c_str()
-            );
-
-            wchar_t buffer[1024] {};
-            const HRESULT hr = wil::reg::get_value_string_nothrow(
-                subRegKey.get(),
-                L"DisplayName",
-                buffer
-            );
-
-            const auto comp = [&buffer](const std::wstring_view t) {
-                return std::wcscmp(buffer, t.data()) == 0;
-            };
-            if (FAILED(hr) || std::ranges::none_of(targets, comp)) {
-                continue;
-            }
-
-            THROW_IF_FAILED(wil::reg::get_value_string_nothrow(
-                subRegKey.get(),
-                L"DisplayVersion",
-                buffer
-            ));
-            return z::Version { buffer };
+        if (FAILED(hr)) {
+            continue;
         }
+        const std::wstring versionString = wil::reg::get_value_string(
+            uninstallRegKey.get(),
+            L"DisplayVersion"
+        );
+        return z::Version { versionString };
     }
     THROW_WIN32(ERROR_FILE_NOT_FOUND);
 }
@@ -344,7 +311,11 @@ int main() try {
         }
         std::exit(0);
     };
-    CheckCompatibility(onIncompatibility);
+    try {
+        CheckCompatibility(onIncompatibility);
+    } catch (...) {
+        std::println(std::cout, "Failed to get game version, skipping check");
+    }
 
     std::println(std::cout, "Starting game process...");
     StartGame(config);
