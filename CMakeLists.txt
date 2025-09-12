@@ -48,7 +48,8 @@ FetchContent_MakeAvailable(glaze)
 FetchContent_Declare(
     mminhook
     GIT_REPOSITORY https://github.com/z3lx/mminhook.git
-    GIT_TAG 385770a435c1be054e916b93b44d0318176d05ed
+    GIT_TAG 1.0.1
+    GIT_SHALLOW TRUE
 )
 FetchContent_MakeAvailable(mminhook)
 
