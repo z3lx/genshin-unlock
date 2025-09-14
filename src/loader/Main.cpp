@@ -39,7 +39,7 @@ std::filesystem::path GetGamePath() {
         key = std::move(cnKey);
         executableName = z::cnGameFileName;
     } else {
-        THROW_WIN32(ERROR_FILE_NOT_FOUND);
+        pwu::ThrowWin32Error(ERROR_FILE_NOT_FOUND);
     }
 
     return std::filesystem::path {
@@ -62,13 +62,16 @@ z::Version GetGameVersion() {
         if (FAILED(hr)) {
             continue;
         }
-        const std::wstring versionString = wil::reg::get_value_string(
-            uninstallRegKey.get(),
-            L"DisplayVersion"
-        );
+        std::wstring versionString {};
+        pwu::CatchThrowTraced([&] {
+            versionString = wil::reg::get_value_string(
+                uninstallRegKey.get(),
+                L"DisplayVersion"
+            );
+        });
         return z::Version { versionString };
     }
-    THROW_WIN32(ERROR_FILE_NOT_FOUND);
+    pwu::ThrowWin32Error(ERROR_FILE_NOT_FOUND);
 }
 
 template <typename OnInvalidConfig, typename OnInvalidFilePath>
@@ -127,7 +130,7 @@ z::Config ReadConfig(
 }
 
 template <typename OnIncompatibility>
-void CheckCompatibility(OnIncompatibility onIncompatibility) {
+void CheckCompatibility(OnIncompatibility onIncompatibility) try {
     const pwu::Version rawVersion = pwu::GetFileVersion(
         pwu::GetCurrentModuleFilePath()
     );
@@ -141,6 +144,10 @@ void CheckCompatibility(OnIncompatibility onIncompatibility) {
         modVersion.GetMinor() != gameVersion.GetMinor()) {
         onIncompatibility(modVersion, gameVersion);
     }
+} catch (...) {
+    pwu::CatchThrowTraced([] {
+        throw std::runtime_error { "Failed to check compatibility" };
+    });
 }
 
 void StartGame(const z::Config& config) {
@@ -183,7 +190,7 @@ void StartGame(const z::Config& config) {
 
     STARTUPINFOW si { .cb = sizeof(si) };
     PROCESS_INFORMATION pi {};
-    THROW_IF_WIN32_BOOL_FALSE(CreateProcessW(
+    pwu::ThrowIfWin32BoolFalse(CreateProcessW(
         config.gamePath.c_str(),
         args.data(),
         nullptr,
@@ -206,19 +213,6 @@ void StartGame(const z::Config& config) {
 } // namespace
 
 int main() try {
-    const auto loggingCallback = [](const wil::FailureInfo& info) noexcept {
-        std::array<wchar_t, 2048> buffer {};
-        const HRESULT result = wil::GetFailureLogString(
-            buffer.data(),
-            buffer.size(),
-            info
-        );
-        if (SUCCEEDED(result)) {
-            std::wcerr << buffer.data();
-        }
-    };
-    wil::SetResultLoggingCallback(loggingCallback);
-
     std::println(std::cout, "Reading configuration...");
     constexpr auto configFilePath = L"loader_config.json";
     const auto onInvalidConfig = [](z::Config& config) {
@@ -302,8 +296,8 @@ int main() try {
     };
     try {
         CheckCompatibility(onIncompatibility);
-    } catch (...) {
-        std::println(std::cout, "Failed to get game version, skipping check");
+    } catch (const std::exception& e) {
+        std::println(std::cerr, "{}", e.what());
     }
 
     std::println(std::cout, "Starting game process...");
@@ -313,11 +307,11 @@ int main() try {
 
     return 0;
 } catch (const std::exception& e) {
-    LOG_CAUGHT_EXCEPTION();
+    std::println(std::cerr, "{}", e.what());
     try {
         pwu::ShowMessageBox(
             "Loader",
-            std::format("An error occurred:\n{}", e.what()),
+            e.what(),
             pwu::MessageBoxIcon::Error,
             pwu::MessageBoxButton::Ok
         );
