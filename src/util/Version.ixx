@@ -12,7 +12,6 @@ public:
         std::uint16_t tweak = 0
     ) noexcept;
     explicit Version(std::string_view version);
-    explicit Version(std::wstring_view version);
     ~Version() noexcept;
 
     [[nodiscard]] std::uint16_t GetMajor() const noexcept;
