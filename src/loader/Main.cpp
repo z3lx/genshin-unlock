@@ -25,6 +25,7 @@
 #include <format>
 #include <iostream>
 #include <print>
+#include <ranges>
 #include <span>
 #include <string>
 #include <string_view>
@@ -71,27 +72,41 @@ std::filesystem::path GetGamePath() {
     } / executableName;
 }
 
-z::Version GetGameVersion() {
-    constexpr std::wstring_view regKeyPaths[] = {
-        { LR"(SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\hk4e_global_1_0_VYTpXlbWo8_production)" },
-        { LR"(SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\hk4e_cn_1_1_jGHBHlcOq1_production)" }
+z::Version GetGameVersion(const z::Config& config) {
+    const auto trimView = [] (std::string_view view) -> std::string_view {
+        const auto isSpace = [] (const unsigned char c) -> bool {
+            return std::isspace(c);
+        };
+        const auto first = std::ranges::find_if_not(view, isSpace);
+        const auto reverseView = view | std::views::reverse;
+        const auto last = std::ranges::find_if_not(reverseView, isSpace).base();
+        return (first < last)
+            ? view.substr(first - view.begin(), last - first)
+            : std::string_view {};
     };
-    for (const std::wstring_view regKeyPath : regKeyPaths) {
-        wil::unique_hkey uninstallRegKey {};
-        const HRESULT hr = wil::reg::open_unique_key_nothrow(
-            HKEY_LOCAL_MACHINE,
-            regKeyPath.data(),
-            uninstallRegKey
-        );
-        if (FAILED(hr)) {
+
+    const std::filesystem::path configFilePath =
+        config.gamePath.parent_path() / "config.ini";
+    const wil::unique_hfile configFile =
+        wil::open_or_create_file(configFilePath.c_str());
+    const std::string content =
+        z::ReadFile<std::string>(configFile.get());
+
+    for (auto lineRange : std::views::split(content, '\n')) {
+        std::string_view line { lineRange };
+        auto sep = std::ranges::find(line, '=');
+        if (sep == line.end()) {
             continue;
         }
-        const std::wstring versionString = wil::reg::get_value_string(
-            uninstallRegKey.get(),
-            L"DisplayVersion"
-        );
-        return z::Version { versionString };
+        const std::string_view key =
+            trimView(std::string_view { line.begin(), sep });
+        const std::string_view value =
+            trimView(std::string_view { sep + 1, line.end() });
+        if (key == "game_version") {
+            return z::Version { value };
+        }
     }
+
     THROW_WIN32(ERROR_FILE_NOT_FOUND);
 }
 
@@ -151,11 +166,13 @@ z::Config ReadConfig(
 }
 
 template <typename OnIncompatibility>
-void CheckCompatibility(OnIncompatibility onIncompatibility) {
+void CheckCompatibility(
+    const z::Config& config,
+    OnIncompatibility onIncompatibility) {
     const z::Version modVersion = z::GetFileVersion(
         z::GetCurrentModuleFilePath()
     );
-    const z::Version gameVersion = GetGameVersion();
+    const z::Version gameVersion = GetGameVersion(config);
     if (modVersion.GetMajor() != gameVersion.GetMajor() ||
         modVersion.GetMinor() != gameVersion.GetMinor()) {
         onIncompatibility(modVersion, gameVersion);
@@ -312,7 +329,7 @@ int main() try {
         std::exit(0);
     };
     try {
-        CheckCompatibility(onIncompatibility);
+        CheckCompatibility(config, onIncompatibility);
     } catch (...) {
         std::println(std::cout, "Failed to get game version, skipping check");
     }
