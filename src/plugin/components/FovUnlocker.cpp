@@ -14,8 +14,8 @@
 import mmh;
 
 namespace {
-constexpr uintptr_t OFFSET_OS = 0x1091A20;
-constexpr uintptr_t OFFSET_CN = 0x1092A20;
+constexpr uintptr_t OFFSET_OS = 0x10B9B70;
+constexpr uintptr_t OFFSET_CN = 0x10B9B70;
 
 void HkSetFieldOfView(void* instance, float value) noexcept;
 
