@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.28)
 project(genshin-fov-unlock
-    VERSION 7.0.0.0
+    VERSION 7.1.0.0
 )
 
 set(CMAKE_CXX_STANDARD 23)
