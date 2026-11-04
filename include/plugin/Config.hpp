@@ -19,6 +19,10 @@ struct Config {
     util::VirtualKey nextFovPresetKey = util::VirtualKey::RightArrow;
     util::VirtualKey prevFovPresetKey = util::VirtualKey::LeftArrow;
 
+    bool fixBurstFov = false;
+    int burstFovDelayMs = 1600;
+    util::VirtualKey burstFovKey = util::VirtualKey::Q;
+
     void Serialize(std::vector<uint8_t>& buffer);
     void Deserialize(const std::vector<uint8_t>& buffer);
 };

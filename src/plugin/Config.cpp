@@ -83,6 +83,15 @@ struct glz::meta<z3lx::plugin::Config> {
         "FOV smoothing must be between 0.0 and 1.0"
     >;
 
+    static constexpr auto burstFovDelayConstraintCondition = [](
+        const T&, const int delayMs) -> bool {
+        return delayMs >= 0 && delayMs <= 10000;
+    };
+    static constexpr auto burstFovDelayConstraint = read_constraint<
+        &T::burstFovDelayMs, burstFovDelayConstraintCondition,
+        "Burst FOV delay must be between 0 and 10000 milliseconds"
+    >;
+
     static constexpr auto value = object(
         &T::unlockFps,
         "targetFps", fpsOverrideConstraint,
@@ -93,7 +102,10 @@ struct glz::meta<z3lx::plugin::Config> {
         "fovSmoothing", fovSmoothingConstraint,
         &T::unlockFovKey,
         &T::nextFovPresetKey,
-        &T::prevFovPresetKey
+        &T::prevFovPresetKey,
+        &T::fixBurstFov,
+        "burstFovDelayMs", burstFovDelayConstraint,
+        &T::burstFovKey
     );
 };
 
